@@ -17,7 +17,7 @@ public partial class MainWindow
         {
             int chosen = i;
             var button = Btn((i + 1) + "  " + StepNames[i], () => ChangeStep(chosen), i == _wizardStep);
-            button.Padding = new Thickness(9,8);
+            button.Padding = new Thickness(9,8,9,8);
             button.FontSize = 11;
             button.Margin = new Thickness(0,0,6,7);
             steps.Children.Add(button);
