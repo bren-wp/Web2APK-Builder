@@ -1,16 +1,20 @@
-# Brendigo Web2APK Builder — izdanja
+# Brendigo Web2APK Builder – izdavanja
 
-## v0.1.0 — Windows Studio
+## v0.2.0 — Native Windows WPF Edition
 
-- Originalni tamni Brendigo UI za Windows, navigacija, dashboard i čarobnjak kroz šest koraka.
-- Lokalno spremanje Android projekata.
-- Podrška za HTTPS URL i lokalni HTML folder.
-- Izvoz Android Gradle projekta, Android SDK 36+, Gradle 9.6+.
-- Gradle generiranje APK/AAB paketa kada je lokalni alatni lanac instaliran.
-- Opcionalno lokalno potpisivanje Android paketa keystoreom; lozinke nisu spremljene.
-- Sigurniji WebView i osnovne validacije.
-- Automatizirana provjera i dvije Windows datoteke po izdanju.
+**Velika nadogradnja:** iz aktivnog desktop projekta uklonjen Electron. Novi Windows Studio implementiran je nativno u Microsoft .NET 10/WPF-u.
 
-Windows datoteke: Brendigo-Web2APK-portable.exe i Brendigo-Web2APK-Setup.exe.
+- Normalni prozor (1360 × 820, promjenjiv, minimalno 850 × 560), ne otvara se preko cijelog zaslona.
+- Tamni Brendigo vizualni stil, prilagodljivi bočni izbornik, kartice, čarobnjak u šest koraka.
+- Lokalna baza projekata i uređivanje identiteta, URL-a, lokalnih HTML projekata, SDK-a, tema i WebView konfiguracije.
+- Generator Android projekta izdvojen u .NET Core biblioteku s testovima.
+- Izrada Android APK/AAB paketa pomoću Android SDK + Gradle 9.6+ i potpisivanje lokalnim keystoreom.
+- Provjera Java/Gradle/ADB alata i lista Android uređaja.
+- Native Windows x64 portable.exe i setup.exe (Inno Setup), self-contained .NET.
+- Nema telemetrije ni korisničkog računa.
 
-Ograničenja v0.1.0: Windows datoteke nisu digitalno potpisane; nezavisne AdMob/Firebase integracije nisu izrađene; nije potvrđeno 1:1 poklapanje svih 16 zaslona s konceptima. Za APK/AAB potreban je JDK/Android SDK/Gradle. Android release APK je nepotpisan bez vlastitog keystorea.
+**Poznata ograničenja:** stvarni rad APK/AAB ovisi o instaliranom Android SDK-u i alatima; AdMob, Firebase, potpuno upravljanje kamerom, dozvolama, animacijama i custom launcher ikonama još nisu implementirani. Nije verificirano poklapanje 1:1 sa svim 16 referentnih zaslona. Windows paketi nisu kodno potpisani.
+
+## v0.1.0 — Electron prototip
+
+Prethodni Windows prototip sa sučeljem, izvozom Android projekata, Gradle postupkom i inicijalnim referentnim screenshotovima. Zamijenjen nativnom verzijom 0.2.0.

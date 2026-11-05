@@ -1,17 +1,16 @@
-name: Windows Studio - Quality
+name: Native Windows WPF - Quality
 on:
   pull_request:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  native-tests:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-dotnet@v4
         with:
-          node-version: "24"
-      - run: npm install --no-audit --no-fund
-      - run: npm test
-      - run: npm audit --omit=dev --audit-level=high
+          dotnet-version: '10.0.x'
+      - run: dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj
+      - run: dotnet build src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release

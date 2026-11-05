@@ -1,12 +1,14 @@
-# Brendigo Web2APK Builder · sigurnosne napomene
+# Brendigo Web2APK Builder · Sigurnosne informacije
 
-- Windows projektne datoteke lokalno se spremaju u userData direktorij. Ne koristi se udaljena aplikacijska baza.
-- Renderer radi s contextIsolation, sandbox načinom rada, isključenim nodeIntegration i lokalnim Content Security Policyjem.
-- Android projekt prema zadanim postavkama zahtijeva HTTPS i onemogućuje WebView pristup file:// datotekama.
-- Lokalni HTML projekti kopiraju se uz ograničenje broja i veličine datoteka; preskaču se skrivene i razvojne datoteke te se ne slijede simboličke poveznice.
-- Android keystore i lozinke nisu dio project.json datoteka.
-- Izrađene Windows izvršne datoteke nisu potpisane izdavačkim certifikatom.
-- Java/Gradle/SDK alate korisnik instalira i ažurira sam.
-- Kod i Android aplikacije prije produkcije moraju proći dodatne sigurnosne i funkcionalne testove.
+- Native Windows WPF/.NET program bez Electron renderera, vanjske telemetrije i udaljene korisničke baze.
+- JSON baza projekata pohranjuje se u %LOCALAPPDATA%\Brendigo\Web2APK Builder\projects.json. Upis koristi privremenu datoteku i zamjenu.
+- Android generator validira nazive, package ID, SDK, scheme i putanje prije izvoza.
+- Standardno HTTPS; HTTP je moguće uključiti izričito i prikazuje se upozorenje.
+- Android WebView: zabrana univerzalnog file URL pristupa, file access isključen, JavaScript prema konfiguraciji, WebView debugging isključen.
+- Lokalni HTML se kopira bez simboličkih poveznica, razvojnih mapa, .env i skrivenih datoteka, s limitima veličine i broja datoteka.
+- Android keystore lozinke ne pohranjuju se u JSON, niti se prikazuju u zapisniku. Prosljeđuju se samo procesu Gradlea kroz varijable okruženja.
+- Gradle build pokreće se izravno lokalno na računalu; preporučuju se provjerene verzije JDK/SDK/Gradle.
+- Windows EXE nije digitalno potpisan; zaštita od lažiranih datoteka zahtijeva potpisivanje službenim certifikatom.
+- Android paket prije objave mora biti potpisan i testiran na uređaju; ne tretirajte nepotpisan APK kao produkcijski paket.
 
-Ne objavljujte keystore, pristupne podatke i privatne putanje u javnim GitHub issues.
+Za prijavu ranjivosti izbjegavajte javno objavljivati certifikate, privatne podatke i pristupne ključeve.

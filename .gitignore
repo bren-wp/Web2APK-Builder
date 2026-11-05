@@ -1,9 +1,11 @@
-node_modules/
+bin/
+obj/
+publish/
 release/
-assets/icon.ico
-assets/icon-*.png
+.vs/
+*.user
+*.suo
+*.pdb
 *.log
+node_modules/
 .DS_Store
-.env
-.cache/
-coverage/
