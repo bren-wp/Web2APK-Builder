@@ -5,7 +5,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace Brendigo.Web2APK.Windows;
 
@@ -32,7 +31,6 @@ public partial class MainWindow : Window
     private bool _busy;
 
     private static Brush BrushOf(string color) => new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
-    private static readonly Brush Background = BrushOf("#0C1630");
     private static readonly Brush Stroke = BrushOf("#2B3B60");
     private static readonly Brush Muted = BrushOf("#9DB0D4");
     private static readonly Brush White = BrushOf("#F1F4FF");
