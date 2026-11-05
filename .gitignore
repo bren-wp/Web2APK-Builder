@@ -1,0 +1,9 @@
+node_modules/
+release/
+assets/icon.ico
+assets/icon-*.png
+*.log
+.DS_Store
+.env
+.cache/
+coverage/
