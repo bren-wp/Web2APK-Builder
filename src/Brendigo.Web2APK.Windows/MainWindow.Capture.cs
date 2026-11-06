@@ -64,6 +64,11 @@ public partial class MainWindow
                 png.Frames.Add(BitmapFrame.Create(img));
                 using var output=File.Create(Path.Combine(folder,name+".png"));
                 png.Save(output);
+                File.AppendAllText(diagnostics,"Size "+name+
+                    ": Root "+Root.ActualWidth+" × "+Root.ActualHeight+
+                    "; Host "+captureWindow.ActualWidth+" × "+captureWindow.ActualHeight+
+                    "; Page "+PageHost.ActualWidth+" × "+PageHost.ActualHeight+
+                    Environment.NewLine);
             }
             var splash = new SplashWindow();
             splash.Show();
