@@ -10,6 +10,8 @@ public static class LicenseEntitlements
     public const string Professional = "pro";
     public const string Developer = "developer";
     public const string Agency = "agency";
+    // Package IDs are bound on the first actual export/build for new signed licenses.
+    public const string AutomaticScope = "@";
 
     public static bool ValidTier(string? tier) => tier is Demo or Basic or Professional or Agency or Developer;
     private static bool SinglePackage(string name) =>
@@ -21,6 +23,7 @@ public static class LicenseEntitlements
     {
         if(tier is Developer or Agency)return package=="*";
         if(package is null)return false;
+        if(package==AutomaticScope)return tier is Demo or Basic or Professional;
         if(tier!=Professional)return SinglePackage(package);
         var ids=package.Split(',',StringSplitOptions.None);
         return ids.Length is >=1 and <=3 && ids.All(SinglePackage) &&

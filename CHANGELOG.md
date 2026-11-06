@@ -1,5 +1,16 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.2 — automatske licence bez ručnog package ID-ja
+
+- Brendigo License Studio generira nove BL2 licence s automatskim opsegom `@` za Demo, Osnovno i Profesionalac, bez unosa package ID-ja.
+- Windows Builder pri izvozu izvornog projekta ili izradi APK/AAB-a automatski rezervira licencno mjesto za točan Android package ID. Ažuriranje istog package ID-ja ne troši novo mjesto, dok brisanje projekta ne vraća mjesto.
+- Lokalna evidencija mjesta koristi Windows DPAPI i provjeru cjelovitosti; izmijenjeni zapisi blokiraju izvoz. To nije centralni aktivacijski servis i ne sprječava brisanje ili vraćanje lokalne evidencije.
+- Postavke prikazuju broj zauzetih i preostalih mjesta. Čarobnjak prikazuje prava novih licenci bez preuranjenog zauzimanja mjesta.
+- Android klijent prihvaća novi tip potpisane licence i vodi zasebnu lokalnu evidenciju konfiguracija; ne izrađuje APK/AAB i ne sinkronizira korištenje s Windowsom.
+- Kompatibilnost s već izdanim BL2 licencama i postojeće cijene, prava paketa i rokovi ostaju očuvani.
+- Dodani testovi automatskog opsega, granica licenci, ponovne upotrebe i DPAPI evidencije.
+
+
 ## v0.6.1 — precizniji Windows zasloni i puni odabir Android API-ja
 
 - Nativni Windows naslovni okvir s Brendigo ikonicom, gumbima minimiziranja, povećanja i zatvaranja te mogućnošću normalne promjene veličine prozora.

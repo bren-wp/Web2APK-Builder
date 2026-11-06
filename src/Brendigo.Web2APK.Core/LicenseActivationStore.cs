@@ -105,12 +105,17 @@ public static class LicenseActivationStore
         return true;
     }
 
-    public static bool TryAuthorize(string platform, ProjectDefinition project,string action,
+    /// <summary>Preview effective license scope without reserving a seat.</summary>
+    public static bool ScopeMatches(BrendigoLicense.Claims claim,string packageId) =>
+        claim.PackageName==LicenseEntitlements.AutomaticScope
+            ? AutomaticLicenseSeats.TryUse(claim,packageId,false,out _,out _)
+            : LicenseEntitlements.PackageMatches(claim,packageId);
+
+    public static bool TryAuthorize(string platform,ProjectDefinition project,string action,
         out BrendigoLicense.Claims? matched,out string reason)
     {
         matched=null;
         reason="Nije instalirana odgovarajuća licenca za ovu Android aplikaciju.";
-        // Developer first, then more capable package; neither tier nor project scope is trusted until verified.
         foreach(var c in Installed(platform).OrderByDescending(c=>c.Tier switch
         {
             LicenseEntitlements.Developer=>5,LicenseEntitlements.Agency=>4,
@@ -118,18 +123,35 @@ public static class LicenseActivationStore
             LicenseEntitlements.Basic=>2,_=>1
         }))
         {
-            if(LicenseEntitlements.Check(c,project,action,out var problem))
+            if(c.PackageName==LicenseEntitlements.AutomaticScope)
+            {
+                if(!AutomaticLicenseSeats.TryUse(c,project.PackageName,false,out _,out var seatReason))
+                {
+                    reason=seatReason;continue;
+                }
+                // Signed automatic scope is checked against the locally recorded package binding.
+                var effective=c with {PackageName=project.PackageName};
+                if(LicenseEntitlements.Check(effective,project,action,out var problem))
+                {
+                    matched=c;reason="";return true;
+                }
+                reason=problem;
+            }
+            else if(LicenseEntitlements.Check(c,project,action,out var problem))
             {
                 matched=c;reason="";return true;
             }
-            reason=problem;
+            else reason=problem;
         }
         return false;
     }
 
     public static void Require(string platform,ProjectDefinition project,string action)
     {
-        if(!TryAuthorize(platform,project,action,out _,out var reason))
+        if(!TryAuthorize(platform,project,action,out var claim,out var reason))
+            throw new UnauthorizedAccessException(reason);
+        if(claim is {PackageName: LicenseEntitlements.AutomaticScope} &&
+            !AutomaticLicenseSeats.TryUse(claim,project.PackageName,true,out _,out reason))
             throw new UnauthorizedAccessException(reason);
     }
 }

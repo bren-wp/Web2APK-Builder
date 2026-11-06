@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -50,6 +51,7 @@ public final class LicenseVerifier {
                 if(!pkg.equals("*"))return null;
             } else {
                 if(!(tier.equals("demo")||tier.equals("basic")||tier.equals("pro")))return null;
+                if(pkg.equals("@"))return new Claims(serial,tier,pkg);
                 String[] ids=pkg.split(",",-1);
                 if(ids.length<1 || ids.length>(tier.equals("pro")?3:1))return null;
                 java.util.HashSet<String> unique=new java.util.HashSet<>();
@@ -95,11 +97,36 @@ public final class LicenseVerifier {
             return prefs(context).edit().remove("license_"+oldSerial).commit();
         return true;
     }
+    /**
+     * The Android client only edits JSON configurations; it never builds APK/AAB.
+     * Its local seat list is best-effort, not a shared Windows/server entitlement ledger.
+     */
+    private static synchronized boolean autoScopeAllowed(Context ctx,Claims c,String id,boolean reserve) {
+        if(id==null || id.length()>180 ||
+            !id.matches("[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+"))return false;
+        try {
+            String key="automatic_seats_"+c.serial;
+            JSONArray seats=new JSONArray(prefs(ctx).getString(key,"[]"));
+            java.util.HashSet<String> entries=new java.util.HashSet<>();
+            for(int i=0;i<seats.length();i++) {
+                String existing=seats.getString(i);
+                if(!entries.add(existing))return false;
+            }
+            if(entries.contains(id))return true;
+            if(entries.size()>=(c.tier.equals("pro")?3:1))return false;
+            if(!reserve)return true;
+            seats.put(id);
+            return prefs(ctx).edit().putString(key,seats.toString()).commit();
+        }catch(Exception ignored){return false;}
+    }
+
     public static Claims forPackage(Context ctx,String packageId) {
         Claims result=null;
         for(Claims c:available(ctx)) {
             if(!(c.tier.equals("developer")||c.tier.equals("agency")) &&
-                !java.util.Arrays.asList(c.packageId.split(",")).contains(packageId))continue;
+                !(c.packageId.equals("@")
+                    ? autoScopeAllowed(ctx,c,packageId,false)
+                    : java.util.Arrays.asList(c.packageId.split(",")).contains(packageId)))continue;
             if(result==null || rank(c.tier)>rank(result.tier))result=c;
         }
         return result;
@@ -142,6 +169,8 @@ public final class LicenseVerifier {
         if(project.optBoolean("Camera")||project.optBoolean("Microphone")||project.optBoolean("Location"))
             if(!(c.tier.equals("developer")||c.tier.equals("agency")||c.tier.equals("pro")))
                 return "Kamera, mikrofon i lokacija dostupni su od paketa Profesionalac.";
+        if(c.packageId.equals("@") && !autoScopeAllowed(ctx,c,id,true))
+            return "Nema slobodnih licencnih mjesta za povezivanje ove aplikacije.";
         return null;
     }
 }

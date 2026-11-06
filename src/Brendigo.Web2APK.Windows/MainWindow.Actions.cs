@@ -25,11 +25,11 @@ public partial class MainWindow
             "Ako alat nedostaje, sam ga priprema u lokalnoj mapi nakon vaše privole. " +
             "Android Studio ne morate instalirati."));
         var authorized = LicenseActivationStore.Installed("windows")
-            .Where(c => LicenseEntitlements.PackageMatches(c,_draft.PackageName))
+            .Where(c => LicenseActivationStore.ScopeMatches(c,_draft.PackageName))
             .OrderByDescending(c => c.Tier switch {
                 "developer" => 5, "agency" => 4, "pro" => 3, "basic" => 2, _ => 1
             }).FirstOrDefault();
-        var tierName = authorized is null ? "Nema licence za odabrani package ID"
+        var tierName = authorized is null ? "Nema slobodnog licencnog mjesta za ovaj package ID"
             : LicenseEntitlements.DisplayName(authorized.Tier);
         panel.Children.Add(Feature("Aktivni licencni paket",tierName+" · "+(authorized?.PackageName ?? _draft.PackageName)));
         var actions = Row();
@@ -359,7 +359,13 @@ public partial class MainWindow
             var c=entry.Claims;
             var card=Stack();
             card.Children.Add(Txt(LicenseEntitlements.DisplayName(c.Tier),15,true));
-            card.Children.Add(Txt((c.Tier is "developer" or "agency"?"Neograničeno aplikacija":c.PackageName.Replace(",",", "))+
+            var scope=c.Tier is "developer" or "agency" ? "Neograničeno aplikacija" :
+                c.PackageName==LicenseEntitlements.AutomaticScope
+                    ? AutomaticLicenseSeats.Usage(c,out var used,out var status)
+                        ? $"Automatski · iskorišteno {used}/{LicenseEntitlements.ApplicationLimit(c.Tier)} · preostalo {LicenseEntitlements.ApplicationLimit(c.Tier)-used}"
+                        : "Evidencija mjesta nije dostupna: "+status
+                    : c.PackageName.Replace(",",", ");
+            card.Children.Add(Txt(scope+
                 (c.ExpiresAt==0?" · doživotno":" · vrijedi do "+
                     DateTimeOffset.FromUnixTimeSeconds(c.ExpiresAt).ToLocalTime().ToString("dd.MM.yyyy"))+
                 " · "+(c.Audience=="both"?"Windows + Android":"Windows"),
@@ -392,7 +398,7 @@ public partial class MainWindow
         var docs=Stack();
         docs.Children.Add(Feature("01 · Prva upotreba i licence",
             "U Postavkama otvorite Licence. Dodajte BL2 ključ, provjerite paket i maskirani identifikator. "+
-            "Profesionalac pokriva do tri unaprijed potpisana package ID-ja. Agencija i Developer nemaju limit broja projekata. Zamjena licence provjerava novi ključ prije uklanjanja starog."));
+            "Nove licence automatski povezuju tri aplikacije u paketu Profesionalac; stare BL2 licence zadržavaju potpisane ID-jeve. Agencija i Developer nemaju limit. Zamjena licence provjerava novi ključ prije uklanjanja starog."));
         docs.Children.Add(Feature("02 · Novo Android izdanje",
             "Odaberite Novi projekt i unesite naziv (2–70 znakova), package ID, izvornu HTTPS web-adresu ili mapu s index.html. "+
             "Package ID nije moguće olako mijenjati nakon objave na Google Playu. Povećajte versionCode za svako ažuriranje."));

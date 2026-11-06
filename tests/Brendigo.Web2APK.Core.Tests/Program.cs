@@ -71,6 +71,13 @@ var owner=demo with { Tier="developer",PackageName="*" };
 var triplePro=pro with { PackageName="com.demo.one,com.demo.two,com.demo.three" };
 var agency=demo with {Tier="agency",PackageName="*",ExpiresAt=now+30L*86400};
 Test(LicenseEntitlements.ValidPackage("pro",triplePro.PackageName),"Three package IDs accepted");
+Test(LicenseEntitlements.ValidPackage("demo",LicenseEntitlements.AutomaticScope) &&
+    LicenseEntitlements.ValidPackage("basic",LicenseEntitlements.AutomaticScope) &&
+    LicenseEntitlements.ValidPackage("pro",LicenseEntitlements.AutomaticScope),
+    "Automatic signed scope accepted for limited tiers");
+Test(!LicenseEntitlements.ValidPackage("agency",LicenseEntitlements.AutomaticScope) &&
+    !LicenseEntitlements.ValidPackage("developer",LicenseEntitlements.AutomaticScope),
+    "Unlimited tiers require wildcard scope");
 Test(!LicenseEntitlements.ValidPackage("pro","com.demo.one,com.demo.two,com.demo.three,com.demo.four"),
     "Four package IDs rejected");
 Test(!LicenseEntitlements.ValidPackage("pro","com.demo.one,com.demo.one"),
@@ -145,6 +152,36 @@ Test(Throws(()=>new ProjectDefinition{Name="Test",TargetSdk=35}.Validate()),"Old
 var root=Path.Combine(Path.GetTempPath(),"brendigo-tests-"+Guid.NewGuid().ToString("N"));
 try {
     Directory.CreateDirectory(root);
+    if(OperatingSystem.IsWindows())
+    {
+        var auto=demo with {PackageName=LicenseEntitlements.AutomaticScope};
+        var seats=Path.Combine(root,"seat-test");
+        Test(AutomaticLicenseSeats.TryUse(auto,"com.demo.first",false,out var before,out _,seats) && before==0,
+            "Preview does not consume a license seat");
+        Test(AutomaticLicenseSeats.TryUse(auto,"com.demo.first",true,out var one,out _,seats) && one==1,
+            "First package reserves one seat");
+        Test(AutomaticLicenseSeats.TryUse(auto,"com.demo.first",true,out var again,out _,seats) && again==1,
+            "Repeated build of same package is free");
+        Test(!AutomaticLicenseSeats.TryUse(auto,"com.demo.second",true,out _,out _,seats),
+            "Demo cannot use a second package");
+        Test(AutomaticLicenseSeats.Usage(auto,out var used,out _,seats) && used==1,
+            "Seat count persists");
+        var proAuto=auto with {Tier="pro",Serial=new string('b',32)};
+        Test(AutomaticLicenseSeats.TryUse(proAuto,"com.demo.first",true,out _,out _,seats) &&
+            AutomaticLicenseSeats.TryUse(proAuto,"com.demo.second",true,out _,out _,seats) &&
+            AutomaticLicenseSeats.TryUse(proAuto,"com.demo.third",true,out _,out _,seats) &&
+            !AutomaticLicenseSeats.TryUse(proAuto,"com.demo.fourth",true,out _,out _,seats),
+            "Professional max three unique packages");
+        Test(AutomaticLicenseSeats.Usage(proAuto,out var three,out _,seats) && three==3,
+            "Professional usage persisted");
+        var encrypted=Directory.GetFiles(seats,"*.dpapi").Single();
+        Test(!System.Text.Encoding.UTF8.GetString(File.ReadAllBytes(encrypted))
+            .Contains("com.demo.first",StringComparison.Ordinal),
+            "Windows seat ledger encrypted");
+        File.WriteAllText(encrypted,"tampered");
+        Test(!AutomaticLicenseSeats.Usage(proAuto,out _,out _,seats),
+            "Corrupted seat ledger fails closed");
+    }
     var store=new ProjectStore(Path.Combine(root,"data"));
     var saved=store.Save(project);
     Test(store.List().Count==1 && store.List()[0].Id==saved.Id,"Save/load");

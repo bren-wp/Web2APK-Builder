@@ -1,5 +1,5 @@
 #define MyAppName "Brendigo Web2APK Builder"
-#define MyAppVersion "0.6.1"
+#define MyAppVersion "0.6.2"
 #define MyAppPublisher "Brendigo"
 #define MyAppExeName "Brendigo.Web2APK.exe"
 
@@ -23,7 +23,7 @@ WizardStyle=modern
 UninstallDisplayIcon={app}\{#MyAppExeName}
 CloseApplications=yes
 RestartApplications=yes
-VersionInfoVersion=0.6.1.0
+VersionInfoVersion=0.6.2.0
 
 [Files]
 Source: "..\publish\Brendigo.Web2APK.exe"; DestDir: "{app}"; Flags: ignoreversion

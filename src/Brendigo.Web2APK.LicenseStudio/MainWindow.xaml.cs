@@ -13,7 +13,6 @@ public partial class MainWindow : Window
 {
     private string _audience="both";
     private string _tier="demo";
-    private string _lastPackage="com.brendigo.mojaaplikacija";
     private CancellationTokenSource? _cancel;
     public MainWindow(){ InitializeComponent(); }
     private void BrowseKey_Click(object sender,RoutedEventArgs e)
@@ -39,26 +38,23 @@ public partial class MainWindow : Window
             (ProButton,"pro"),(AgencyButton,"agency"),(DeveloperButton,"developer")})
             item.Item1.Background=new SolidColorBrush((Color)ColorConverter.ConvertFromString(
                 item.Item2==tier?"#6650D6":"#24365F"));
-        bool unlimited=tier is LicenseEntitlements.Developer or LicenseEntitlements.Agency;
         AgencyDuration.IsEnabled=tier==LicenseEntitlements.Agency;
-        ScopeHint.Text=tier==LicenseEntitlements.Professional
-            ?"Profesionalac: upišite do tri točna package ID-ja odvojena zarezom. Naknadni ID-jevi traže novu vlasnički potpisanu licencu."
-            :tier==LicenseEntitlements.Agency
-                ?"Agencija: neograničeno klijentskih aplikacija, valjana vremenska pretplata."
-                :"Svaka licenca vrijedi za jedan package ID, osim Agencije i Developera.";
-        if(unlimited)
+        ScopeHint.Text=tier switch
         {
-            if(PackageBox.IsEnabled)_lastPackage=PackageBox.Text;
-            PackageBox.Text="*";
-            PackageBox.IsEnabled=false;
+            LicenseEntitlements.Professional =>
+                "Do tri različite aplikacije. Package ID povezuje se pri prvom izvozu ili izradi.",
+            LicenseEntitlements.Agency or LicenseEntitlements.Developer =>
+                "Neograničen broj aplikacija. Nije potrebno unositi package ID.",
+            _ => "Jedna aplikacija. Package ID povezuje se pri prvom izvozu ili izradi."
+        };
+        if(tier is LicenseEntitlements.Agency or LicenseEntitlements.Developer)
+        {
             SelectAudience("both");
             WindowsButton.IsEnabled=false;
             AndroidButton.IsEnabled=false;
         }
         else
         {
-            PackageBox.IsEnabled=true;
-            if(PackageBox.Text=="*")PackageBox.Text=_lastPackage;
             WindowsButton.IsEnabled=true;
             AndroidButton.IsEnabled=true;
         }
@@ -80,9 +76,8 @@ public partial class MainWindow : Window
     private async void Export_Click(object sender,RoutedEventArgs e)
     {
         if(_cancel is not null)return;
-        if(!long.TryParse(CountBox.Text,NumberStyles.None,CultureInfo.InvariantCulture,out var count)||count<1 ||
-           !LicenseEntitlements.ValidPackage(_tier,PackageBox.Text.Trim()))
-        { MessageBox.Show(this,"Unesite pozitivnu količinu i valjan Android package ID (npr. com.tvrtka.mojaaplikacija).",
+        if(!long.TryParse(CountBox.Text,NumberStyles.None,CultureInfo.InvariantCulture,out var count)||count<1)
+        { MessageBox.Show(this,"Unesite pozitivnu količinu licenci.",
             "Provjerite unos",MessageBoxButton.OK,MessageBoxImage.Warning);return; }
         if(string.IsNullOrWhiteSpace(KeyPath.Text) || OwnerPassword.Password.Length<1)
         { MessageBox.Show(this,"Odaberite šifrirani vlasnički ključ i njegovu lozinku.",
@@ -103,7 +98,8 @@ public partial class MainWindow : Window
         var keyPath=KeyPath.Text;
         var audience=_audience;
         var tier=_tier;
-        var package=PackageBox.Text.Replace(" ","").Trim();
+        var package=tier is LicenseEntitlements.Agency or LicenseEntitlements.Developer
+            ? "*" : LicenseEntitlements.AutomaticScope;
         var agencyMonths=AgencyDuration.SelectedIndex==1?12:1;
         try {
             StatusText.Text="Otvaram vlasnički ključ…";

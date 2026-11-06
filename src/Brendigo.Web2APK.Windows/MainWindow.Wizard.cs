@@ -256,7 +256,7 @@ public partial class MainWindow
     private bool HasLicenseFeature(string feature)
     {
         return LicenseActivationStore.Installed("windows").Any(c=>
-            LicenseEntitlements.PackageMatches(c,_draft.PackageName) &&
+            LicenseActivationStore.ScopeMatches(c,_draft.PackageName) &&
             LicenseEntitlements.Allows(c,feature));
     }
 
@@ -417,7 +417,7 @@ public partial class MainWindow
         panel.Children.Add(Divider());
 
         var supported=LicenseActivationStore.Installed("windows")
-            .Where(c=>LicenseEntitlements.PackageMatches(c,_draft.PackageName))
+            .Where(c=>LicenseActivationStore.ScopeMatches(c,_draft.PackageName))
             .OrderByDescending(c=>c.Tier switch {"developer"=>5,"agency"=>4,"pro"=>3,"basic"=>2,_=>1})
             .FirstOrDefault();
         var export=Stack();

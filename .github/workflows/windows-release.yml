@@ -157,11 +157,11 @@ jobs:
             if (-not (Test-Path $item)) { throw "Android package is missing: $item" }
             if ((Get-Item $item).Length -lt 30000) { throw "Android package is too small: $item" }
           }
-      - name: Publish native v0.6.1
+      - name: Publish native v0.6.2
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = 'v0.6.1'
+          $tag = 'v0.6.2'
           gh release view $tag --repo "$env:GITHUB_REPOSITORY" 2>$null | Out-Null
           if ($LASTEXITCODE -eq 0) { throw 'Increment version for each new release.' }
-          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.6.1" --notes-file CHANGELOG.md
+          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.6.2" --notes-file CHANGELOG.md

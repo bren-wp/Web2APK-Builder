@@ -77,12 +77,11 @@
             </WrapPanel>
             <TextBlock x:Name="TierDetails" Text="Demo: APK bez oglasa, jedna aplikacija, trajno."
                        Foreground="#A9B9D9" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
-            <TextBlock Text="Android package ID (jedna aplikacija; Developer nema ograničenje)" FontSize="12"
+            <TextBlock Text="Povezivanje Android aplikacija" FontSize="12"
                        Foreground="#C0CCEA" Margin="0,14,0,7"/>
-            <TextBox x:Name="PackageBox" Text="com.brendigo.mojaaplikacija"/>
-            <TextBlock x:Name="ScopeHint" Foreground="#A9B9D9" FontSize="11"
-              Text="Profesionalac: do 3 package ID-ja odvojena zarezom." TextWrapping="Wrap"
-              Margin="0,8,0,0"/>
+            <TextBlock x:Name="ScopeHint" Foreground="#A9B9D9" FontSize="12"
+              Text="Package ID nije potrebno unositi. Prvo korištenje automatski zauzima licencno mjesto."
+              TextWrapping="Wrap" Margin="0,8,0,0"/>
             <TextBlock Foreground="#C0CCEA" FontSize="12" Text="Agencijsko razdoblje"
               Margin="0,14,0,7"/>
             <ComboBox x:Name="AgencyDuration" SelectedIndex="0" IsEnabled="False"

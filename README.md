@@ -66,13 +66,13 @@ Android WebView koristi širinu zaslona, viewport i sigurne rubove; konačni izg
 | AdMob, kamera, mikrofon i lokacija | — | — | ✓ | ✓ | ✓ |
 | Izrada aplikacija za klijente | — | — | do tri ID-ja | **da** | vlasnik |
 
-**Profesionalac:** jedna doživotna licenca dopušta najviše tri **unaprijed upisana i digitalno potpisana package ID-ja** odvojena zarezima (npr. `hr.agencija.prva,hr.agencija.druga,hr.agencija.treca`). Nova četvrta aplikacija zahtijeva drugu licencu. Zamjena jednog od upisanih ID-jeva zahtijeva novi vlasnički potpis.
+**Automatsko povezivanje licenci:** za nove licence Demo, Osnovno i Profesionalac License Studio više ne traži ručni package ID. Digitalno potpisana BL2 licenca ima automatski opseg `@`; Windows Builder pri prvom izvozu ili izradi bilježi package ID u lokalnoj DPAPI-zaštićenoj evidenciji. Demo i Osnovno dopuštaju jednu aplikaciju, Profesionalac tri. Ponovne izrade istog ID-ja ne troše nova mjesta; brisanje projekta ih ne oslobađa. Stare licence s unaprijed potpisanim package ID-jevima ostaju podržane. Ovo je **lokalno ograničenje**: bez aktivacijskog poslužitelja nije moguće pouzdano spriječiti brisanje evidencije ni uskladiti upotrebu na više računala.
 
 **Agencija:** predloženi komercijalni model **39 €/mj. ili 390 €/god.**, sve mogućnosti Developera i pravo izrade te komercijalne isporuke APK/AAB aplikacija klijentima tijekom aktivne pretplate. Licenca ima kriptografski potpisan datum isteka; za produženje se izdaje novi token. Pravo preprodaje aplikacija **nije pravo preprodaje vlasničkog License Studija ili privatnih licencnih ključeva**. Ovo je tehnički predloženi cjenik, ne aktiviran sustav automatske naplate.
 
 **Developer:** neograničena vlasnička doživotna licenca, sve opcije; nije namijenjena prodaji.
 
-Licencama se upravlja kroz **Postavke → Licence**, uz maskirani prikaz i zamjenu ključa. Bez serverske provjere nije moguće pouzdano spriječiti vraćanje sistemskog sata niti kopiranje offline ključa; za komercijalnu pretplatu preporučena je online revizija u budućoj verziji.
+Licencama se upravlja kroz **Postavke → Licence**, uz prikaz zauzetih i preostalih mjesta automatskih licenci, maskirani prikaz i zamjenu ključa. Bez serverske provjere nije moguće pouzdano spriječiti vraćanje sistemskog sata niti kopiranje offline ključa; za komercijalnu pretplatu preporučena je online revizija u budućoj verziji.
 
 Brendigo License Studio generira potpisane licence s odabranim paketima i razdobljem, bez privatnog ključa u korisničkoj aplikaciji. [Potpune upute za izdavanje licenci](docs/LICENSE-STUDIO-HR.md).
 
