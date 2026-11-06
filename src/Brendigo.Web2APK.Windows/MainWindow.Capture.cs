@@ -95,6 +95,9 @@ public partial class MainWindow
                 File.AppendAllText(diagnostics,"Rendering "+filename+Environment.NewLine);
                 Reflow(width,height);
                 Navigate(page);
+                Dispatcher.Invoke(() => { }, DispatcherPriority.Loaded);
+                Reflow(width,height);
+                Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
                 Reflow(width,height);
                 if(page=="new")
                 {

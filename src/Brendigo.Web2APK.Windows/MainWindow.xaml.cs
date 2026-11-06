@@ -81,7 +81,7 @@ public partial class MainWindow : Window
         foreach (var card in _stats) card.Width = statWidth;
         if (_wizardMainCard is not null && _wizardSummaryCard is not null)
         {
-            var available=Math.Max(400,viewport-64);
+            var available=Math.Max(300,PageHost.ActualWidth-22);
             var sideBySide=available >= 1040;
             var summaryWidth=Math.Min(370,available*.34);
             _wizardMainCard.Width=sideBySide?available-summaryWidth-28:available-14;
@@ -98,7 +98,7 @@ public partial class MainWindow : Window
         }
         if (_previewLeftCard is not null && _previewCenterCard is not null && _previewRightCard is not null)
         {
-            var available=Math.Max(400,viewport-64);
+            var available=Math.Max(300,PageHost.ActualWidth-22);
             var wide=available>=1050;
             var medium=available>=740;
             if(wide)
