@@ -25,16 +25,24 @@ public partial class MainWindow
             var diagnostics=Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native-progress.log");
             File.WriteAllText(diagnostics,"WPF capture started"+Environment.NewLine);
             // Render real WPF controls, never illustrative/mock-generated screenshots.
+            void Reflow(int width,int height)
+            {
+                var bounds=new Size(width,height);
+                Root.Width=width;Root.Height=height;
+                Root.InvalidateMeasure();
+                Root.Measure(bounds);
+                Root.Arrange(new Rect(bounds));
+                Root.UpdateLayout();
+                UpdateResponsive();
+                Root.InvalidateMeasure();
+                Root.Measure(bounds);
+                Root.Arrange(new Rect(bounds));
+                Root.UpdateLayout();
+            }
             void Capture(string name)
             {
                 File.AppendAllText(diagnostics,"Rendering "+name+Environment.NewLine);
-                var outputSize = new Size(1440,900);
-                Root.Width=1440; Root.Height=900;
-                Root.Measure(outputSize);
-                Root.Arrange(new Rect(outputSize));
-                Root.UpdateLayout();
-                UpdateResponsive();
-                Root.UpdateLayout();
+                Reflow(1440,900);
                 var img=new RenderTargetBitmap(1440,900,96,96,PixelFormats.Pbgra32);
                 img.Render(Root);
                 var png=new PngBitmapEncoder();
@@ -72,7 +80,10 @@ public partial class MainWindow
             void CheckCard(Border? card,string label)
             {
                 if(card==null || card.ActualWidth<1 || PageHost.ActualWidth<1)
-                    throw new InvalidOperationException("Missing responsive card: "+label);
+                    throw new InvalidOperationException("Missing responsive card: "+label+
+                        "; cardNull="+(card==null)+"; cardActual="+(card?.ActualWidth ?? -1)+
+                        "; cardWidth="+(card?.Width ?? -1)+"; pageActual="+PageHost.ActualWidth+
+                        "; rootActual="+Root.ActualWidth+"; pageChildren="+PageHost.Children.Count);
                 var location=card.TranslatePoint(new Point(0,0),PageHost);
                 if(location.X < -2 || location.X+card.ActualWidth > PageHost.ActualWidth+2)
                     throw new InvalidOperationException("Horizontal UI clipping: "+label+
@@ -82,13 +93,9 @@ public partial class MainWindow
             void CaptureCompact(string page,string filename,int width,int height)
             {
                 File.AppendAllText(diagnostics,"Rendering "+filename+Environment.NewLine);
+                Reflow(width,height);
                 Navigate(page);
-                Root.Width=width;Root.Height=height;
-                Root.Measure(new Size(width,height));
-                Root.Arrange(new Rect(0,0,width,height));
-                Root.UpdateLayout();
-                UpdateResponsive();
-                Root.UpdateLayout();
+                Reflow(width,height);
                 if(page=="new")
                 {
                     CheckCard(_wizardMainCard,"wizard form at "+width);
