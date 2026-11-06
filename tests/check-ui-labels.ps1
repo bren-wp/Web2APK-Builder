@@ -42,14 +42,14 @@ foreach($path in $frontends){
  }
 }
 $actions=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Actions.cs' -Raw
-foreach($item in @('apk.com.hr','info@apk.com.hr','Zamijeni ovu licencu','Nepotpisani APK','Debug APK')){
+foreach($item in @('apk.com.hr','info@apk.com.hr','Windows Builder — bez licenci','Nepotpisani APK','Debug APK')){
  if(-not($actions.Contains($item))){throw "Missing production feature: $item"}
 }
 $license=Get-Content 'src/Brendigo.Web2APK.Core/LicenseEntitlements.cs' -Raw
 if(-not($license.Contains('!project.BrendigoSplashBranding'))){
  throw 'Demo splash-lock enforcement is missing'
 }
-Write-Host 'Public program URLs, masked licensing, demo splash and export modes verified.'
+Write-Host 'Public program URLs, free Windows edition and all export modes verified.'
 
 $ent=Get-Content 'src/Brendigo.Web2APK.Core/LicenseEntitlements.cs' -Raw
 if(-not ($ent.Contains('public const string Agency') -and
@@ -70,7 +70,7 @@ $themed=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/App.xaml' -Raw
 if(-not ($themed.Contains('PART_Popup') -and $themed.Contains('ComboBoxItem'))) {
     throw 'License Studio dark selection popup missing.'
 }
-Write-Host 'Agency, multi-app Professional, gated source viewer and dark License Studio verified.'
+Write-Host 'Legacy Android BL2 format, source viewer and dark License Studio verified.'
 
 $chrome=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml' -Raw
 if($chrome -notmatch 'TitleBar_Drag' -or $chrome -notmatch 'WindowStyle="None"'){
@@ -154,3 +154,16 @@ if(-not ($androidFlow.Contains('reactivecircus/android-emulator-runner@v2') -and
   throw 'Android emulator and WPF visual regression CI checks missing.'
 }
 Write-Host 'Android emulator and native WPF visual regression configured.'
+
+# Windows distributions must never ask for activation or disable paid-tier controls.
+$winStartup=Get-Content 'src/Brendigo.Web2APK.Windows/App.xaml.cs' -Raw
+$windowsCore=Get-Content 'src/Brendigo.Web2APK.Core/WindowsEdition.cs' -Raw
+$store=Get-Content 'src/Brendigo.Web2APK.Core/LicenseActivationStore.cs' -Raw
+if($winStartup.Contains('new LicenseActivationWindow()') -or
+  -not $windowsCore.Contains('LicenseRequired = false') -or
+  -not $store.Contains('WindowsEdition.Capabilities') -or
+  $actions.Contains('Dodaj novu licencu') -or
+  $actions.Contains('Zamijeni ovu licencu')) {
+ throw 'Windows Portable/Setup must start fully unlocked, without license or key dialogs.'
+}
+Write-Host 'Windows Setup and Portable activation-free contract verified.'

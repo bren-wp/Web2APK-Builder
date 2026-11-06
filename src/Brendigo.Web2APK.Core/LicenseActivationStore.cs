@@ -45,6 +45,8 @@ public static class LicenseActivationStore
             "***************"+cleaned[^Math.Min(8,cleaned.Length)..];
     }
     public static IReadOnlyList<VisibleLicense> InstalledMasked(string platform) {
+        if(platform=="windows" && !WindowsEdition.LicenseRequired)
+            return Array.Empty<VisibleLicense>();
         var result=new List<VisibleLicense>();
         foreach(var token in Tokens())
             if(BrendigoLicense.TryVerify(token,platform,out var claim) && claim is not null)
@@ -79,12 +81,15 @@ public static class LicenseActivationStore
 
     public static bool IsActivated(string platform)
     {
+        if(platform=="windows" && !WindowsEdition.LicenseRequired)return true;
         foreach(var token in Tokens())
             if(BrendigoLicense.TryVerify(token,platform,out _))return true;
         return false;
     }
     public static IReadOnlyList<BrendigoLicense.Claims> Installed(string platform)
     {
+        if(platform=="windows" && !WindowsEdition.LicenseRequired)
+            return [WindowsEdition.Capabilities];
         var entries=new List<BrendigoLicense.Claims>();
         foreach(var token in Tokens())
             if(BrendigoLicense.TryVerify(token,platform,out var license) && license is not null)
@@ -114,6 +119,13 @@ public static class LicenseActivationStore
     public static bool TryAuthorize(string platform,ProjectDefinition project,string action,
         out BrendigoLicense.Claims? matched,out string reason)
     {
+        if(platform=="windows" && !WindowsEdition.LicenseRequired)
+        {
+            matched=WindowsEdition.Capabilities;
+            var allowed=LicenseEntitlements.Check(matched,project,action,out reason);
+            if(!allowed)matched=null;
+            return allowed;
+        }
         matched=null;
         reason="Nije instalirana odgovarajuća licenca za ovu Android aplikaciju.";
         foreach(var c in Installed(platform).OrderByDescending(c=>c.Tier switch
@@ -150,6 +162,7 @@ public static class LicenseActivationStore
     {
         if(!TryAuthorize(platform,project,action,out var claim,out var reason))
             throw new UnauthorizedAccessException(reason);
+        if(platform=="windows" && !WindowsEdition.LicenseRequired)return;
         if(claim is {PackageName: LicenseEntitlements.AutomaticScope} &&
             !AutomaticLicenseSeats.TryUse(claim,project.PackageName,true,out _,out reason))
             throw new UnauthorizedAccessException(reason);

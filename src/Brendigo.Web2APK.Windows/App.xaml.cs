@@ -1,7 +1,6 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
-using Brendigo.Web2APK.Core;
 
 namespace Brendigo.Web2APK.Windows;
 
@@ -31,16 +30,8 @@ public partial class App : Application
             return;
         }
 #endif
-        if (!LicenseActivationStore.IsActivated("windows"))
-        {
-            var dialog = new LicenseActivationWindow();
-            MainWindow = dialog;
-            if (dialog.ShowDialog() != true)
-            {
-                Shutdown(0);
-                return;
-            }
-        }
+        // All official Windows Builder Setup and Portable releases start without
+        // activation. Android Mobile licensing is independent and unchanged.
         var splash = new SplashWindow();
         MainWindow = splash;
         splash.Show();

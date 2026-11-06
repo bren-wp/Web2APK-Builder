@@ -3,9 +3,9 @@
 **Službeni kontakt za sigurnosne probleme: info@apk.com.hr.** Službeni web: apk.com.hr · razvoj: Brendigo / brendigo.com.
 
 ## Sigurnosna načela
-- Projekti, aktivacije i keystore pohranjuju se lokalno, bez korisničkog računa i ugrađene telemetrije. Offline licencni tokeni su potpisani, ali nisu enkriptirani niti vezani uz jedan uređaj.
+- **Windows Builder Setup i Portable od v0.6.8 nemaju aktivaciju, ograničenja licenci ni zahtjev za korisničkim računom.** Projekti i keystore pohranjuju se lokalno, bez ugrađene telemetrije. Zasebni Android Mobile klijent zadržava BL2 offline potpisane tokene koji nisu šifrirani niti vezani uz uređaj.
 - Izdavatelj licenci koristi vlasnički privatni ključ koji se ne isporučuje korisnicima i ne nalazi se u repozitoriju. Zamjena ključevâ prvo verificira novopotpisani token.
-- Brendigo Demo zahtijeva vlastitu ikonu i splash. Paketna prava provjeravaju se pri izvozu i gradnji te u Android editoru.
+- Windows Builder omogućuje vlastitu ikonu, splash, APK/AAB i izvorni kod bez licence. Zasebni Android editor i dalje provjerava prava svojih BL2 paketa.
 - Android WebView ograničava pristup datotekama, koristi HTTPS prema zadanim postavkama, provjerava podrijetlo i traži korisničko dopuštenje za kameru, mikrofon i lokaciju.
 - Lokalni HTML izvoz odbacuje simboličke poveznice, skrivene datoteke i pretjerano velike mape.
 - Potpisni ključ i zaporke ne pohranjuju se u projektne konfiguracije. Lokalni keytool koristi okolinsku varijablu za novu zaporku.

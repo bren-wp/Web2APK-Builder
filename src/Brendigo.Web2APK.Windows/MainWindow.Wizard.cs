@@ -442,20 +442,14 @@ public partial class MainWindow
         panel.Children.Add(SummaryRow(sdk,_draft.TargetSdk.ToString(),"#413273"));
         panel.Children.Add(Divider());
 
-        var supported=LicenseActivationStore.Installed("windows")
-            .Where(c=>LicenseActivationStore.ScopeMatches(c,_draft.PackageName))
-            .OrderByDescending(c=>c.Tier switch {"developer"=>5,"agency"=>4,"pro"=>3,"basic"=>2,_=>1})
-            .FirstOrDefault();
         var export=Stack();
         export.Children.Add(Txt("Izvoz",12,true));
-        var output=supported is null?"Unesite licencu za projekt":
-            LicenseEntitlements.Allows(supported,"aab")?"APK i AAB":"Samo APK";
-        export.Children.Add(Txt(output,11,false,Muted,new Thickness(0,5,0,0)));
+        export.Children.Add(Txt("APK, AAB i izvorni kod — bez licenci",
+            11,false,Muted,new Thickness(0,5,0,0)));
         panel.Children.Add(export);
         panel.Children.Add(Divider());
-        if(supported!=null)
-            panel.Children.Add(Txt("Paket: "+LicenseEntitlements.DisplayName(supported.Tier),11,false,
-                BrushOf("#AEBEED"),new Thickness(0,6,0,16)));
+        panel.Children.Add(Txt("Windows Portable i Setup: sve funkcije bez aktivacije",
+            11,false,BrushOf("#AEBEED"),new Thickness(0,6,0,16)));
 
         if(_wizardStep<StepNames.Length-1)
         {

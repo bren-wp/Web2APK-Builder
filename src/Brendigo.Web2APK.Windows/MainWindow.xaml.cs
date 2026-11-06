@@ -558,8 +558,8 @@ public partial class MainWindow : Window
             "Prethodni: "+existing.PackageName+"\n"+
             "Novi: "+requested.PackageName+"\n\n"+
             "Android i Google Play smatraju ovo DRUGOM aplikacijom. "+
-            "Ne može zamijeniti već objavljenu aplikaciju kao ažuriranje; "+
-            "automatska licenca može zauzeti novo mjesto.\n\n"+
+            "Ne može zamijeniti već objavljenu aplikaciju kao ažuriranje. "+
+            "Windows Builder ne zahtijeva licencu niti ograničava broj projekata.\n\n"+
             "Želite li svejedno nastaviti?",
             "Promjena identiteta Android aplikacije",MessageBoxButton.YesNo,
             MessageBoxImage.Warning)==MessageBoxResult.Yes;

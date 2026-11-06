@@ -35,6 +35,16 @@ resource escaping na posebne znakove u nazivu (apostrof, navodnik,
 backslash, @, ? i prijelom retka). Provjera koristi naziv s apostrofom
 i simbolima te kompilaciju stvarnog generiranog projekta.
 
+## Windows izdanje bez licenci
+
+Po vlasnikovu zahtjevu, v0.6.8 Windows Builder Portable i Setup više
+ne traže aktivaciju. Interni Windows capability profil dopušta sve
+funkcije bez potpisanog BL2 tokena, brojača mjesta i prijave. Nije
+generiran ni objavljen lažni potpisani licencni ključ. Zasebni Android
+Mobile ostaje na svojoj BL2 provjeri; stara Windows licencna evidencija
+ostaje netaknuta, ali se više ne koristi za Windows Builder.
+Regresijski testovi obuhvaćaju start bez licence i izvoze APK/AAB/izvora.
+
 ## Sigurnost i dead-code zaključci
 
 Prethodne provjere v0.6.7 uvele su provjeru točnog WebView podrijetla

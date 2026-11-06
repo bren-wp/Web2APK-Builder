@@ -11,8 +11,8 @@ static bool Throws(Action action) {
     try { action(); return false; } catch (ArgumentException) { return true; }
 }
 if (args.Length == 2 && args[0]=="--offline-emulator-fixture") {
-    var root=Path.GetFullPath(args[1]);
-    var html=Path.Combine(root,"input-html");
+    var emulatorRoot=Path.GetFullPath(args[1]);
+    var html=Path.Combine(emulatorRoot,"input-html");
     Directory.CreateDirectory(html);
     File.WriteAllText(Path.Combine(html,"index.html"),
         "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>" +
@@ -25,7 +25,7 @@ if (args.Length == 2 && args[0]=="--offline-emulator-fixture") {
         LocalPath=html,
         JavaScript=false
     };
-    AndroidProjectGenerator.Generate(config,Path.Combine(root,"project"));
+    AndroidProjectGenerator.Generate(config,Path.Combine(emulatorRoot,"project"));
     Console.WriteLine("Offline Android emulator fixture generated");
     return;
 }
@@ -74,6 +74,27 @@ if (args.Length == 2 && args[0]=="--ads-fixture") {
     Console.WriteLine("AdMob test fixture generated");
     return;
 }
+Test(!WindowsEdition.LicenseRequired &&
+     LicenseActivationStore.IsActivated("windows") &&
+     LicenseActivationStore.Installed("windows").Count==1 &&
+     LicenseActivationStore.InstalledMasked("windows").Count==0,
+     "Windows Portable and Setup run without license keys or activation");
+var freeProject=new ProjectDefinition {
+    Name="Windows Free Full Features",PackageName="com.brendigo.freestudio",
+    Url="https://example.com",Camera=true,Microphone=true,Location=true,
+    PullRefresh=true,AdMobEnabled=true,
+    AdMobAppId="ca-app-pub-3940256099942544~3347511713",
+    AdMobBannerId="ca-app-pub-3940256099942544/6300978111"
+};
+Test(LicenseActivationStore.TryAuthorize("windows",freeProject,"apk",out _,out _) &&
+     LicenseActivationStore.TryAuthorize("windows",freeProject,"aab",out _,out _) &&
+     LicenseActivationStore.TryAuthorize("windows",freeProject,"source",out _,out _) &&
+     LicenseActivationStore.Installed("windows").Any(c=>LicenseEntitlements.Allows(c,"branding")),
+     "Free Windows edition grants APK, AAB, source and advanced branding features");
+LicenseActivationStore.Require("windows",freeProject,"aab");
+Test(!LicenseActivationStore.IsActivated("android") ||
+     LicenseActivationStore.Installed("android").All(c=>c.Audience is "android" or "both"),
+     "Windows license-free edition does not automatically grant Android activation");
 Test(!BrendigoLicense.TryVerify("invalid","windows",out _),"Invalid activation rejected");
 Test(!BrendigoLicense.TryVerify("BL1.eyJ2IjoxLCJzIjoiOGFkOWMzN2IwMDgyMDdhZGIyMTM3OTQ4ZmY0MTk2NGQiLCJhIjoiYm90aCIsImlhdCI6MTc5Mzg3ODkwNSwiZXhwIjoxNzkzODkyNTA1fQ.UQUXxdvcS3iU_a62c5h7rU38IpNPf9A03ixM1JcGsf90VE8dfbEUohSRAVglMRnLUjVoi5u4YDZ7Q_ymCidoGtqN5Cz6TzbZFNK0XrHWSZcr4eXam0ignnxX8bDtoR6YhSjs9mnH0n39Vu1bFjmgH1NrprPFH5Nm8AqgvlSUGre8MB1FBWaRyAQY6K1hRF3UyL31dMqiyPYOaXdekUlVBiJa3JHUyjYah9Mn6SEMG6ujtQ_9oouhdCFCG6tfH0mSZWeyLl1BPVyj_jsYx0iF_IOl8bMy-hceDMR-BtOQWbTjuI4hVbl023bMcNVvx42XWXlACyyswWOfLVc5e63Uh0xIr9GQEk6_MJ1X9_Akj7yH790ShUtVrkFldBxU9w4PDeuUQtNb5ORQBR_uyZhm7k5WS6P9BvgklLn5r89lUmC7b7ytZ_8IUwFdSxXHPZ0qx1sbYGgSYqcdAIk22uoMf1nV2QOmPZxiWFjfEWmH38Pe4IPKAiwIlXVX2dEpQibw","windows",out _),"Authentic but expired license rejected");
 using (var forged=System.Security.Cryptography.RSA.Create(3072))

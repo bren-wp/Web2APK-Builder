@@ -59,24 +59,17 @@ Svaka nova aplikacija po zadanim postavkama dobiva originalnu **Brendigo launche
 
 Android WebView koristi širinu zaslona, viewport i sigurne rubove; konačni izgled udaljene web-stranice ovisi i o responzivnom HTML/CSS-u samog izvora.
 
-## Paketi i licence
+## Windows Builder — Portable i Setup bez licenci
 
-| Mogućnost | Demo · 0 € | Osnovno · 49 € | Profesionalac · 69 € | Agencija · 39 €/mj. ili 390 €/god. | Developer |
-|---|:--:|:--:|:--:|:--:|:--:|
-| Trajno korištenje / rok | doživotno | doživotno | doživotno | **1 ili 12 mjeseci** | doživotno |
-| Broj Android aplikacija | 1 | 1 | **3** | **neograničeno** | **neograničeno** |
-| APK | ✓ | ✓ | ✓ | ✓ | ✓ |
-| AAB | — | ✓ | ✓ | ✓ | ✓ |
-| Vlastita ikona i splash | — | ✓ | ✓ | ✓ | ✓ |
-| Pregled Java/XML/Gradle izvora | — | ✓ | ✓ | ✓ | ✓ |
-| Preuzimanje izvornog koda kao ZIP | — | ✓ | ✓ | ✓ | ✓ |
-| Firebase Push i osvježavanje | — | — | ✓ | ✓ | ✓ |
-| AdMob, kamera, mikrofon i lokacija | — | — | ✓ | ✓ | ✓ |
-| Izrada aplikacija za klijente | — | — | do tri ID-ja | **da** | vlasnik |
+**Od izdanja v0.6.8 Windows Builder Portable.exe i Setup.exe ne traže licencu, ključ, aktivaciju, registraciju, prijavu ili plaćanje.** Sve funkcije dostupne su bez ograničenja broja projekata: APK/AAB, ZIP i pregled izvornog koda, vlastite ikone i splash, kamere/mikrofoni/lokacija, AdMob, Firebase Push, pull-to-refresh i lokalno potpisivanje vlastitim keystoreom. Windows aplikacija ne čita niti rezervira lokalna BL2 licencna mjesta.
+
+*Napomena:* za izradu APK/AAB-a i dalje su potrebni JDK, Gradle i Android SDK; za objavu na Google Playu potreban je valjan potpis i poštovanje Google pravila. Ne morate upisati ključ licence za korištenje programa. Windows setup/portable sami mogu biti nepotpisani Microsoft Authenticode potpisom.
+
+**Odvojeni Android Mobile klijent** i dalje koristi postojeće BL2 offline licence. Zaseban **Brendigo License Studio** ostaje podržan za njihovo izdavanje i ne traži Builder aktivaciju pri pokretanju. Ranije korisničke licencne datoteke nisu obrisane, ali nove Windows distribucije ih ne zahtijevaju. Stari cjenik/licencni paketi odnose se na povijesne inačice ili odvojeni licencni sustav Android klijenta, a ne na licenciranje Windows Buildera v0.6.8+.
 
 **Sigurnost lokalnog HTML izvoza:** u APK/AAB se prenose samo dopuštene datoteke lokalnog web projekta; skrivene datoteke, najčešće datoteke s privatnim ključevima (`.pem`, `.p12`, `.jks` itd.) i tipične tajne konfiguracije (`credentials.json`, `google-services.json`, `service-account.json`) isključuju se iz Android assets. To je zaštita od slučajnog uključivanja poznatih vrsta tajni, ne zamjena za pregled vlastitog HTML sadržaja prije distribucije. [Zabilješke sigurnosnog pregleda v0.6.6](docs/SECURITY-DEADCODE-AUDIT-v0.6.6.md).
 
-**Automatski package ID:** novi Windows projekti dobivaju jedinstveni Android `applicationId` iz naziva (uključujući hrvatska slova) i stabilnog internog GUID-a. Nema obveznog ručnog unosa. ID možete urediti prije prve objave; nakon spremanja ime aplikacije može se mijenjati bez promjene ID-ja. Ako promijenite ID već spremljenog projekta, Windows Builder traži izričitu potvrdu jer Google Play to tretira kao drugu aplikaciju, a licenca može zauzeti dodatno mjesto.
+**Automatski package ID:** novi Windows projekti dobivaju jedinstveni Android `applicationId` iz naziva (uključujući hrvatska slova) i stabilnog internog GUID-a. Nema obveznog ručnog unosa. ID možete urediti prije prve objave; nakon spremanja ime aplikacije može se mijenjati bez promjene ID-ja. Ako promijenite ID već spremljenog projekta, Windows Builder traži izričitu potvrdu jer Google Play to tretira kao drugu aplikaciju, a u Android sustavu aplikacija će imati drugi identitet.
 
 **Automatsko povezivanje licenci:** za nove licence Demo, Osnovno i Profesionalac License Studio više ne traži ručni package ID. Digitalno potpisana BL2 licenca ima automatski opseg `@`; Windows Builder pri prvom izvozu ili izradi bilježi package ID u lokalnoj DPAPI-zaštićenoj evidenciji. Demo i Osnovno dopuštaju jednu aplikaciju, Profesionalac tri. Ponovne izrade istog ID-ja ne troše nova mjesta; brisanje projekta ih ne oslobađa. Stare licence s unaprijed potpisanim package ID-jevima ostaju podržane. Ovo je **lokalno ograničenje**: bez aktivacijskog poslužitelja nije moguće pouzdano spriječiti brisanje evidencije ni uskladiti upotrebu na više računala.
 
@@ -90,7 +83,7 @@ Brendigo License Studio generira potpisane licence s odabranim paketima i razdob
 
 ### Zaštita lokalne baze projekata
 
-Windows Studio pohranjuje projekte u lokalni `projects.json` i na svakom sljedećem spremanju zadržava prethodnu valjanu snimku kao `projects.json.bak`. Paralelna spremanja iz različitih instanci serijalizirana su zajedničkom blokadom, a neispravne, duplicirane i prevelike baze odbijaju se bez automatskog brisanja. Ako je baza oštećena, Studio otvara Postavke umjesto prekidanja pokretanja i omogućuje **Vraćanje projekata iz sigurnosne kopije** uz izričitu potvrdu. Prije oporavka provjerava se valjanost kopije, a zatečeni `projects.json` ostaje spremljen kao `projects.json.recovery-*.json`; obnova ne oslobađa niti poništava licencna mjesta. Preporučuje se dodatna sigurnosna kopija cijele mape podataka prije oporavka. Pohrana nije zamjena za vanjsku sigurnosnu kopiju diska.
+Windows Studio pohranjuje projekte u lokalni `projects.json` i na svakom sljedećem spremanju zadržava prethodnu valjanu snimku kao `projects.json.bak`. Paralelna spremanja iz različitih instanci serijalizirana su zajedničkom blokadom, a neispravne, duplicirane i prevelike baze odbijaju se bez automatskog brisanja. Ako je baza oštećena, Studio otvara Postavke umjesto prekidanja pokretanja i omogućuje **Vraćanje projekata iz sigurnosne kopije** uz izričitu potvrdu. Prije oporavka provjerava se valjanost kopije, a zatečeni `projects.json` ostaje spremljen kao `projects.json.recovery-*.json`; obnova ne mijenja odvojene datoteke starog BL2 sustava. Preporučuje se dodatna sigurnosna kopija cijele mape podataka prije oporavka. Pohrana nije zamjena za vanjsku sigurnosnu kopiju diska.
 
 ### Sigurnost WebViewa i potpisivanja
 

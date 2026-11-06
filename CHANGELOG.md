@@ -1,6 +1,11 @@
 # Brendigo Web2APK Builder — promjene
 
-## v0.6.8 — emulator, navigacijski UI testovi i mjerljiva vizualna regresija
+## v0.6.8 — Windows Portable/Setup bez licenci, emulator i vizualne regresije
+
+- **Po zahtjevu vlasnika**, Windows Builder Portable.exe i Setup.exe pokreću se bez BL2 licence, aktivacijskog prozora, registracije ili prijave. Sve mogućnosti APK/AAB/izvornog koda/brandinga/AdMob/Firebase dostupne su bez rezerviranja mjesta.
+- Windows prikaz Postavki i ugrađena Dokumentacija više ne nude aktivaciju niti zastarjele pakete. Vlasničke BL2 korisničke datoteke ostaju netaknute; odvojeni Android Mobile klijent i License Studio i dalje podržavaju postojeće BL2 licence.
+- Dodani regresijski testovi da Windows edition radi bez licence, da su dostupni osnovni i napredni izvozi, te da Android klijent nije implicitno otključan.
+- Ispravljen CI build-pogreška CS0136 (ponovljena lokalna varijabla `root` u emulator fixtureu) i Android SDK postavljanje na dostupni paket `platform-tools`.
 
 - Novi zasebni GitHub Actions workflow izrađuje i pokreće stvarni Android klijent i generiranu offline WebView aplikaciju na API 35 emulatoru.
 - Testira se aktivacijski ekran mobilnog klijenta na tri rezolucijska/gustoćna profila i učitavanje stvarnog lokalnog HTML-a; PNG snimke i XML hijerarhije pohranjuju se u CI artefakt.
@@ -8,7 +13,7 @@
 - U Release postupak dodana je usporedba uzorkovanih RGB piksela 20 stvarnih Windows zaslona s prethodno spremljenim snimkama te izvozni JSON izvještaj; velika neplanirana vizualna regresija zaustavlja izdanje.
 - Generator Android resursa obrađuje apostrofe, navodnike i početne znakove `@`/`?`, uz dodatni C# regresijski test i build-fixture s nazivom koji sadrži posebne znakove.
 - Metapodaci: Windows i License Studio 0.6.8, oba instalera 0.6.8, Android klijent 0.6.8 (`versionCode 15`).
-- Postojeće BL2 licence, paketi, cijene i prava ostaju nepromijenjeni. Emulator nije fizički uređaj i WPF regresijska kontrola ne potvrđuje potpunu pixel-perfect podudarnost.
+- Pravila potpisanih BL2 licenci zadržana su za zasebni Android Mobile klijent; Windows Builder izdanje bez licenci ne primjenjuje ograničenja i cijene. Emulator nije fizički uređaj i WPF regresijska kontrola ne potvrđuje pixel-perfect podudarnost.
 
 
 ## v0.6.7 — WebView origin sigurnost, potpisivanje i detaljniji pregled Windows zaslona

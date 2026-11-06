@@ -458,15 +458,15 @@ public partial class MainWindow
     {
         Heading("Dokumentacija","Cjelovite upute za Brendigo Web2APK Builder.");
         var docs=Stack();
-        docs.Children.Add(Feature("01 · Prva upotreba i licence",
-            "U Postavkama otvorite Licence. Dodajte BL2 ključ, provjerite paket i maskirani identifikator. "+
-            "Nove licence automatski povezuju tri aplikacije u paketu Profesionalac; stare BL2 licence zadržavaju potpisane ID-jeve. Agencija i Developer nemaju limit. Zamjena licence provjerava novi ključ prije uklanjanja starog."));
+        docs.Children.Add(Feature("01 · Prva upotreba bez licenci",
+            "Windows Builder Portable i Setup pokreću se odmah, bez aktivacije, licencnog ključa, prijave ili ograničenja projekata. "+
+            "Sve opcije za APK, AAB, izvore, ikone, oglase, Firebase i potpisivanje dostupne su bez otključavanja."));
         docs.Children.Add(Feature("02 · Novo Android izdanje",
             "Odaberite Novi projekt i unesite naziv (2–70 znakova); package ID nastaje automatski i može se urediti prije objave. Dodajte izvornu HTTPS web-adresu ili mapu s index.html. "+
             "Package ID nije moguće olako mijenjati nakon objave na Google Playu. Povećajte versionCode za svako ažuriranje."));
         docs.Children.Add(Feature("03 · Zadana ikonica, splash i izgled",
-            "Svaki projekt započinje s Brendigo ikonom i splash zaslonom. U Demo paketu oboje je zaključano. "+
-            "Osnovno, Profesionalac, Agencija i Developer mogu odabrati vlastitu PNG ikonu od najmanje 192×192, "+
+            "Svaki projekt započinje s Brendigo ikonom i splash zaslonom. U Windows izdanju oboje se može prilagoditi. "+
+            "Možete odabrati vlastitu PNG ikonu od najmanje 192×192, "+
             "prilagoditi boju i isključiti Brendigo splash. Pregledajte rezultat na stvarnom Android uređaju."));
         docs.Children.Add(Feature("04 · WebView, offline HTML i kompatibilnost",
             "HTTPS je zadano obvezan. JavaScript i DOM Storage uključujte samo za pouzdani sadržaj. "+
@@ -474,12 +474,12 @@ public partial class MainWindow
             "WebView pregled na Windowsu ne zamjenjuje test na telefonu."));
         docs.Children.Add(Feature("05 · Kamera, mikrofon, datoteke i lokacija",
             "Osjetljive dozvole uključujte samo kada su potrebne. Android od korisnika zasebno traži odobrenje. "+
-            "Kamera, mikrofon i lokacija dostupni su od paketa Profesionalac. "+
+            "U Windows Builderu sve dozvole mogu se uključiti bez licenci. "+
             "Izbjegavajte široke storage dozvole; za datoteke se koristi sistemski odabir."));
         docs.Children.Add(Feature("06 · Push i oglasi",
-            "Profesionalac, Agencija i Developer mogu uključiti povlačenje za osvježavanje i Firebase Push. "+
+            "U Windows Builderu bez licenci dostupni su povlačenje za osvježavanje i Firebase Push. "+
             "Za Firebase odaberite odgovarajući google-services.json s istim package ID-jem. "+
-            "AdMob je funkcija paketa Profesionalac, Agencija i Developer i traži vlastite oglasne identifikatore, UMP privolu i deklaracije."));
+            "AdMob traži vlastite oglasne identifikatore, UMP privolu i odgovarajuće deklaracije."));
         docs.Children.Add(Feature("07 · Android alati bez drugih programa",
             "Otvorite Razvojni alati i odaberite Pripremi JDK + Gradle + Android SDK unutar Studija. "+
             "Pročitajte i prihvatite uvjete, omogućite preuzimanje, a Studio provjerava kontrolne zbrojeve i "+
@@ -496,7 +496,7 @@ public partial class MainWindow
             "U Dozvolama navedite HTTPS politiku privatnosti i provjerite Data safety, vlasništvo nad webom, "+
             "target SDK, sadržaj i oglase. Izrada AAB-a ne jamči odobrenje na Google Playu."));
         docs.Children.Add(Feature("11 · Android Mobile klijent",
-            "Android klijent služi za pregled i uređivanje konfiguracija, licence, prava i prijenos JSON projekta. "+
+            "Android klijent služi za pregled i uređivanje konfiguracija, zasebne BL2 licence i prijenos JSON projekta. "+
             "Izvozne APK/AAB pakete generira Windows Studio. Mobitel ne zahtijeva korisnički račun ni udaljenu bazu."));
         docs.Children.Add(Feature("12 · Podrška i vlasništvo",
             "Službeni web: apk.com.hr · Tehnička podrška: info@apk.com.hr · "+
@@ -529,7 +529,7 @@ public partial class MainWindow
         body.Children.Add(Feature("Službena stranica programa","apk.com.hr"));
         body.Children.Add(Feature("Korisnička i tehnička podrška","info@apk.com.hr"));
         body.Children.Add(Feature("Privatnost i lokalni rad",
-            "Projekti i licence spremaju se na računalu. Nema korisničkih računa ni telemetrije. "+
+            "Projekti se spremaju lokalno. Windows izdanje ne traži licencu, račun ni prijavu i nema telemetriju. "+
             "Android SDK preuzima se samo uz vašu potvrdu."));
         body.Children.Add(Btn("Posjeti službenu stranicu",()=>
             Process.Start(new ProcessStartInfo {
