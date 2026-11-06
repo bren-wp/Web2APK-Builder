@@ -17,8 +17,10 @@ public static partial class ToolchainService
     public static string SdkManagerExecutable => Path.Combine(LocalSdkRoot,"cmdline-tools","latest","bin","sdkmanager.bat");
     public static string LocalAdbExecutable => Path.Combine(LocalSdkRoot,"platform-tools","adb.exe");
     public static bool IsLocalSdkInstalled => File.Exists(SdkManagerExecutable);
-    public static bool IsLocalAndroidPlatformInstalled =>
-        File.Exists(Path.Combine(LocalSdkRoot,"platforms","android-36","android.jar"));
+    public static bool IsLocalAndroidPlatformInstalled => IsLocalAndroidPlatformInstalledFor(36);
+    public static bool IsLocalAndroidPlatformInstalledFor(int api) =>
+        (api is 36 or 37) && File.Exists(Path.Combine(LocalSdkRoot,"platforms",
+            "android-"+api,"android.jar"));
     public static bool IsLocalAdbInstalled => File.Exists(LocalAdbExecutable);
 
     public static void ApplyEnvironment(ProcessStartInfo info)
@@ -81,8 +83,10 @@ public static partial class ToolchainService
         "90ae805d20434428bffcb699c290860f19bb5f66a67e6b330067e3de801fb04a";
 
     /// <summary>Call only after explicit user agreement with Android SDK license terms.</summary>
-    public static async Task<string> InstallAndroidSdkAsync(Action<string> progress,CancellationToken cancel)
+    public static async Task<string> InstallAndroidSdkAsync(Action<string> progress,CancellationToken cancel,int targetSdk=36)
     {
+        if(targetSdk is not (36 or 37))
+            throw new ArgumentException("Podržane su platforme Android SDK 36 i 37.");
         if(!IsLocalJdkInstalled && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("JAVA_HOME")))
             throw new InvalidOperationException("Najprije instalirajte JDK 17 kroz Studio.");
         Directory.CreateDirectory(Home);
@@ -109,11 +113,11 @@ public static partial class ToolchainService
             }
             progress("Prihvaćam Android SDK licence prema korisnikovoj izričitoj potvrdi...");
             await RunSdkManagerAsync(["--licenses"],true,progress,cancel);
-            progress("Instaliram Android SDK 36, build-tools i lokalni ADB...");
+            progress("Instaliram Android SDK "+targetSdk+", build-tools i lokalni ADB...");
             await RunSdkManagerAsync(
-                ["platform-tools","platforms;android-36","build-tools;36.0.0"],
+                ["platform-tools","platforms;android-"+targetSdk,"build-tools;36.0.0"],
                 false,progress,cancel);
-            if(!IsLocalAndroidPlatformInstalled||!IsLocalAdbInstalled)
+            if(!IsLocalAndroidPlatformInstalledFor(targetSdk)||!IsLocalAdbInstalled)
                 throw new IOException("Android SDK platforma ili ADB nisu instalirani.");
             progress("Android SDK je spreman unutar Brendigo Studija.");
             return LocalSdkRoot;

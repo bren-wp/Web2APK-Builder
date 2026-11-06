@@ -176,9 +176,9 @@ public partial class MainWindow
                 File.Exists(Path.Combine(java,"bin","java.exe")));
         var sdk=Environment.GetEnvironmentVariable("ANDROID_HOME") ??
             Environment.GetEnvironmentVariable("ANDROID_SDK_ROOT") ?? "";
-        bool haveSdk=ToolchainService.IsLocalAndroidPlatformInstalled ||
+        bool haveSdk=ToolchainService.IsLocalAndroidPlatformInstalledFor(_draft.TargetSdk) ||
             (!string.IsNullOrWhiteSpace(sdk) &&
-                File.Exists(Path.Combine(sdk,"platforms","android-36","android.jar")));
+                File.Exists(Path.Combine(sdk,"platforms","android-"+_draft.TargetSdk,"android.jar")));
         bool haveGradle=ToolchainService.IsGradleInstalled;
         if(haveJava&&haveSdk&&haveGradle)return;
         var confirm=MessageBox.Show(
@@ -197,7 +197,7 @@ public partial class MainWindow
             Dispatcher.BeginInvoke(() => AddLog(msg+Environment.NewLine)));
         if(!haveJava)await ToolchainService.InstallJdkAsync(progress,token);
         if(!haveGradle)await ToolchainService.InstallGradleAsync(progress,token);
-        if(!haveSdk)await ToolchainService.InstallAndroidSdkAsync(progress,token);
+        if(!haveSdk)await ToolchainService.InstallAndroidSdkAsync(progress,token,_draft.TargetSdk);
         UpdateToolStatus();
     }
 
@@ -300,7 +300,7 @@ public partial class MainWindow
         tools.Children.Add(Feature("Android alatni lanac unutar Brendigo Studija",
             "JDK 17: "+(ToolchainService.IsLocalJdkInstalled?"spreman":"nije preuzet")+
             " · Gradle: "+(ToolchainService.IsGradleInstalled?"spreman":"nije preuzet")+
-            " · Android SDK 36: "+(ToolchainService.IsLocalAndroidPlatformInstalled?"spreman":"nije preuzet")));
+            " · Android SDK 36/37: "+(ToolchainService.IsLocalAndroidPlatformInstalled?"spreman":"nije preuzet")));
         tools.Children.Add(Btn("Pripremi JDK + Gradle + Android SDK unutar Studija",async ()=>{
             const string instructions="Studio može preuzeti JDK 17, Gradle 9.6.1 i Android SDK 36 " +
                 "iz službenih izvora, provjeriti SHA-256 i pohraniti ih u svoj korisnički profil.\\n\\n" +
@@ -318,7 +318,7 @@ public partial class MainWindow
                     results.AppendText(message+Environment.NewLine)));
                 await ToolchainService.InstallJdkAsync(logger,cancellation.Token);
                 await ToolchainService.InstallGradleAsync(logger,cancellation.Token);
-                await ToolchainService.InstallAndroidSdkAsync(logger,cancellation.Token);
+                await ToolchainService.InstallAndroidSdkAsync(logger,cancellation.Token,_draft.TargetSdk);
                 results.AppendText("JDK, Gradle i Android SDK spremni su za izradu aplikacija.");
                 UpdateToolStatus();
                 ShowInfo("Alati su uspješno pripremljeni unutar Brendigo Studija.");

@@ -1,5 +1,5 @@
 #define MyAppName "Brendigo License Studio"
-#define MyAppVersion "0.6.0"
+#define MyAppVersion "0.6.1"
 #define MyAppPublisher "Brendigo"
 #define MyAppExeName "Brendigo.LicenseStudio.exe"
 [Setup]
@@ -20,7 +20,7 @@ Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 CloseApplications=yes
-VersionInfoVersion=0.6.0.0
+VersionInfoVersion=0.6.1.0
 UninstallDisplayIcon={app}\{#MyAppExeName}
 [Files]
 Source: "..\publish-license\Brendigo.LicenseStudio.exe"; DestDir: "{app}"; Flags: ignoreversion

@@ -86,6 +86,34 @@
             <Setter Property="Foreground" Value="#F2F5FF"/>
             <Setter Property="BorderBrush" Value="#42537B"/>
         </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="#111D37"/>
+            <Setter Property="Foreground" Value="#EDF2FF"/>
+            <Setter Property="BorderBrush" Value="#38496C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="#EDF2FF"/>
+            <Setter Property="Padding" Value="9,7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Selection" Padding="{TemplateBinding Padding}"
+                            CornerRadius="6" Background="Transparent">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Selection" Property="Background" Value="#3C327D"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Selection" Property="Background" Value="#253458"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="ComboBox">
             <Setter Property="Foreground" Value="#EEF2FF"/>
             <Setter Property="Background" Value="#0F1A36"/>

@@ -12,7 +12,7 @@ public partial class MainWindow
     {
         Heading("Novi Android projekt", "Korak " + (_wizardStep + 1) + " od 6 · " + StepNames[_wizardStep]);
         // A single horizontal stepper matches the reference and stays scrollable on narrow windows.
-        var steps = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0,0,0,12) };
+        var steps = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0,0,0,0) };
         for (int i = 0; i < StepNames.Length; i++)
         {
             int chosen = i;
@@ -42,7 +42,7 @@ public partial class MainWindow
         PageHost.Children.Add(new ScrollViewer { Content=steps,
             HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,
             VerticalScrollBarVisibility=ScrollBarVisibility.Disabled,
-            Margin=new Thickness(0,0,0,18) });
+            Margin=new Thickness(0,0,0,7) });
         var columns = Row();
         columns.Margin = new Thickness(0,0,0,0);
         var editor = Stack();

@@ -71,3 +71,17 @@ if(-not ($themed.Contains('PART_Popup') -and $themed.Contains('ComboBoxItem'))) 
     throw 'License Studio dark selection popup missing.'
 }
 Write-Host 'Agency, multi-app Professional, gated source viewer and dark License Studio verified.'
+
+$chrome=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml' -Raw
+if($chrome -notmatch 'TitleBar_Drag' -or $chrome -notmatch 'WindowStyle="None"'){
+ throw 'Native window titlebar not enabled.'
+}
+$native=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml.cs' -Raw
+if($native -notmatch 'WindowChrome.SetWindowChrome') {
+ throw 'Resize chrome not retained in borderless native window.'
+}
+$sdk=Get-Content 'src/Brendigo.Web2APK.Core/IntegratedToolchainService.cs' -Raw
+if($sdk -notmatch 'IsLocalAndroidPlatformInstalledFor' -or $sdk -notmatch 'targetSdk=36') {
+ throw 'Integrated Android SDK target chooser missing.'
+}
+Write-Host 'Window titlebar, resize chrome and Android SDK 36/37 installer verified.'

@@ -49,3 +49,6 @@ Ako build ne uspije, u Razvojni alati provjerite Java, Gradle i Android SDK. Pog
 
 ## Agencijska pretplata i tri aplikacije
 Za Profesionalac u License Studiju upišite jedan, dva ili tri potpuna package ID-ja, razdvojena zarezom i bez razmaka. Potpisani token dopušta samo te aplikacije. Agencija koristi `*` i može izvoziti aplikacije za klijente dok je licenca valjana; na datum isteka novi izvozi se blokiraju. Ova offline pretplata ne uključuje automatsku naplatu ni pouzdanu zaštitu od vraćanja sistemskog sata. Pri obnovi u Postavke → Licence unesite novu potpisanu licencu.
+
+## 19. Novije podešavanje Android SDK platforme
+Pri izradi Studio provjerava projektni Target SDK i preuzima platformu 36 ili 37 prema odabranom API-ju. Nije potreban Android Studio ni ručno upravljanje SDK managerom; preuzimanje se potvrđuje u programu, a provjera arhive koristi SHA-256. API 37 nije automatski preduvjet za projekte koji koriste API 36.

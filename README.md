@@ -105,7 +105,7 @@ Android klijent služi za pregled i uređivanje konfiguracija, prijenos projekat
 - Službene ovisnosti i Google SDK-ovi preuzimaju se samo uz odobrenje. AdMob, Firebase i odabrani web-sadržaj mogu samostalno obrađivati mrežne podatke.
 - Napredne Google Play značajke ovise o pravilima, korisničkoj privoli, stvarnim vjerodajnicama i dodatnim uređajskim testovima; izrada AAB-a **ne jamči odobrenje** aplikacije.
 
-Pročitajte [sigurnosna pravila](SECURITY.md), [pregled sigurnosti i dead codea](docs/SECURITY-DEADCODE-AUDIT-v0.6.0.md) te [detaljne korisničke upute](docs/KORISNICKE-UPUTE-HR.md).
+Pročitajte [sigurnosna pravila](SECURITY.md), [pregled sigurnosti i dead codea](docs/SECURITY-DEADCODE-AUDIT-v0.6.1.md) te [detaljne korisničke upute](docs/KORISNICKE-UPUTE-HR.md).
 
 ## Preuzimanja
 

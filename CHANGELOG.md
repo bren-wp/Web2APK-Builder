@@ -1,6 +1,16 @@
-# Brendigo Web2APK Builder — povijest izdanja
+# Brendigo Web2APK Builder — promjene
 
-## v0.6.0 — Profesionalac 3 aplikacije, Agencija i izvorni kod
+## v0.6.1 — precizniji Windows zasloni i puni odabir Android API-ja
+
+- Nativni Windows naslovni okvir s Brendigo ikonicom, gumbima minimiziranja, povećanja i zatvaranja te mogućnošću normalne promjene veličine prozora.
+- Usklađena visina gornjeg zaglavlja i razmaci na ekranu Novi projekt prema originalnoj referenci 1440×900.
+- Tamne WPF liste i označavanje datoteka unutar preglednika izvornog koda, bez bijelog zadanog izgleda.
+- Integrirani Android SDK sada prema projektnom Target SDK odabire platformu **36 ili 37**. JDK 17 i Gradle 9.6.1 ostaju dostupni kroz Studio.
+- Zadržana kompatibilnost s potpisanim BL2 licencama v0.6.0, paketima Profesionalac (3 unaprijed potpisane aplikacije), Agencija i Developer.
+- Provjera svih postojećih Windows/Android buildova i stvarnih WPF snimki ostaje uvjet objave.
+
+
+## v0.6.1 — Profesionalac 3 aplikacije, Agencija i izvorni kod
 
 - Profesionalac 69 € doživotno za do 3 različita package ID-ja u vlasnički potpisanom BL2 tokenu.
 - Profesionalac sada dopušta AdMob, kameru, mikrofon, lokaciju, Firebase i napredne opcije.

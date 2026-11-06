@@ -5,6 +5,8 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Shell;
 using System.Windows.Media;
 
 namespace Brendigo.Web2APK.Windows;
@@ -49,6 +51,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        WindowChrome.SetWindowChrome(this,new WindowChrome {
+            CaptionHeight=0,ResizeBorderThickness=new Thickness(6),
+            CornerRadius=new CornerRadius(0),GlassFrameThickness=new Thickness(0),
+            UseAeroCaptionButtons=false
+        });
         UpdateToolStatus();
         Directory.CreateDirectory(_dataDir);
         _store = new ProjectStore(_dataDir);
@@ -64,15 +71,26 @@ public partial class MainWindow : Window
     {
         var sdkRoot=Environment.GetEnvironmentVariable("ANDROID_HOME") ??
             Environment.GetEnvironmentVariable("ANDROID_SDK_ROOT") ?? "";
-        bool installed=ToolchainService.IsLocalAndroidPlatformInstalled ||
-            File.Exists(Path.Combine(sdkRoot,"platforms","android-36","android.jar"));
-        AndroidSdkState.Text=installed?"✓  Android SDK 36 spreman":"Android SDK · priprema alata";
+        bool installed=ToolchainService.IsLocalAndroidPlatformInstalledFor(_draft.TargetSdk) ||
+            File.Exists(Path.Combine(sdkRoot,"platforms","android-"+_draft.TargetSdk,"android.jar"));
+        AndroidSdkState.Text=installed?"✓  Android SDK "+_draft.TargetSdk+" spreman":"Android SDK · priprema alata";
         AndroidSdkState.Foreground=installed?BrushOf("#7BE8D0"):BrushOf("#D9B8F7");
         SdkStatusBadge.Background=installed?BrushOf("#0C3639"):BrushOf("#2D2540");
         SdkStatusBadge.BorderBrush=installed?BrushOf("#176D65"):BrushOf("#69518A");
     }
 
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsive();
+    private void TitleBar_Drag(object sender,MouseButtonEventArgs e)
+    {
+        if(e.ClickCount==2)
+            WindowState=WindowState==WindowState.Maximized?WindowState.Normal:WindowState.Maximized;
+        else if(e.LeftButton==MouseButtonState.Pressed)
+            DragMove();
+    }
+    private void TitleBar_Minimize(object sender,RoutedEventArgs e)=>WindowState=WindowState.Minimized;
+    private void TitleBar_Maximize(object sender,RoutedEventArgs e)=>
+        WindowState=WindowState==WindowState.Maximized?WindowState.Normal:WindowState.Maximized;
+    private void TitleBar_Close(object sender,RoutedEventArgs e)=>Close();
     private void UpdateResponsive()
     {
         if (NavigationHost is null) return;

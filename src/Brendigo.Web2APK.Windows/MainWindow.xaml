@@ -4,16 +4,45 @@
         Title="Brendigo Web2APK Builder — Windows Studio"
         Icon="Assets/Brendigo.ico"
         Width="1340" Height="830" MinWidth="840" MinHeight="570" WindowStartupLocation="CenterScreen"
-        WindowState="Normal" WindowStyle="SingleBorderWindow" ResizeMode="CanResizeWithGrip"
+        WindowState="Normal" WindowStyle="None" ResizeMode="CanResizeWithGrip"
         FontFamily="Segoe UI" FontSize="13" Background="{StaticResource BackgroundBrush}"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
         SizeChanged="Window_SizeChanged">
     <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="38"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="SidebarColumn" Width="250"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" BorderBrush="#263450" BorderThickness="0,0,1,0">
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#0A1228"
+                BorderBrush="#253251" BorderThickness="0,0,0,1"
+                MouseLeftButtonDown="TitleBar_Drag">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="─" ToolTip="Minimiziraj prozor"
+                        Width="43" Height="33" BorderThickness="0" Background="Transparent"
+                        Foreground="#CBD4EC" Click="TitleBar_Minimize"/>
+                    <Button Content="□" ToolTip="Povećaj ili vrati prozor"
+                        Width="43" Height="33" BorderThickness="0" Background="Transparent"
+                        Foreground="#CBD4EC" Click="TitleBar_Maximize"/>
+                    <Button Content="×" ToolTip="Zatvori aplikaciju"
+                        Width="43" Height="33" BorderThickness="0" Background="Transparent"
+                        Foreground="#E3C3CD" Click="TitleBar_Close"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="17,0">
+                    <Image Source="Assets/Brendigo.ico" Width="21" Height="21" Margin="0,0,10,0"/>
+                    <TextBlock Text="Brendigo Web2APK Builder" FontSize="12"
+                        Foreground="#AABBD9" VerticalAlignment="Center" Margin="0,0,11,0"/>
+                    <Border Background="#28224B" CornerRadius="8" Padding="6,3">
+                        <TextBlock Text="STUDIO" FontSize="9" Foreground="#BDAFFF"/>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource SidebarBrush}" BorderBrush="#263450" BorderThickness="0,0,1,0">
             <DockPanel Margin="16,26,16,18">
                 <Border x:Name="SidebarFooter" DockPanel.Dock="Bottom" CornerRadius="14" Background="#16223E" BorderBrush="#2A3C60"
                         BorderThickness="1" Padding="11,13" Margin="0,12,0,0">
@@ -39,7 +68,7 @@
                 </ScrollViewer>
             </DockPanel>
         </Border>
-        <Grid Grid.Column="1">
+        <Grid Grid.Row="1" Grid.Column="1">
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
                     <GradientStop Color="#11264B" Offset="0"/>
@@ -47,7 +76,7 @@
                     <GradientStop Color="#191B43" Offset="1"/>
                 </LinearGradientBrush>
             </Grid.Background>
-            <Grid.RowDefinitions><RowDefinition Height="85"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="70"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <Border Grid.Row="0" Background="#10182F" BorderBrush="#263350" BorderThickness="0,0,0,1">
                 <Grid Margin="32,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
