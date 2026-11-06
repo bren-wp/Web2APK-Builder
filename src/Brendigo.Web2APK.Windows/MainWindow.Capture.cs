@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -20,17 +21,16 @@ public partial class MainWindow
             if(!ReferenceEquals(Content,Root))
                 throw new InvalidOperationException("Unexpected WPF root.");
             Content=null;
-            // Attach the visual tree to its own real composition target. A detached
-            // UIElement cannot reliably update ActualWidth/ActualHeight on Windows CI.
-            var captureWindow = new Window {
-                Content=Root, Width=1440, Height=900,
-                WindowStartupLocation=WindowStartupLocation.Manual,
-                Left=-3000, Top=-3000,
-                WindowStyle=WindowStyle.None,
-                ResizeMode=ResizeMode.NoResize,
-                ShowInTaskbar=false, ShowActivated=false
+            // The runner's normal WPF Window is OS-limited to ~1044x788.
+            // A raw HWND source keeps a full 1440x900 composition target.
+            var parameters=new HwndSourceParameters("Brendigo Native Capture") {
+                Width=1440, Height=900,
+                PositionX=-3500, PositionY=-3500,
+                WindowStyle=unchecked((int)0x80000000), // WS_POPUP without desktop clamping
+                UsesPerPixelOpacity=false
             };
-            captureWindow.Show();
+            using var captureSource=new HwndSource(parameters);
+            captureSource.RootVisual=Root;
             var folder = Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native");
             Directory.CreateDirectory(folder);
             var diagnostics=Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native-progress.log");
@@ -39,16 +39,15 @@ public partial class MainWindow
             void Reflow(int width,int height)
             {
                 var bounds=new Size(width,height);
-                captureWindow.Width=width;captureWindow.Height=height;
+                captureSource.Resize(width,height);
                 Root.Width=width;Root.Height=height;
-                captureWindow.InvalidateMeasure();
-                captureWindow.UpdateLayout();
+                captureSource.Dispatcher.Invoke(()=>{ }, DispatcherPriority.Loaded);
                 Root.InvalidateMeasure();
                 Root.Measure(bounds);
                 Root.Arrange(new Rect(bounds));
                 Root.UpdateLayout();
                 UpdateResponsive();
-                captureWindow.UpdateLayout();
+                captureSource.Dispatcher.Invoke(()=>{ }, DispatcherPriority.Render);
                 Root.InvalidateMeasure();
                 Root.Measure(bounds);
                 Root.Arrange(new Rect(bounds));
@@ -66,7 +65,7 @@ public partial class MainWindow
                 png.Save(output);
                 File.AppendAllText(diagnostics,"Size "+name+
                     ": Root "+Root.ActualWidth+" × "+Root.ActualHeight+
-                    "; Host "+captureWindow.ActualWidth+" × "+captureWindow.ActualHeight+
+                    "; Capture "+captureSource.CompositionTarget?.TransformToDevice.M11+" DPI scale"+
                     "; Page "+PageHost.ActualWidth+" × "+PageHost.ActualHeight+
                     Environment.NewLine);
             }
@@ -143,8 +142,7 @@ public partial class MainWindow
             CaptureCompact("new","wizard-small-900",900,650);
             CaptureCompact("preview","preview-small-900",900,650);
             Root.Width=double.NaN;Root.Height=double.NaN;
-            captureWindow.Content=null;
-            captureWindow.Close();
+            captureSource.RootVisual=null;
             Console.WriteLine("Captured "+Directory.GetFiles(folder,"*.png").Length+" native WPF screenshots.");
             Application.Current.Shutdown(0);
         }
