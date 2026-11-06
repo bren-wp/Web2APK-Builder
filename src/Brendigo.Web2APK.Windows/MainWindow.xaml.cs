@@ -212,7 +212,7 @@ public partial class MainWindow : Window
         info.Children.Add(new Border {
             Background=BrushOf("#302D70"),BorderBrush=BrushOf("#6756B7"),
             BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(14),
-            HorizontalAlignment=HorizontalAlignment.Left,Padding=new Thickness(11,5),
+            HorizontalAlignment=HorizontalAlignment.Left,Padding=new Thickness(11,5,11,5),
             Child=Txt("✧  STUDIO · NOVI PROJEKT",10,true,BrushOf("#CBBAFF"))
         });
         info.Children.Add(Txt("Od web-stranice do Android aplikacije.",26,true,White,new Thickness(0,13,0,10)));
