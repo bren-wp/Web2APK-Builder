@@ -31,6 +31,18 @@ public partial class MainWindow
                 using var output=File.Create(Path.Combine(folder,name+".png"));
                 png.Save(output);
             }
+            var splash = new SplashWindow();
+            splash.Show();
+            splash.SplashRoot.Measure(new Size(790,490));
+            splash.SplashRoot.Arrange(new Rect(0,0,790,490));
+            splash.SplashRoot.UpdateLayout();
+            var splashBitmap = new RenderTargetBitmap(790,490,96,96,PixelFormats.Pbgra32);
+            splashBitmap.Render(splash.SplashRoot);
+            var splashEncoder = new PngBitmapEncoder();
+            splashEncoder.Frames.Add(BitmapFrame.Create(splashBitmap));
+            using (var splashOut=File.Create(Path.Combine(folder,"splash.png"))) splashEncoder.Save(splashOut);
+            splash.Close();
+            Navigate("welcome"); Capture("welcome");
             _wizardStep=0;
             Navigate("dashboard");Capture("dashboard");
             for(int step=0;step<6;step++)
@@ -39,7 +51,7 @@ public partial class MainWindow
                 Navigate("new");
                 Capture("wizard-"+(step+1)+"-"+new[]{"basics","appearance","webview","features","permissions","build"}[step]);
             }
-            foreach(var page in new[]{"projects","tools","devices","settings","docs","about"})
+            foreach(var page in new[]{"projects","preview","tools","devices","settings","docs","about"})
             {
                 Navigate(page);
                 Capture(page);

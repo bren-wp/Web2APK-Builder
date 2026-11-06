@@ -36,6 +36,9 @@ public sealed class ProjectDefinition
     public string AdMobBannerId { get; set; } = "";
     public bool FirebasePushEnabled { get; set; }
     public string FirebaseConfigPath { get; set; } = "";
+    public string PrivacyPolicyUrl { get; set; } = "";
+    public bool WebsitePublishingPermissionConfirmed { get; set; }
+    public bool DataSafetyReviewed { get; set; }
 
     public bool StatusBar { get; set; } = true;
     public bool Splash { get; set; } = true;
@@ -62,6 +65,13 @@ public sealed class ProjectDefinition
         if (!new[] { "dark", "light" }.Contains(Theme)) throw new ArgumentException("Nepoznata tema.");
         if (!Regex.IsMatch(Accent, "^#[0-9a-fA-F]{6}$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)))
             throw new ArgumentException("Primarna boja mora biti #RRGGBB.");
+        if (!string.IsNullOrWhiteSpace(PrivacyPolicyUrl))
+        {
+            if (PrivacyPolicyUrl.Length > 2000 || !Uri.TryCreate(PrivacyPolicyUrl,UriKind.Absolute,out var privacy) ||
+                privacy.Scheme != Uri.UriSchemeHttps || string.IsNullOrWhiteSpace(privacy.Host) ||
+                !string.IsNullOrEmpty(privacy.UserInfo))
+                throw new ArgumentException("Pravila privatnosti moraju imati javnu HTTPS adresu.");
+        }
         if (SplashDurationMs is < 0 or > 3000)
             throw new ArgumentException("Splash trajanje mora biti između 0 i 3000 ms.");
         if (AdMobEnabled)

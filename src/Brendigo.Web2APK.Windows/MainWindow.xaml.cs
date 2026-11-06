@@ -30,6 +30,12 @@ public partial class MainWindow : Window
     private PasswordBox? _storePassword;
     private PasswordBox? _keyPassword;
     private bool _busy;
+    private Border? _previewLeftCard, _previewCenterCard, _previewRightCard;
+    private Microsoft.Web.WebView2.Wpf.WebView2? _previewBrowser;
+    private Grid? _previewSurface;
+    private string _previewDevice = "phone";
+    private bool _previewSplash = true;
+    private FrameworkElement? _heroPhone;
 
     private static Brush BrushOf(string color) => new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
     private static readonly Brush Stroke = BrushOf("#2B3B60");
@@ -44,7 +50,7 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(_dataDir);
         _store = new ProjectStore(_dataDir);
         MakeNavigation();
-        Navigate("dashboard");
+        Navigate(_store.List().Count == 0 && !Environment.GetCommandLineArgs().Contains("--capture-native") ? "welcome" : "dashboard");
         if (Environment.GetCommandLineArgs().Contains("--capture-native"))
             Loaded += CaptureNativeScreensOnLoaded;
     }
@@ -53,9 +59,11 @@ public partial class MainWindow : Window
     private void UpdateResponsive()
     {
         if (NavigationHost is null) return;
-        var compact = ActualWidth < 1080;
-        SidebarColumn.Width = new GridLength(compact ? 84 : 245);
+        var compact = ActualWidth < 1020;
+        SidebarColumn.Width = new GridLength(compact ? 82 : 250);
         BrandWords.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        SidebarFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        if (_heroPhone is not null) _heroPhone.Visibility = ActualWidth < 1200 ? Visibility.Collapsed : Visibility.Visible;
         foreach (var entry in _navButtons)
         {
             var item = entry.Value.Content as StackPanel;
@@ -63,16 +71,28 @@ public partial class MainWindow : Window
                 label.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         }
         var viewport = Math.Max(550, PageScroll?.ActualWidth ?? 900);
-        var statsPerRow = viewport > 1100 ? 4 : viewport > 630 ? 2 : 1;
-        var statWidth = Math.Max(210, (viewport - 80 - (statsPerRow - 1) * 14) / statsPerRow);
+        var statsPerRow = viewport > 980 ? 4 : viewport > 630 ? 2 : 1;
+        var statWidth = Math.Max(190, (viewport - 80 - (statsPerRow - 1) * 14) / statsPerRow);
         foreach (var card in _stats) card.Width = statWidth;
-        var fieldWidth = Math.Clamp((viewport - 130) / (viewport > 1050 ? 2 : 1), 245, 410);
-        foreach (var field in _fieldCells) field.Width = fieldWidth;
         if (_wizardMainCard is not null && _wizardSummaryCard is not null)
         {
             var two = viewport > 1040;
             _wizardMainCard.Width = two ? viewport - 420 : viewport - 72;
             _wizardSummaryCard.Width = two ? 300 : viewport - 72;
+            var contentWidth = Math.Max(280,_wizardMainCard.Width-64);
+            var paired = contentWidth >= 575;
+            var normal = paired ? (contentWidth-30)/2 : contentWidth-14;
+            foreach (var field in _fieldCells)
+                field.Width = field.Tag is string role && role == "wide"
+                    ? contentWidth-14 : normal;
+        }
+        if (_previewLeftCard is not null && _previewCenterCard is not null && _previewRightCard is not null)
+        {
+            var wide = viewport > 1130;
+            var medium = viewport > 770;
+            _previewLeftCard.Width = wide ? 270 : medium ? 270 : viewport - 65;
+            _previewCenterCard.Width = wide ? viewport - 665 : medium ? viewport - 320 : viewport - 65;
+            _previewRightCard.Width = wide ? 300 : viewport - 65;
         }
     }
 
@@ -82,7 +102,7 @@ public partial class MainWindow : Window
         NavigationHost.Children.Add(Caption("RADNI PROSTOR"));
         foreach (var (key, label, icon) in new[] {
             ("dashboard","Početna","\uE80F"),("new","Novi projekt","\uE710"),
-            ("projects","Moji projekti","\uE8B7"),("tools","Razvojni alati","\uE713"),
+            ("projects","Moji projekti","\uE8B7"),("preview","Pregled aplikacije","\uE8A7"),
             ("devices","Uređaji","\uE8EA"),("settings","Postavke","\uE713") })
             AddNav(key, label, icon);
         var help = Caption("POMOĆ");
@@ -100,6 +120,7 @@ public partial class MainWindow : Window
         inner.Children.Add(new TextBlock { Text = label, FontSize = 13, Foreground = White, VerticalAlignment = VerticalAlignment.Center });
         var b = new Button { Content = inner, Style = (Style)FindResource("NavigationButton"), Tag = key,
             Margin = new Thickness(0,2,0,4), HorizontalAlignment = HorizontalAlignment.Stretch };
+        b.ToolTip = label;
         b.Click += (_, _) => { if (key == "new") StartNew(); else Navigate(key); };
         _navButtons[key] = b;
         NavigationHost.Children.Add(b);
@@ -132,21 +153,35 @@ public partial class MainWindow : Window
 
     private void Navigate(string page)
     {
+        if (_page == "preview" && page != "preview") { _previewBrowser?.Dispose(); _previewBrowser = null; }
         _page = page;
+        _previewLeftCard = null; _previewCenterCard = null; _previewRightCard = null; _previewSurface = null;
+        _heroPhone = null;
         _summaryTitle = null; _wizardMainCard = null; _wizardSummaryCard = null;
         _stats.Clear(); _fieldCells.Clear();
         PageHost.Children.Clear();
         Breadcrumb.Text = "Radni prostor   ›   " + (page switch {
-            "dashboard" => "Početna", "new" => "Novi projekt", "projects" => "Moji projekti",
+            "welcome" => "Dobrodošli", "dashboard" => "Početna", "new" => "Novi projekt", "projects" => "Moji projekti",
+            "preview" => "Pregled aplikacije",
             "tools" => "Razvojni alati", "devices" => "Uređaji", "settings" => "Postavke",
             "docs" => "Dokumentacija", "about" => "O programu", _ => "Web2APK" });
         foreach (var item in _navButtons)
-            item.Value.Background = item.Key == page ? BrushOf("#302B73") : Brushes.Transparent;
+        {
+            var selected = item.Key == page || (page == "welcome" && item.Key == "dashboard");
+            item.Value.Background = selected ? BrushOf("#302A74") : Brushes.Transparent;
+            item.Value.BorderThickness = selected ? new Thickness(1) : new Thickness(0);
+            item.Value.BorderBrush = selected ? BrushOf("#5547C8") : Brushes.Transparent;
+            if (item.Value.Content is StackPanel icons && icons.Children.Count > 1 &&
+                icons.Children[1] is TextBlock title)
+                title.FontWeight = selected ? FontWeights.Bold : FontWeights.Medium;
+        }
         try
         {
             switch (page)
             {
+                case "welcome": Welcome(); break;
                 case "dashboard": Dashboard(); break;
+                case "preview": Preview(); break;
                 case "new": Wizard(); break;
                 case "projects": Projects(); break;
                 case "tools": Tools(); break;
@@ -169,49 +204,100 @@ public partial class MainWindow : Window
 
     private void Dashboard()
     {
-        var hero = new Grid { MinHeight = 235, Margin = new Thickness(0,0,0,16) };
-        hero.Background = new LinearGradientBrush(BrushOf("#203969") is SolidColorBrush s ? s.Color : Colors.Navy,
-            (Color)ColorConverter.ConvertFromString("#413083"), 17);
-        var border = new Border { BorderBrush = BrushOf("#5750A5"), BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(21), Background = hero.Background, Padding = new Thickness(30,25,20,20),
-            Margin = new Thickness(0,0,0,0) };
-        var body = Stack();
-        body.Children.Add(Txt("✦ STUDIO · NOVI PROJEKT", 11, true, BrushOf("#C3AFFF"), new Thickness(0,0,0,12)));
-        body.Children.Add(Txt("Od web-stranice do Android aplikacije.", 28, true, White,
-            new Thickness(0,0,0,10)));
-        body.Children.Add(Txt("Povežite URL ili lokalni HTML projekt, prilagodite izgled i izradite Android paket.", 14, false,
-            BrushOf("#C6D1EC"), new Thickness(0,0,0,16)));
-        var actions = Row();
-        actions.Children.Add(Btn("＋  Novi projekt", StartNew, true));
-        actions.Children.Add(Btn("▣  Moji projekti", () => Navigate("projects")));
-        body.Children.Add(actions);
-        border.Child = body;
-        hero.Children.Add(border);
-        PageHost.Children.Add(hero);
+        var projects=_store.List();
+        var hero=new Grid { MinHeight=198 };
+        hero.ColumnDefinitions.Add(new ColumnDefinition { Width=new GridLength(1,GridUnitType.Star) });
+        hero.ColumnDefinitions.Add(new ColumnDefinition { Width=new GridLength(206) });
+        var info=Stack();
+        info.Children.Add(new Border {
+            Background=BrushOf("#302D70"),BorderBrush=BrushOf("#6756B7"),
+            BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(14),
+            HorizontalAlignment=HorizontalAlignment.Left,Padding=new Thickness(11,5),
+            Child=Txt("✧  STUDIO · NOVI PROJEKT",10,true,BrushOf("#CBBAFF"))
+        });
+        info.Children.Add(Txt("Od web-stranice do Android aplikacije.",26,true,White,new Thickness(0,13,0,10)));
+        info.Children.Add(Txt("Izradite Android projekt s vlastitim izgledom, dozvolama i potpisivanjem.",
+            13,false,BrushOf("#D1D9EF"),new Thickness(0,0,0,15)));
+        var actions=Row();
+        actions.Children.Add(Btn("＋  Novi projekt",StartNew,true));
+        actions.Children.Add(Btn("▣  Moji projekti",()=>Navigate("projects")));
+        info.Children.Add(actions);
+        hero.Children.Add(info);
+        var phone=new Border {
+            Width=121,Height=191,CornerRadius=new CornerRadius(23),
+            BorderThickness=new Thickness(5),BorderBrush=BrushOf("#6778C5"),
+            Background=BrushOf("#302777"),HorizontalAlignment=HorizontalAlignment.Center,
+            VerticalAlignment=VerticalAlignment.Center,
+            RenderTransform=new RotateTransform(-14),RenderTransformOrigin=new Point(.5,.5)
+        };
+        var icon=new System.Windows.Controls.Image {
+            Source=new System.Windows.Media.Imaging.BitmapImage(
+                new Uri("pack://application:,,,/Assets/Brendigo.ico")),
+            Width=63,Height=63,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center
+        };
+        phone.Child=icon;
+        Grid.SetColumn(phone,1);hero.Children.Add(phone);
+        _heroPhone=phone;
+        PageHost.Children.Add(new Border {
+            Child=hero,Background=new LinearGradientBrush(
+                (Color)ColorConverter.ConvertFromString("#233D76"),
+                (Color)ColorConverter.ConvertFromString("#41318C"),10),
+            BorderBrush=BrushOf("#56529A"),BorderThickness=new Thickness(1),
+            CornerRadius=new CornerRadius(20),Padding=new Thickness(28,19,20,15),
+            Margin=new Thickness(0,0,0,20),ClipToBounds=true
+        });
 
-        var projects = _store.List();
-        var stats = Row();
-        stats.Children.Add(Stat("▣", projects.Count.ToString(), "Ukupno projekata", "#214D85"));
-        stats.Children.Add(Stat("◇", projects.Count(p => p.SourceType == "local").ToString(), "HTML projekti", "#3D317A"));
-        stats.Children.Add(Stat("⬡", projects.Count(p => !p.AllowHttp).ToString(), "HTTPS konfiguracije", "#155B55"));
-        stats.Children.Add(Stat("◷", projects.Count(p => p.UpdatedAt > DateTime.UtcNow.AddDays(-7)).ToString(), "Aktivni ovaj tjedan", "#645032"));
-        PageHost.Children.Add(stats);
+        var summary=Row();
+        summary.Margin=new Thickness(0,0,0,15);
+        summary.Children.Add(Stat("▣",projects.Count.ToString(),"Ukupno projekata","#223F72"));
+        summary.Children.Add(Stat("◇",projects.Count(p=>p.SourceType=="local").ToString(),"Lokalni HTML","#3D317A"));
+        summary.Children.Add(Stat("⬡",projects.Count(p=>!p.AllowHttp).ToString(),"HTTPS projekti","#155B55"));
+        summary.Children.Add(Stat("◷",projects.Count(p=>p.UpdatedAt>DateTime.UtcNow.AddDays(-7)).ToString(),
+            "Aktivni ovaj tjedan","#645032"));
+        PageHost.Children.Add(summary);
 
-        var title = new DockPanel { Margin = new Thickness(0,13,0,12) };
-        var all = Btn("Svi projekti  →", () => Navigate("projects"));
-        all.HorizontalAlignment = HorizontalAlignment.Right;
-        DockPanel.SetDock(all, Dock.Right);
-        title.Children.Add(all);
-        title.Children.Add(Txt("Posljednji projekti", 18, true, White, new Thickness(0,3,0,0)));
-        PageHost.Children.Add(title);
-        var list = Stack();
-        if (projects.Count == 0)
+        var section=new DockPanel { Margin=new Thickness(0,2,0,10) };
+        var all=Btn("Svi projekti  →",()=>Navigate("projects"));
+        DockPanel.SetDock(all,Dock.Right);
+        section.Children.Add(all);
+        section.Children.Add(Txt("Posljednji projekti",18,true,White,new Thickness(0,7,0,0)));
+        PageHost.Children.Add(section);
+        var rows=Stack();
+        if (PageScroll.ActualWidth > 830) rows.Children.Add(DashboardTableRow(null));
+        foreach(var project in projects.Take(6))
         {
-            list.Children.Add(Txt("Još nema projekata. Izradi prvi Android projekt.", 14, false, Muted, new Thickness(0,12,0,15)));
-            list.Children.Add(Btn("＋  Kreiraj projekt", StartNew, true));
+            if(PageScroll.ActualWidth>830)rows.Children.Add(DashboardTableRow(project));
+            else rows.Children.Add(ProjectRow(project,false));
         }
-        else foreach (var p in projects.Take(5)) list.Children.Add(ProjectRow(p, false));
-        PageHost.Children.Add(Card(list));
+        if(projects.Count==0)
+        {
+            rows.Children.Add(Txt("Još nema projekata. Kreirajte prvi projekt.",
+                13,false,Muted,new Thickness(14,17,0,12)));
+            rows.Children.Add(Btn("＋  Novi projekt",StartNew,true));
+        }
+        PageHost.Children.Add(Card(rows,new Thickness(10,8,10,9)));
+    }
+
+    private Border DashboardTableRow(ProjectDefinition? project)
+    {
+        var row=new Grid { MinHeight=project==null?40:53 };
+        foreach(double weight in new[]{2.3,1.5,1.0,1.2,1.0,0.9})
+            row.ColumnDefinitions.Add(new ColumnDefinition {Width=new GridLength(weight,GridUnitType.Star)});
+        var values=project==null
+            ?new[]{"PROJEKT","IZVOR","VRSTA","DATUM","STATUS",""}
+            :new[]{project.Name,project.SourceType=="url"?new Uri(project.Url).Host:"Lokalni HTML",
+                "WebView",project.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy"),"Spremljeno","Uredi"};
+        for(int i=0;i<values.Length;i++)
+        {
+            FrameworkElement cell;
+            if(project!=null&&i==5)cell=Btn("Uredi",()=>Edit(project));
+            else cell=Txt(values[i],project==null?10:12,project==null||i==0,
+                project==null?BrushOf("#879CC7"):i==4?BrushOf("#81E6C7"):White);
+            cell.VerticalAlignment=VerticalAlignment.Center;
+            cell.Margin=new Thickness(9,6,5,6);
+            Grid.SetColumn(cell,i);row.Children.Add(cell);
+        }
+        return new Border { Child=row,BorderBrush=Stroke,BorderThickness=new Thickness(0,0,0,1) };
     }
 
     private Border Stat(string symbol, string number, string caption, string bg)

@@ -15,3 +15,4 @@ jobs:
       - run: powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File scripts/make-icon.ps1
       - run: dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj
       - run: dotnet build src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release
+      - run: pwsh -NoProfile -File tests/check-ui-labels.ps1

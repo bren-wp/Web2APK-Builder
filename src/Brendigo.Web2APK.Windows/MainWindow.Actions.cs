@@ -14,6 +14,8 @@ public partial class MainWindow
     private void BuildStep(StackPanel panel)
     {
         SectionHeader(panel, "Izrada Android aplikacije", "Izvoz Android projekta ili lokalna izrada APK/AAB paketa.");
+        panel.Children.Add(Btn("Google Play · provjeri spremnost",() =>
+            ShowInfo(GooglePlayReadiness.AsText(_draft))));
         panel.Children.Add(Notice("Za APK/AAB moraju biti dostupni JDK 17, Gradle 9.6+ i Android SDK 36+. " +
             "Program ne preuzima razvojne alate bez vašeg odobrenja."));
         var actions = Row();
@@ -176,6 +178,22 @@ public partial class MainWindow
         panel.Children.Add(refresh);
         tools.Children.Add(panel);
         tools.Children.Add(results);
+        tools.Children.Add(Divider());
+        tools.Children.Add(Txt("Google Play · priprema za objavu",17,true,White,new Thickness(0,12,0,10)));
+        tools.Children.Add(Feature("Target API 36+, potpis, dozvole i politika privatnosti",
+            "Provjera podsjeća na Google Play deklaracije i uvjete. Ne zamjenjuje Play Console pregled."));
+        tools.Children.Add(Btn("Pokreni provjeru Google Playa",() => {
+            try { results.Text=GooglePlayReadiness.AsText(_draft);results.ScrollToHome(); }
+            catch(Exception ex) { ShowError(ex.Message); }
+        },true));
+        tools.Children.Add(Btn("Izvezi kontrolni popis",() => {
+            var dialog=new SaveFileDialog { Title="Google Play provjera",Filter="Tekst (*.txt)|*.txt",
+                DefaultExt=".txt",FileName="Brendigo-GooglePlay-Checklist.txt" };
+            if(dialog.ShowDialog(this)!=true)return;
+            try { File.WriteAllText(dialog.FileName,GooglePlayReadiness.AsText(_draft));
+                ShowInfo("Kontrolni popis je spremljen."); }
+            catch(Exception ex) { ShowError(ex.Message); }
+        }));
         tools.Children.Add(Feature("Gradle 9.6.1 · lokalno upravljanje",
             ToolchainService.IsGradleInstalled ? "Službeni Gradle je instaliran u korisničkom profilu." :
                 "Gradle nije instaliran unutar Studija. Možete ga preuzeti uz prethodno odobrenje."));
@@ -216,13 +234,13 @@ public partial class MainWindow
 
     private void Settings()
     {
-        Heading("Postavke", "Stabilnost, sigurnost i prilagodba Windows okruženja.");
+        Heading("Postavke", "Prilagodite izgled, sigurnost i način rada aplikacije.");
         var settings = Stack();
-        settings.Children.Add(Feature("Nativni Windows .NET/WPF", "Program koristi stvarne Windows kontrole, bez Electron/Chromium run-timea."));
-        settings.Children.Add(Feature("Windows prozor", "Prozor se ne otvara preko cijelog ekrana. Možete mijenjati veličinu, minimizirati i maksimizirati."));
-        settings.Children.Add(Feature("Prilagodba prikaza", "Lijevi izbornik prelazi u kompaktni način rada na užim prozorima; elementi se prelamaju u nove retke."));
+        settings.Children.Add(Feature("Windows sučelje", "Ujednačeni prikaz, jasni izbornici i prilagodljiv raspored."));
+        settings.Children.Add(Feature("Veličina prozora", "Promijenite veličinu prozora ili ga minimizirajte u svakom trenutku."));
+        settings.Children.Add(Feature("Prilagodba zaslonu", "Izbornik i obrasci automatski se prilagođavaju dostupnom prostoru."));
         settings.Children.Add(Feature("Lokalna privatnost", "Podaci projekata spremaju se na lokalni disk; nema korisničkih računa ni telemetrije."));
-        settings.Children.Add(Feature("Digitalno potpisivanje", "Android keystore se ne šalje na mrežu. Windows paket nije kodno potpisan dok ne bude dostupan izdavački certifikat."));
+        settings.Children.Add(Feature("Sigurno potpisivanje", "Privatni ključ i lozinke za Android ostaju na vašem računalu."));
         settings.Children.Add(Btn("Otvori lokalnu mapu podataka", () =>
             Process.Start(new ProcessStartInfo { FileName = _dataDir, UseShellExecute = true }), true));
         PageHost.Children.Add(Card(settings));
@@ -230,7 +248,7 @@ public partial class MainWindow
 
     private void Docs()
     {
-        Heading("Dokumentacija", "Vodič za rad s Brendigo Web2APK Windows Studijem.");
+        Heading("Dokumentacija", "Upute za izradu, uređivanje i potpisivanje aplikacija.");
         var docs = Stack();
         docs.Children.Add(Feature("1. Novi projekt", "Unesite naziv, Android applicationId, HTTPS URL ili odaberite lokalnu mapu s index.html."));
         docs.Children.Add(Feature("2. Izgled i WebView", "Postavite boju, temu, orijentaciju, JavaScript, DOM Storage i vanjske poveznice."));
@@ -243,14 +261,14 @@ public partial class MainWindow
 
     private void About()
     {
-        Heading("O programu", "Brendigo Web2APK Builder · Native Windows Edition");
+        Heading("O programu", "Brendigo Web2APK Builder");
         var body=Stack();
         var logo = new Border { Background=Accent, CornerRadius=new CornerRadius(16),
             Width=80, Height=80, HorizontalAlignment=HorizontalAlignment.Left,
             Child=Txt("B",58,true) };
         body.Children.Add(logo);
         body.Children.Add(Txt("Brendigo Web2APK Builder",25,true,White,new Thickness(0,20,0,8)));
-        body.Children.Add(Txt("Verzija 0.3.1 · Nativni Windows WPF · .NET 10",13,false,Muted));
+        body.Children.Add(Txt("Verzija 0.3.2 · Windows",13,false,Muted));
         body.Children.Add(Txt("Autor: Brendigo\nbrendigo.com",14,false,White,new Thickness(0,12,0,12)));
         body.Children.Add(Txt("Lokalna Windows aplikacija za projektiranje Android WebView aplikacija i generiranje APK/AAB paketa.",
             13,false,Muted,new Thickness(0,0,0,15)));

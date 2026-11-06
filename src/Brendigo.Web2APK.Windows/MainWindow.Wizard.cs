@@ -12,15 +12,32 @@ public partial class MainWindow
     {
         Heading("Novi Android projekt", "Korak " + (_wizardStep + 1) + " od 6 · " + StepNames[_wizardStep]);
         var steps = Row();
-        steps.Margin = new Thickness(0,0,0,16);
+        steps.Margin = new Thickness(0,0,0,18);
         for (int i = 0; i < StepNames.Length; i++)
         {
             int chosen = i;
-            var button = Btn((i + 1) + "  " + StepNames[i], () => ChangeStep(chosen), i == _wizardStep);
-            button.Padding = new Thickness(9,8,9,8);
-            button.FontSize = 11;
-            button.Margin = new Thickness(0,0,6,7);
+            var inner = new StackPanel { Orientation=Orientation.Horizontal,
+                VerticalAlignment=VerticalAlignment.Center };
+            var circle=new Border { Width=25,Height=25,CornerRadius=new CornerRadius(13),
+                Background=i==_wizardStep?Accent:BrushOf("#111C39"),
+                BorderThickness=new Thickness(1),
+                BorderBrush=i==_wizardStep?BrushOf("#A090FF"):BrushOf("#40537E") };
+            circle.Child=new TextBlock { Text=(i+1).ToString(),FontSize=11,
+                Foreground=i==_wizardStep?White:Muted,
+                HorizontalAlignment=HorizontalAlignment.Center,
+                VerticalAlignment=VerticalAlignment.Center };
+            inner.Children.Add(circle);
+            inner.Children.Add(Txt(StepNames[i],12,i==_wizardStep,
+                i==_wizardStep?White:Muted,new Thickness(8,0,0,0)));
+            var button=Btn("",()=>ChangeStep(chosen));
+            button.Content=inner;button.BorderThickness=new Thickness(0);
+            button.Background=Brushes.Transparent;
+            button.Padding=new Thickness(1);
+            button.Margin=new Thickness(0,0,13,4);
             steps.Children.Add(button);
+            if(i<StepNames.Length-1)
+                steps.Children.Add(new Border { Width=27,Height=1,Background=Stroke,
+                    Margin=new Thickness(0,0,14,0),VerticalAlignment=VerticalAlignment.Center });
         }
         PageHost.Children.Add(steps);
         var columns = Row();
@@ -100,6 +117,7 @@ public partial class MainWindow
         var cell = Stack();
         cell.Margin = new Thickness(0,0,13,12);
         cell.Width = wide ? 475 : 300;
+        cell.Tag = wide ? "wide" : "normal";
         cell.Children.Add(Txt(label, 12, true, White, new Thickness(0,0,0,7)));
         var box = new TextBox { Text = value, MaxLength = wide ? 2000 : 180,
             HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -114,6 +132,7 @@ public partial class MainWindow
         var cell = Stack();
         cell.Margin = new Thickness(0,0,13,12);
         cell.Width = 300;
+        cell.Tag = "normal";
         cell.Children.Add(Txt(label, 12, true, White, new Thickness(0,0,0,7)));
         var cb = new ComboBox { ItemsSource = options, SelectedItem = selected };
         cb.SelectionChanged += (_, _) => { if (cb.SelectedItem is string s) set(s); };
@@ -257,6 +276,18 @@ public partial class MainWindow
             "Sistemski odabir dokumenta ne zahtijeva READ/WRITE_EXTERNAL_STORAGE."));
         panel.Children.Add(Feature("✓  HTTPS i provjera web izvora",
             "Kamera, mikrofon i lokacija dopuštaju se samo za podrijetlo izvorne web-stranice."));
+        panel.Children.Add(Divider());
+        panel.Children.Add(Txt("Google Play · privatnost i objava",16,true,White,new Thickness(0,12,0,8)));
+        panel.Children.Add(InputField("Javna HTTPS adresa politike privatnosti",_draft.PrivacyPolicyUrl,
+            url=>_draft.PrivacyPolicyUrl=url,true));
+        panel.Children.Add(OptionCheck("Imam pravo objaviti ovu web-stranicu kao aplikaciju",
+            "Google Play ne dopušta neovlaštene WebView omote tuđih web-stranica.",
+            _draft.WebsitePublishingPermissionConfirmed,b=>_draft.WebsitePublishingPermissionConfirmed=b));
+        panel.Children.Add(OptionCheck("Pregledao/la sam Data safety i deklaracije SDK-ova",
+            "Potvrda ne znači automatsko odobrenje; morate predati točne deklaracije u Play Consoleu.",
+            _draft.DataSafetyReviewed,b=>_draft.DataSafetyReviewed=b));
+        panel.Children.Add(Btn("Provjeri zahtjeve Google Playa",() =>
+            ShowInfo(GooglePlayReadiness.AsText(_draft)),true));
         panel.Children.Add(Notice("Uključuj samo dozvole koje trebaju tvojoj aplikaciji. Android će zatražiti korisnikovu odluku, a odbijanje se poštuje."));
     }
 
@@ -281,7 +312,8 @@ public partial class MainWindow
         var footer = Row();
         footer.Margin = new Thickness(0,25,0,0);
         if (_wizardStep > 0) footer.Children.Add(Btn("← Natrag", () => ChangeStep(_wizardStep-1)));
-        footer.Children.Add(Btn("Spremi projekt", () => { if (SaveDraft()) ShowInfo("Projekt je sigurno spremljen na ovom računalu."); }));
+        footer.Children.Add(Btn("Spremi projekt", () => { if (SaveDraft()) ShowInfo("Projekt je lokalno spremljen."); }));
+        footer.Children.Add(Btn("▷  Pregled", () => { if(SaveDraft()) Navigate("preview"); }));
         if (_wizardStep < StepNames.Length - 1)
             footer.Children.Add(Btn("Nastavi na " + StepNames[_wizardStep+1] + "  →", () => ChangeStep(_wizardStep+1), true));
         panel.Children.Add(footer);

@@ -1,5 +1,20 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.3.2 — Brendigo Windows i Android ekran po ekran
+
+- Windows: novi splash i prvi welcome zaslon, poboljšana nadzorna ploča i tablica projekata.
+- Windows: stvarni pregled aplikacije uz kontrolirani lokalni WebView2, tri tipa prikaza i dodatne kontrole.
+- Windows: usklađene boje, gradijenti, okviri, razmaci, izbornik i forma po referencama.
+- Android: onboarding, stalna donja navigacija, nadzorna ploča s podacima iz projekata.
+- Android: čarobnjak sa šest koraka, detalji projekta, popis projekata i prikaz uređaja, prilagodba rubovima sustava.
+- Android: kamera, mikrofon, lokacija, prijenos/preuzimanje datoteka, Firebase zahtjev, AdMob i postavke privatnosti u konfiguraciji.
+- Uklonjeni privremeni/dev tekstovi iz glavnog korisničkog sučelja.
+- Kontrola UI tekstova u CI-u, najmanje 16 stvarnih Windows screenshotova.
+- Obavezni Windows portable i Setup, Android test APK i nepotpisani AAB.
+
+**Napomena:** pixel-perfect 1:1 na svim zaslonima nije moguće tvrditi bez usporednih mjerenja na ciljanim uređajima. CI kompilacija nije isto što i end-to-end test Firebase/AdMob/ADB funkcija ili Google Play certifikacija.
+
+
 ## v0.3.1 — provjere integracija i prilagodba Windows/Android zaslona
 
 - CI stvarno kompajlira generirane Android projekte s AdMob+UMP i FCM (testni, neprodukcijski identifikatori).

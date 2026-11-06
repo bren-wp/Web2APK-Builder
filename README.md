@@ -16,6 +16,18 @@ Nativni Windows program za kreiranje i konfiguriranje Android WebView aplikacija
 
 ### Stvarni nativni zasloni
 
+Za v0.3.2 uključeno je snimanje svih **16 Windows zaslona**, uključujući splash, dobrodošlicu, novi pregled aplikacije i sve korake čarobnjaka. Snimke proizvodi GitHub Actions iz stvarnog WPF sučelja, bez generiranja marketinških prikaza.
+
+| Splash | Dobrodošli |
+|---|---|
+| ![Brendigo splash](docs/screenshots/native/splash.png) | ![Dobrodošli](docs/screenshots/native/welcome.png) |
+
+| Pregled aplikacije | Postavke |
+|---|---|
+| ![Pregled aplikacije](docs/screenshots/native/preview.png) | ![Postavke](docs/screenshots/native/settings.png) |
+
+### Stvarni nativni zasloni
+
 Snimke se automatski stvaraju iz WPF renderera tijekom CI-ja, a ne umjetnim generiranjem:
 
 | Početni zaslon | Novi projekt |
@@ -29,6 +41,10 @@ Snimke se automatski stvaraju iz WPF renderera tijekom CI-ja, a ne umjetnim gene
 Ako screenshotovi još nisu prisutni, postupak snimanja nije potvrđen. **Pixel-perfect 1:1 podudaranje sa svim referencama još nije verificirano.**
 
 ## Android Mobile klijent
+
+Android aplikacija sada uključuje **početno predstavljanje, nadzornu ploču, donju navigaciju, čarobnjak od šest koraka, detalje projekta, pregled, uređaje i postavke**. Vrijednosti konfiguracije ostaju u obrascu pri prelasku između koraka. Izgled se prilagođava širini telefona i tableta, a prikaz poštuje sistemske rubove na novijem Androidu.
+
+
 
 Projekt **android/** sadrži nativnu Android aplikaciju s Brendigo brendingom, početnim zaslonom, projektima, editorom, pregledom HTTPS sadržaja i lokalnim JSON uvozom/izvozom. Konfiguracije se mogu ručno prenositi u Windows Studio i obratno. Privatni ključevi i lozinke se ne prenose.
 
@@ -81,6 +97,10 @@ Nativne WPF snimke pokušavaju se snimiti izvršavanjem pravog Windows programa;
 Na Android klijentu sada je moguće konfigurirati kameru, mikrofon, lokaciju, prijenos datoteka, splash i zatražiti Firebase postavljanje. Firebase konfiguracijsku datoteku i završno potpisivanje postavlja se u Windows Studiju.
 
 ## Status
+
+U izdanju v0.3.2 proširen je UI/UX na Windowsu i Androidu. Uklonjeni su razvojni i privremeni tekstovi iz korisničkih stranica; tehničke informacije ostaju samo ondje gdje su potrebne za izradu i sigurnost. Reference su vizualni cilj, no potpuno 1:1 podudaranje pojedinačnih elemenata zahtijeva dodatnu usporedbu stvarnih snimki na istim DPI postavkama i uređajima.
+
+
 
 Poboljšanja UI/UX-a i funkcionalna testiranja napreduju zaslon po zaslon. CI kompilacija ne jamči besprijekoran rad svih integracija na svim uređajima, niti su sve vizualne reference provjerene pixel po pixel. Pogledajte [CHANGELOG.md](CHANGELOG.md) i [SECURITY.md](SECURITY.md).
 

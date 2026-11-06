@@ -3,30 +3,30 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Brendigo Web2APK Builder — Windows Studio"
         Icon="Assets/Brendigo.ico"
-        Width="1360" Height="820" MinWidth="850" MinHeight="560" WindowStartupLocation="CenterScreen"
+        Width="1340" Height="830" MinWidth="840" MinHeight="570" WindowStartupLocation="CenterScreen"
         WindowState="Normal" WindowStyle="SingleBorderWindow" ResizeMode="CanResizeWithGrip"
         FontFamily="Segoe UI" FontSize="13" Background="{StaticResource BackgroundBrush}"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
         SizeChanged="Window_SizeChanged">
     <Grid x:Name="Root">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="SidebarColumn" Width="245"/>
+            <ColumnDefinition x:Name="SidebarColumn" Width="250"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" BorderBrush="#1D2B49" BorderThickness="0,0,1,0">
-            <DockPanel Margin="16,21,13,20">
+        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" BorderBrush="#263450" BorderThickness="0,0,1,0">
+            <DockPanel Margin="16,26,16,18">
                 <Border x:Name="SidebarFooter" DockPanel.Dock="Bottom" CornerRadius="14" Background="#16223E" BorderBrush="#2A3C60"
                         BorderThickness="1" Padding="11,13" Margin="0,12,0,0">
                     <StackPanel>
-                        <TextBlock Foreground="#76E7CD" FontSize="11" FontWeight="Bold" Text="●  Lokalno · spremno za rad"/>
+                        <TextBlock Foreground="#76E7CD" FontSize="11" FontWeight="Bold" Text="✓  Spremno za rad"/>
                         <TextBlock Text="Brendigo Web2APK Builder" FontSize="11" FontWeight="SemiBold" Margin="0,8,0,2"/>
-                        <TextBlock Text="Windows Studio · 0.3.1" Foreground="{StaticResource MutedBrush}" FontSize="11"/>
+                        
                         <TextBlock Text="brendigo.com" Foreground="#94A9D6" FontSize="11"/>
                     </StackPanel>
                 </Border>
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="1,3,0,30">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,3,0,27">
                     <Border Width="47" Height="47" CornerRadius="13" Background="#7451ED">
-                        <Viewbox Margin="7"><TextBlock Text="B" FontSize="32" FontWeight="Black" Foreground="White" FontFamily="Segoe UI"/></Viewbox>
+                        <Image Source="Assets/Brendigo.ico" Width="36" Height="36" Stretch="Uniform"/>
                     </Border>
                     <StackPanel x:Name="BrandWords" Margin="11,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="Brendigo" FontSize="16" FontWeight="Bold"/>
@@ -40,14 +40,21 @@
             </DockPanel>
         </Border>
         <Grid Grid.Column="1">
-            <Grid.RowDefinitions><RowDefinition Height="66"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-            <Border Grid.Row="0" Background="#0F1830" BorderBrush="#21304E" BorderThickness="0,0,0,1">
-                <Grid Margin="30,0">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                    <GradientStop Color="#11264B" Offset="0"/>
+                    <GradientStop Color="#0A1126" Offset=".55"/>
+                    <GradientStop Color="#191B43" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid.RowDefinitions><RowDefinition Height="55"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Border Grid.Row="0" Background="#10182F" BorderBrush="#263350" BorderThickness="0,0,0,1">
+                <Grid Margin="32,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <TextBlock x:Name="Breadcrumb" Grid.Column="0" VerticalAlignment="Center" Foreground="#A3B5DB" Text="Radni prostor   ›   Početna" FontSize="12"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Background="#0C3639" BorderBrush="#176D65" BorderThickness="1" CornerRadius="14" Padding="10,5">
-                            <TextBlock Foreground="#7BE8D0" Text="◈  Target SDK 36+" FontSize="11" FontWeight="SemiBold"/>
+                            <TextBlock Foreground="#7BE8D0" Text="✓  Android SDK 36+" FontSize="11" FontWeight="SemiBold"/>
                         </Border>
                         <Border Margin="15,0,0,0" Background="#6254D5" CornerRadius="18" Width="34" Height="34">
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" Text="BR" FontSize="11"/>
@@ -56,7 +63,7 @@
                 </Grid>
             </Border>
             <ScrollViewer Grid.Row="1" x:Name="PageScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel x:Name="PageHost" Margin="31,26,31,42"/>
+                <StackPanel x:Name="PageHost" Margin="32,26,32,42"/>
             </ScrollViewer>
         </Grid>
     </Grid>

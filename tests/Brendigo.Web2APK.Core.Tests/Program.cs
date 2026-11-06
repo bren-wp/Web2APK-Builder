@@ -110,6 +110,21 @@ try {
         "Firebase message handler generated");
     Test(File.Exists(Path.Combine(adsOutput,"app","src","main","res","mipmap-anydpi-v26","ic_launcher.xml")),
         "Adaptive launcher icon generated");
+    var check=GooglePlayReadiness.Review(project);
+    Test(check.Any(f=>f.Code=="TARGET_API" && f.Severity=="PASS"),"Google Play target API 36");
+    Test(check.Any(f=>f.Code=="PRIVACY" && f.Severity=="WARN"),"Missing privacy policy flagged");
+    Test(check.Any(f=>f.Code=="SIGNATURE" && f.Severity=="WARN"),"Unsigned release flagged");
+    var policyProject = new ProjectDefinition { Name="Privacy policy",PackageName="com.brendigo.privacy",
+        Url="https://example.com",PrivacyPolicyUrl="https://example.com/privacy" };
+    policyProject.Validate();
+    var policyOutput=AndroidProjectGenerator.Generate(policyProject,Path.Combine(root,"privacy"));
+    var privacyJava=File.ReadAllText(Path.Combine(policyOutput,"app","src","main","java","com","brendigo","privacy","MainActivity.java"));
+    Test(privacyJava.Contains("Politika privatnosti") &&
+        privacyJava.Contains("https://example.com/privacy"),"In-app Google Play privacy menu generated");
+    Test(privacyJava.Contains("applySafeAreaInsets"),"Android 16 edge-to-edge safe insets");
+    Test(File.Exists(Path.Combine(policyOutput,"GOOGLE_PLAY_CHECKLIST.txt")),"Play readiness checklist generated");
+    Test(Throws(()=>new ProjectDefinition { Name="Bad policy",PrivacyPolicyUrl="http://bad.example.com/privacy" }.Validate()),
+        "Only HTTPS privacy policy accepted");
     var web=Path.Combine(root,"web");Directory.CreateDirectory(web);
     File.WriteAllText(Path.Combine(web,"index.html"),"<h1>Offline</h1>");
     File.WriteAllText(Path.Combine(web,".env"),"secret");

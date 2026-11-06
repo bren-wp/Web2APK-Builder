@@ -20,6 +20,34 @@ public partial class App : Application
             if (args.ExceptionObject is Exception exception) CaptureFailure(exception);
         };
         base.OnStartup(e);
+        if (_capture)
+        {
+            var main = new MainWindow();
+            MainWindow = main;
+            main.Show();
+            return;
+        }
+        var splash = new SplashWindow();
+        MainWindow = splash;
+        splash.Show();
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1100) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            try
+            {
+                var main = new MainWindow();
+                MainWindow = main;
+                main.Show();
+                splash.Close();
+            }
+            catch (Exception exception)
+            {
+                CaptureFailure(exception);
+                Shutdown(1);
+            }
+        };
+        timer.Start();
     }
 
     private void CaptureFailure(Exception error)
