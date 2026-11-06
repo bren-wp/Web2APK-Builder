@@ -23,3 +23,20 @@ jobs:
       - run: dotnet build src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.LicenseStudio.csproj -c Release
       - run: dotnet build src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release
       - run: pwsh -NoProfile -File tests/check-ui-labels.ps1
+      - name: Roslyn security and unused-code analysis
+        shell: pwsh
+        run: |
+          dotnet build src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release -p:RunAnalyzers=true -p:AnalysisLevel=latest-all -p:EnforceCodeStyleInBuild=true
+          if ($LASTEXITCODE -ne 0) { throw 'Roslyn analysis failed.' }
+          dotnet build src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.LicenseStudio.csproj -c Release -p:RunAnalyzers=true -p:AnalysisLevel=latest-all -p:EnforceCodeStyleInBuild=true
+          if ($LASTEXITCODE -ne 0) { throw 'License Studio analyzer build failed.' }
+      - name: NuGet dependency vulnerability audit
+        shell: pwsh
+        run: |
+          foreach ($project in @(
+            'src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj',
+            'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.LicenseStudio.csproj'
+          )) {
+            dotnet list $project package --vulnerable --include-transitive
+            if ($LASTEXITCODE -ne 0) { throw "NuGet vulnerability query failed: $project" }
+          }

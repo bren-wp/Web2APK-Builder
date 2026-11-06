@@ -5,7 +5,7 @@
 <EnableWindowsTargeting>true</EnableWindowsTargeting>
 <AssemblyName>Brendigo.LicenseStudio</AssemblyName>
 <RootNamespace>Brendigo.Web2APK.LicenseStudio</RootNamespace>
-<Version>0.6.6</Version><FileVersion>0.6.6.0</FileVersion><AssemblyVersion>0.6.6.0</AssemblyVersion>
+<Version>0.6.7</Version><FileVersion>0.6.7.0</FileVersion><AssemblyVersion>0.6.7.0</AssemblyVersion>
 <ApplicationIcon>Assets/Brendigo.ico</ApplicationIcon>
 </PropertyGroup>
 <ItemGroup><ProjectReference Include="../Brendigo.Web2APK.Core/Brendigo.Web2APK.Core.csproj"/></ItemGroup>

@@ -149,6 +149,35 @@ public partial class MainWindow
             CaptureCompact("settings","settings-small-900",900,650);
             CaptureCompact("tools","tools-small-900",900,650);
             CaptureCompact("docs","docs-small-900",900,650);
+            CaptureCompact("devices","devices-small-900",900,650);
+            CaptureCompact("about","about-small-900",900,650);
+            // Inspect each of the six real wizard screens at the compact viewport.
+            for(int step=0;step<6;step++)
+            {
+                _wizardStep=step;
+                CaptureCompact("new","wizard-"+(step+1)+"-small-900",900,650);
+            }
+            // A synthetic row is used ONLY as an offscreen layout assertion:
+            // it is never published as a screenshot or product/project data.
+            Reflow(900,650);
+            Navigate("projects");
+            var testRow=ProjectRow(new Brendigo.Web2APK.Core.ProjectDefinition {
+                Name="Dugačak naziv projekta koji mora ostati potpuno dostupan korisniku",
+                PackageName="com.brendigo.longproject_testing_responsive_layout",
+                Url="https://example.com/long-path"
+            },true);
+            PageHost.Children.Add(testRow);
+            Reflow(900,650);
+            CheckCard(testRow,"populated project row at 900");
+            if(testRow.Child is not Grid layout ||
+                layout.Children.OfType<WrapPanel>().FirstOrDefault() is not { } controls ||
+                Grid.GetRow(controls)!=1 || Grid.GetColumn(controls)!=0)
+                throw new InvalidOperationException(
+                    "Project actions must stack under the title at 900 px.");
+            var end=controls.TranslatePoint(new Point(controls.ActualWidth,0),PageHost);
+            if(end.X>PageHost.ActualWidth+2)
+                throw new InvalidOperationException("Project action buttons exceed viewport.");
+            PageHost.Children.Remove(testRow);
             // Render high-density raster captures at the same 900x650 logical viewport.
             // This verifies WPF rendering at 125, 150 and 200 percent bitmap density,
             // but is not a substitute for physical per-monitor DPI or font-scale tests.

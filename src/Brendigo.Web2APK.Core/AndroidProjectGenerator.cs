@@ -295,12 +295,24 @@ public final class MainActivity extends Activity {
         content.requestApplyInsets();
     }
 
+    // WebView media and geolocation permissions are confined to the exact
+    // configured origin, not merely to a host shared by different web apps.
+    private static int effectivePort(Uri uri) {
+        if (uri.getPort() >= 0) return uri.getPort();
+        if ("https".equalsIgnoreCase(uri.getScheme())) return 443;
+        if ("http".equalsIgnoreCase(uri.getScheme())) return 80;
+        return -1;
+    }
     private boolean trusted(Uri uri) {
-        if (uri == null || uri.getHost() == null) return false;
         Uri home = Uri.parse(HOME);
-        String scheme = uri.getScheme();
-        return uri.getHost().equalsIgnoreCase(home.getHost()) &&
-            ("https".equalsIgnoreCase(scheme) || (HTTP && "http".equalsIgnoreCase(scheme)));
+        if (uri == null || uri.getHost() == null || home.getHost() == null ||
+            uri.getScheme() == null || home.getScheme() == null) return false;
+        String expected = home.getScheme();
+        if (!"https".equalsIgnoreCase(expected) &&
+            !(HTTP && "http".equalsIgnoreCase(expected))) return false;
+        return uri.getScheme().equalsIgnoreCase(expected) &&
+            uri.getHost().equalsIgnoreCase(home.getHost()) &&
+            effectivePort(uri) == effectivePort(home);
     }
 
 
@@ -385,9 +397,7 @@ public final class MainActivity extends Activity {
                 Uri uri = request.getUrl();
                 String scheme = uri.getScheme();
                 if (!"https".equalsIgnoreCase(scheme) && !(HTTP && "http".equalsIgnoreCase(scheme))) return true;
-                Uri origin = Uri.parse(HOME);
-                boolean sameHost = origin.getHost() != null && origin.getHost().equalsIgnoreCase(uri.getHost());
-                if (EXTERNAL && !sameHost) {
+                if (EXTERNAL && !trusted(uri)) {
                     try { startActivity(new Intent(Intent.ACTION_VIEW, uri)); } catch (Exception ignored) { }
                     return true;
                 }

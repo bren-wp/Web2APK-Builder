@@ -49,6 +49,8 @@ Snimke niže nastaju **automatskim renderiranjem stvarnog nativnog WPF sučelja*
 
 **Snimke WPF čarobnjaka pri većoj gustoći rasterizacije:** [125 %](docs/screenshots/native/wizard-density-125.png) · [150 %](docs/screenshots/native/wizard-density-150.png) · [200 %](docs/screenshots/native/wizard-density-200.png). To su stvarni WPF renderi s višom DPI gustoćom, a **nisu** potvrda fizičkog Windows DPI skaliranja ni povećanog teksta.
 
+**Svih šest koraka na užem prozoru:** [1 · Osnovno](docs/screenshots/native/wizard-1-small-900.png) · [2 · Izgled](docs/screenshots/native/wizard-2-small-900.png) · [3 · WebView](docs/screenshots/native/wizard-3-small-900.png) · [4 · Funkcije](docs/screenshots/native/wizard-4-small-900.png) · [5 · Dozvole](docs/screenshots/native/wizard-5-small-900.png) · [6 · Izrada](docs/screenshots/native/wizard-6-small-900.png). Ostali stvarni prikazi: [Uređaji 900 px](docs/screenshots/native/devices-small-900.png) · [O programu 900 px](docs/screenshots/native/about-small-900.png).
+
 **Responzivni Windows raspored:** [1024 px – čarobnjak](docs/screenshots/native/wizard-compact-1024.png) · [900 px – čarobnjak](docs/screenshots/native/wizard-small-900.png) · [1024 px – pregled](docs/screenshots/native/preview-compact-1024.png) · [900 px – pregled](docs/screenshots/native/preview-small-900.png).
 
 ## Vaš brending odmah pri prvom projektu
@@ -89,6 +91,14 @@ Brendigo License Studio generira potpisane licence s odabranim paketima i razdob
 ### Zaštita lokalne baze projekata
 
 Windows Studio pohranjuje projekte u lokalni `projects.json` i na svakom sljedećem spremanju zadržava prethodnu valjanu snimku kao `projects.json.bak`. Paralelna spremanja iz različitih instanci serijalizirana su zajedničkom blokadom, a neispravne, duplicirane i prevelike baze odbijaju se bez automatskog brisanja. Ako je baza oštećena, Studio otvara Postavke umjesto prekidanja pokretanja i omogućuje **Vraćanje projekata iz sigurnosne kopije** uz izričitu potvrdu. Prije oporavka provjerava se valjanost kopije, a zatečeni `projects.json` ostaje spremljen kao `projects.json.recovery-*.json`; obnova ne oslobađa niti poništava licencna mjesta. Preporučuje se dodatna sigurnosna kopija cijele mape podataka prije oporavka. Pohrana nije zamjena za vanjsku sigurnosnu kopiju diska.
+
+### Sigurnost WebViewa i potpisivanja
+
+Generirane Android aplikacije provjeravaju **cijelo podrijetlo** prije odobravanja osjetljivih WebView resursa: HTTPS/HTTP protokol, domenu i port. Otvaranje iste domene na drugom portu ili putem slabijeg protokola ne dobiva automatski pristup kameri, mikrofonu ili lokaciji. Windows Builder uklanja naslijeđene varijable potpisivanja kada izrađuje nepotpisani/debug paket i skriva unijete lozinke iz standardnog Gradle zapisnika. Time se umanjuju rizici, ali ne zamjenjuje provjera potpisa, test na fizičkom Android uređaju ili revizija vanjskih Gradle dodataka.
+
+**Popis projekata na manjim prozorima:** akcijski gumbi prelaze u zaseban red, a dugi nazivi i package ID-jevi ne guraju ostali sadržaj izvan dostupne širine. Puni podaci dostupni su kroz tooltip.
+
+[Pregled sigurnosti, ovisnosti i potencijalno mrtvog koda v0.6.7](docs/SECURITY-DEADCODE-AUDIT-v0.6.7.md) dokumentira stvarno pregledane dijelove, ispravke i preostale rizike.
 
 ## Jedan Windows Studio za cijeli tijek rada
 

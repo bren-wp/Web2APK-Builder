@@ -14,6 +14,9 @@
 - Windows .exe možda nije potpisan certifikatom izdavača. Android CI APK služi za testiranje, a AAB se mora potpisati prije produkcijske objave.
 
 ## Izvješće o pregledu
-[Sigurnosni pregled i dead-code nalazi v0.5.0](docs/SECURITY-DEADCODE-AUDIT-v0.6.0.md) sadrže potvrđene izmjene, preostale rizike i ograničenja obuhvata. CI kompilacija i funkcionalni testovi nisu zamjena za potpuni penetracijski test.
+
+[Pregled sigurnosti, ovisnosti i mrtvog koda v0.6.7](docs/SECURITY-DEADCODE-AUDIT-v0.6.7.md) sadrži evidenciju pregledanih modula, promjene, testove, poznata ograničenja i daljnje provjere.
+
+Kompilacija, NuGet upit za poznate ranjivosti, Roslyn statička analiza i WPF screenshot testovi nisu zamjena za potpuno neovisno penetracijsko testiranje ili provjeru na stvarnim Windows/Android uređajima.
 
 Nikad ne šaljite privatan keystore, lozinke ili pune aktivacijske tokene javnim kanalima.

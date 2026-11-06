@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private string? _startupDataIssue;
     private readonly List<FrameworkElement> _fieldCells = [];
     private readonly List<Border> _stats = [];
+    private readonly List<(Grid Layout, WrapPanel Buttons)> _projectRowLayouts = [];
     private readonly Dictionary<string, Button> _navButtons = [];
     private TextBlock? _summaryTitle;
     private TextBlock? _summaryPackageText;
@@ -130,6 +131,17 @@ public partial class MainWindow : Window
         var statsPerRow = viewport > 980 ? 4 : viewport > 630 ? 2 : 1;
         var statWidth = Math.Max(190, (viewport - 80 - (statsPerRow - 1) * 14) / statsPerRow);
         foreach (var card in _stats) card.Width = statWidth;
+        foreach (var (layout,buttons) in _projectRowLayouts)
+        {
+            // The buttons must never squeeze the project title or escape a narrow window.
+            var stackActions = logicalWidth < 1260;
+            Grid.SetColumn(buttons,stackActions ? 0 : 1);
+            Grid.SetRow(buttons,stackActions ? 1 : 0);
+            buttons.Margin=stackActions ? new Thickness(0,11,0,0) :
+                new Thickness(8,0,0,0);
+            layout.ColumnDefinitions[1].Width=stackActions ?
+                new GridLength(0) : GridLength.Auto;
+        }
         if (_wizardMainCard is not null && _wizardSummaryCard is not null)
         {
             var available=Math.Max(300,PageHost.ActualWidth-22);
@@ -241,7 +253,7 @@ public partial class MainWindow : Window
         _summaryTitle=null;_summaryPackageText=null;
         _wizardMainCard=null;_wizardSummaryCard=null;
         _wizardInlineNext=null;_wizardSummaryNext=null;
-        _stats.Clear(); _fieldCells.Clear();
+        _stats.Clear(); _fieldCells.Clear(); _projectRowLayouts.Clear();
         PageHost.Children.Clear();
         Breadcrumb.Text = "Radni prostor   ›   " + (page switch {
             "welcome" => "Dobrodošli", "dashboard" => "Početna", "new" => "Novi projekt", "projects" => "Moji projekti",
@@ -379,6 +391,12 @@ public partial class MainWindow : Window
                 project==null?BrushOf("#879CC7"):i==4?BrushOf("#81E6C7"):White);
             cell.VerticalAlignment=VerticalAlignment.Center;
             cell.Margin=new Thickness(9,6,5,6);
+            if(cell is TextBlock label)
+            {
+                label.TextWrapping=TextWrapping.NoWrap;
+                label.TextTrimming=TextTrimming.CharacterEllipsis;
+                label.ToolTip=values[i];
+            }
             Grid.SetColumn(cell,i);row.Children.Add(cell);
         }
         return new Border { Child=row,BorderBrush=Stroke,BorderThickness=new Thickness(0,0,0,1) };
@@ -399,31 +417,48 @@ public partial class MainWindow : Window
 
     private Border ProjectRow(ProjectDefinition project, bool full)
     {
-        var row = new DockPanel { LastChildFill = true };
-        var buttons = Row();
-        buttons.Margin = new Thickness(8,0,0,0);
-        buttons.Children.Add(Btn("Uredi", () => Edit(project), true));
-        if (full) {
+        var layout=new Grid();
+        layout.ColumnDefinitions.Add(new ColumnDefinition {
+            Width=new GridLength(1,GridUnitType.Star) });
+        layout.ColumnDefinitions.Add(new ColumnDefinition { Width=GridLength.Auto });
+        layout.RowDefinitions.Add(new RowDefinition { Height=GridLength.Auto });
+        layout.RowDefinitions.Add(new RowDefinition { Height=GridLength.Auto });
+        var buttons=Row();
+        buttons.Margin=new Thickness(8,0,0,0);
+        buttons.Children.Add(Btn("Uredi",()=>Edit(project),true));
+        if(full)
+        {
             var view=Btn("Izvorni kod",()=>OpenSourceViewer(project));
-            view.IsEnabled=LicenseActivationStore.TryAuthorize("windows",project,"source",out _,out _);
+            view.IsEnabled=LicenseActivationStore.TryAuthorize(
+                "windows",project,"source",out _,out _);
             buttons.Children.Add(view);
-            var export=Btn("Izvezi", () => _ = ExportAsync(project));
+            var export=Btn("Izvezi",()=>_ = ExportAsync(project));
             export.IsEnabled=view.IsEnabled;
             buttons.Children.Add(export);
-            buttons.Children.Add(Btn("Dijeli JSON", () => ExportMobileProject(project)));
-
-            buttons.Children.Add(Btn("Obriši", () => Delete(project), false, true));
+            buttons.Children.Add(Btn("Dijeli JSON",()=>ExportMobileProject(project)));
+            buttons.Children.Add(Btn("Obriši",()=>Delete(project),false,true));
         }
-        DockPanel.SetDock(buttons, Dock.Right);
-        row.Children.Add(buttons);
-        var info = Stack();
-        info.Children.Add(Txt("◈  " + project.Name, 14, true));
-        var source = project.SourceType == "url" ? project.Url : "Lokalni HTML projekt";
-        info.Children.Add(Txt(source + "    ·    " + project.PackageName, 11, false, Muted, new Thickness(0,3,0,0)));
-        row.Children.Add(info);
-        return new Border { Child = row, Margin = new Thickness(0,0,0,8), Padding = new Thickness(13),
-            Background = BrushOf("#182543"), BorderThickness = new Thickness(1), BorderBrush = Stroke,
-            CornerRadius = new CornerRadius(11), MinHeight = 67 };
+        Grid.SetColumn(buttons,1);
+        layout.Children.Add(buttons);
+        var info=Stack();
+        var title=Txt("◈  "+project.Name,14,true);
+        title.TextWrapping=TextWrapping.NoWrap;
+        title.TextTrimming=TextTrimming.CharacterEllipsis;
+        title.ToolTip=project.Name;
+        info.Children.Add(title);
+        var source=project.SourceType=="url" ? project.Url : "Lokalni HTML projekt";
+        var details=Txt(source+"    ·    "+project.PackageName,11,false,Muted,
+            new Thickness(0,3,0,0));
+        details.TextWrapping=TextWrapping.NoWrap;
+        details.TextTrimming=TextTrimming.CharacterEllipsis;
+        details.ToolTip=source+"\n"+project.PackageName;
+        info.Children.Add(details);
+        layout.Children.Add(info);
+        _projectRowLayouts.Add((layout,buttons));
+        return new Border { Child=layout,Margin=new Thickness(0,0,0,8),
+            Padding=new Thickness(13),Background=BrushOf("#182543"),
+            BorderThickness=new Thickness(1),BorderBrush=Stroke,
+            CornerRadius=new CornerRadius(11),MinHeight=67 };
     }
 
     private void Projects()

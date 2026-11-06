@@ -93,19 +93,19 @@ $studioProject=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.
 $gradleProject=Get-Content 'android/app/build.gradle' -Raw
 $releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
 foreach($project in @($winProject,$studioProject)){
- foreach($marker in @('<Version>0.6.6</Version>','<FileVersion>0.6.6.0</FileVersion>','<AssemblyVersion>0.6.6.0</AssemblyVersion>')){
+ foreach($marker in @('<Version>0.6.7</Version>','<FileVersion>0.6.7.0</FileVersion>','<AssemblyVersion>0.6.7.0</AssemblyVersion>')){
   if(-not $project.Contains($marker)){throw "Release version mismatch: $marker"}
  }
 }
-if(-not $gradleProject.Contains("versionCode 13") -or
-   -not $gradleProject.Contains("versionName '0.6.6'") -or
-   -not $releaseWorkflow.Contains("$('v0.6.6')")){
- throw 'Android metadata and release workflow version must match v0.6.6.'
+if(-not $gradleProject.Contains("versionCode 14") -or
+   -not $gradleProject.Contains("versionName '0.6.7'") -or
+   -not $releaseWorkflow.Contains("$('v0.6.7')")){
+ throw 'Android metadata and release workflow version must match v0.6.7.'
 }
-Write-Host 'Windows and Android release versions verified: 0.6.6 (Android code 13).'
+Write-Host 'Windows and Android release versions verified: 0.6.7 (Android code 14).'
 
 foreach($installer in @('installer/Brendigo-Web2APK.iss','installer/Brendigo-LicenseStudio.iss')) {
- if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.6"')) {
+ if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.7"')) {
    throw "Installer version mismatch: $installer"
  }
 }
@@ -128,3 +128,16 @@ foreach($sensitive in @('credentials.json','google-services.json','service-accou
  if(-not $generator.Contains($sensitive)){throw "Local secret exclusion missing: $sensitive"}
 }
 Write-Host 'Startup recovery and offline asset secret exclusions verified.'
+
+# Security and responsive regressions are scanned as source in the quality job.
+$androidGenerator=Get-Content 'src/Brendigo.Web2APK.Core/AndroidProjectGenerator.cs' -Raw
+$androidBuild=Get-Content 'src/Brendigo.Web2APK.Core/AndroidBuildService.cs' -Raw
+$windowsUi=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml.cs' -Raw
+if(-not ($androidGenerator.Contains('effectivePort(uri) == effectivePort(home)') -and
+         $androidGenerator.Contains('if (EXTERNAL && !trusted(uri))') -and
+         $androidBuild.Contains('ConfigureSigningEnvironment(start, signing)') -and
+         $androidBuild.Contains('RedactSigningSecrets(e.Data, signing)') -and
+         $windowsUi.Contains('stackActions = logicalWidth < 1260'))) {
+    throw 'WebView origin, Gradle signing or responsive project-row regression.'
+}
+Write-Host 'Security boundaries and compact project-row layout verified.'

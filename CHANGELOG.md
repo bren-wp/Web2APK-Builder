@@ -1,5 +1,19 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.7 — WebView origin sigurnost, potpisivanje i detaljniji pregled Windows zaslona
+
+- Generirane Android aplikacije prije dodjele WebView dozvola sada provjeravaju **HTTPS/HTTP shemu, host i stvarni/default port**, a ne samo domenu; ista domena na drugom portu ili preko HTTP-a više ne dijeli automatsko povjerenje.
+- Usmjeravanje vanjskih poveznica slijedi istu provjeru podrijetla, čime se izbjegava zadržavanje drukčijeg porta/protokola unutar web aplikacije kada je uključeno otvaranje izvana.
+- AndroidBuildService eksplicitno čisti naslijeđene varijable `BRENDIGO_*` za potpisivanje prije pokretanja Gradlea; samo odabrani keystore postavlja nove vrijednosti. Izlaz Gradlea prikriva unijete lozinke.
+- Dijagnostika JDK/Gradle/ADB alata prekida podređeni proces pri isteku vremenskog ograničenja.
+- Popis Windows projekata prelazi na raspored u dva reda u užim prozorima; duga imena, URL-ovi i package ID-jevi koriste skraćivanje i tooltip, a tablični prikaz Dashboarda skraćuje predugačke vrijednosti.
+- Dodane realne WPF snimke svih šest koraka na 900 px te zaslona Uređaji i O programu na 900 px; test reda s dugim nazivom koristi isključivo testni UI element, **ne objavljuje se kao screenshot**.
+- Prošireni automatizirani testovi izvornog Java koda, varijabli potpisivanja i redakcije lozinki; Quality CI uključuje Roslyn analizu i provjeru poznatih NuGet ranjivosti.
+- Usklađene Windows, License Studio i oba Inno Setup instalera na verziju 0.6.7; Android klijent 0.6.7 (`versionCode 14`).
+- Zadržana pravila i valjanost prethodno izdanih BL2 licenci, sve paketne mogućnosti i dosadašnji cjenik.
+- Preostale granice: automatizirani UI screenshotovi nisu potvrda pixel-perfect 1:1 prema svim originalnim referencama; nisu odrađeni fizički DPI/Android testovi ni vanjski penetracijski test.
+
+
 ## v0.6.6 — oporavak oštećenih projekata i privatniji lokalni HTML izvoz
 
 - Ispravljen prekid pri otvaranju Windows Studija ako je lokalna baza `projects.json` oštećena: dostupne su Postavke i kontrolirani oporavak.

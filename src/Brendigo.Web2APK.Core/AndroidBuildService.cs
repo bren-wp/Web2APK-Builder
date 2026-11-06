@@ -18,6 +18,37 @@ public sealed record BuildResult(string File, bool Signed, string SourceDirector
 
 public static class AndroidBuildService
 {
+    private static readonly string[] SigningKeys =
+    [
+        "BRENDIGO_KEYSTORE", "BRENDIGO_STORE_PASSWORD",
+        "BRENDIGO_KEY_ALIAS", "BRENDIGO_KEY_PASSWORD"
+    ];
+
+    // Do not allow a user or parent process environment to silently sign an
+    // artifact explicitly requested as unsigned/debug.
+    public static void ConfigureSigningEnvironment(ProcessStartInfo info, SigningOptions? signing)
+    {
+        foreach (var key in SigningKeys) info.Environment.Remove(key);
+        if (signing is not { Enabled: true }) return;
+        info.Environment["BRENDIGO_KEYSTORE"] = signing.KeyStore;
+        info.Environment["BRENDIGO_STORE_PASSWORD"] = signing.StorePassword;
+        info.Environment["BRENDIGO_KEY_ALIAS"] = signing.Alias;
+        info.Environment["BRENDIGO_KEY_PASSWORD"] = signing.KeyPassword;
+    }
+
+    // Gradle plugins can echo environment values in failure output; never show
+    // the signing passwords in the in-app build log.
+    public static string RedactSigningSecrets(string line, SigningOptions? signing)
+    {
+        if (signing is not { Enabled: true }) return line;
+        foreach (var secret in new[] { signing.StorePassword, signing.KeyPassword }
+            .Where(value => !string.IsNullOrEmpty(value))
+            .Distinct(StringComparer.Ordinal)
+            .OrderByDescending(value => value.Length))
+            line = line.Replace(secret, "[skriveno]", StringComparison.Ordinal);
+        return line;
+    }
+
     public static async Task<string> ProbeAsync(string executable, params string[] args)
     {
         try
@@ -54,6 +85,11 @@ public static class AndroidBuildService
             using var process = new Process { StartInfo = start };
             process.Start();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(12));
+            using var killOnTimeout = cts.Token.Register(() =>
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+                catch (InvalidOperationException) { }
+            });
             var std = process.StandardOutput.ReadToEndAsync(cts.Token);
             var err = process.StandardError.ReadToEndAsync(cts.Token);
             await process.WaitForExitAsync(cts.Token);
@@ -103,16 +139,16 @@ public static class AndroidBuildService
             else foreach (var part in new[] { "/d", "/c", "gradle", "--no-daemon", task })
                 start.ArgumentList.Add(part);
             ToolchainService.ApplyEnvironment(start);
-            if (signing is { Enabled: true })
-            {
-                start.Environment["BRENDIGO_KEYSTORE"] = signing.KeyStore;
-                start.Environment["BRENDIGO_STORE_PASSWORD"] = signing.StorePassword;
-                start.Environment["BRENDIGO_KEY_ALIAS"] = signing.Alias;
-                start.Environment["BRENDIGO_KEY_PASSWORD"] = signing.KeyPassword;
-            }
+            ConfigureSigningEnvironment(start, signing);
             using var process = new Process { StartInfo = start, EnableRaisingEvents = true };
-            process.OutputDataReceived += (_, e) => { if (e.Data != null) log(e.Data + Environment.NewLine); };
-            process.ErrorDataReceived += (_, e) => { if (e.Data != null) log(e.Data + Environment.NewLine); };
+            process.OutputDataReceived += (_, e) =>
+            {
+                if (e.Data is not null) log(RedactSigningSecrets(e.Data, signing) + Environment.NewLine);
+            };
+            process.ErrorDataReceived += (_, e) =>
+            {
+                if (e.Data is not null) log(RedactSigningSecrets(e.Data, signing) + Environment.NewLine);
+            };
             if (!process.Start()) throw new IOException("Gradle se ne može pokrenuti.");
             process.BeginOutputReadLine(); process.BeginErrorReadLine();
             using var registration = cancel.Register(() => { try { if (!process.HasExited) process.Kill(true); } catch (InvalidOperationException) {} });

@@ -146,6 +146,26 @@ Test(ToolchainService.LocalJdkHome.Contains("Brendigo") &&
     ToolchainService.LocalSdkRoot.Contains("android-sdk"),
     "Integrated JDK and Android SDK locations are private to user profile");
 Test(typeof(BuildResult).GetProperty("Debug")!=null,"Build metadata distinguishes debug signing");
+var inheritedSecrets = new System.Diagnostics.ProcessStartInfo("cmd.exe");
+foreach(var key in new[]{"BRENDIGO_KEYSTORE","BRENDIGO_STORE_PASSWORD",
+    "BRENDIGO_KEY_ALIAS","BRENDIGO_KEY_PASSWORD"})
+    inheritedSecrets.Environment[key]="inherited-secret";
+AndroidBuildService.ConfigureSigningEnvironment(inheritedSecrets,null);
+Test(!new[]{"BRENDIGO_KEYSTORE","BRENDIGO_STORE_PASSWORD",
+    "BRENDIGO_KEY_ALIAS","BRENDIGO_KEY_PASSWORD"}
+    .Any(inheritedSecrets.Environment.ContainsKey),
+    "Unsigned and debug builds remove inherited signing environment");
+var signingFixture = new SigningOptions("C:/keys/upload.p12","release","studio-secret-123",
+    "longer-studio-secret-123");
+AndroidBuildService.ConfigureSigningEnvironment(inheritedSecrets,signingFixture);
+Test(inheritedSecrets.Environment["BRENDIGO_KEYSTORE"]==signingFixture.KeyStore &&
+    inheritedSecrets.Environment["BRENDIGO_KEY_PASSWORD"]==signingFixture.KeyPassword,
+    "Signed build explicitly uses selected key and password");
+var redacted=AndroidBuildService.RedactSigningSecrets(
+    "store=studio-secret-123 key=longer-studio-secret-123",signingFixture);
+Test(!redacted.Contains("studio-secret-123",StringComparison.Ordinal) &&
+    redacted.Contains("[skriveno]",StringComparison.Ordinal),
+    "Long and overlapping Android signing secrets are redacted from Gradle logs");
 Test(LicenseEntitlements.Allows(demo,"apk") && !LicenseEntitlements.Allows(demo,"aab"),
     "Demo can use only APK variants");
 Test(Throws(()=>new ProjectDefinition{Name="Test",Url="http://example.com"}.Validate()),"HTTP denied");
@@ -229,6 +249,12 @@ try {
          permittedJava.Contains("onShowFileChooser") &&
          permittedJava.Contains("DownloadManager") &&
          permittedJava.Contains("onGeolocationPermissionsShowPrompt"),"WebView permission implementations");
+    Test(permittedJava.Contains("effectivePort(uri) == effectivePort(home)") &&
+         permittedJava.Contains("uri.getScheme().equalsIgnoreCase(expected)") &&
+         permittedJava.Contains("if (EXTERNAL && !trusted(uri))"),
+        "WebView permissions and external routing require exact HTTPS origin and effective port");
+    Test(!permittedJava.Contains("boolean sameHost ="),
+        "Removed host-only WebView trust rule");
     Test(File.Exists(Path.Combine(enabled,"app","src","main","res","drawable","launch_background.xml")),"Splash drawable generated");
     Test(Throws(()=>new ProjectDefinition { Name="Invalid AdMob",
         AdMobEnabled=true }.Validate()),"AdMob identifiers required");
