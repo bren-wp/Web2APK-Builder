@@ -17,7 +17,7 @@ if (args.Length == 2 && args[0]=="--fixture") {
 }
 if (args.Length == 2 && args[0]=="--firebase-fixture") {
     Directory.CreateDirectory(args[1]);
-    var cfg=Path.Combine(args[1],"google-services-ci.json");
+    var cfg=Path.GetFullPath(Path.Combine(args[1],"google-services-ci.json"));
     // Test-only identifiers: this file has no real Firebase credentials and must never be used in production.
     File.WriteAllText(cfg, """
 {
