@@ -22,9 +22,12 @@ public partial class MainWindow
             Content=null;
             var folder = Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native");
             Directory.CreateDirectory(folder);
+            var diagnostics=Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native-progress.log");
+            File.WriteAllText(diagnostics,"WPF capture started"+Environment.NewLine);
             // Render real WPF controls, never illustrative/mock-generated screenshots.
             void Capture(string name)
             {
+                File.AppendAllText(diagnostics,"Rendering "+name+Environment.NewLine);
                 var outputSize = new Size(1440,900);
                 Root.Width=1440; Root.Height=900;
                 Root.Measure(outputSize);
@@ -78,6 +81,7 @@ public partial class MainWindow
             }
             void CaptureCompact(string page,string filename,int width,int height)
             {
+                File.AppendAllText(diagnostics,"Rendering "+filename+Environment.NewLine);
                 Navigate(page);
                 Root.Width=width;Root.Height=height;
                 Root.Measure(new Size(width,height));
@@ -114,6 +118,13 @@ public partial class MainWindow
         }
         catch(Exception ex)
         {
+            try
+            {
+                var output=Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native-error.log");
+                Directory.CreateDirectory(Path.GetDirectoryName(output)!);
+                File.WriteAllText(output,ex.ToString());
+            }
+            catch(IOException) { }
             Console.Error.WriteLine("Native WPF screenshot capture failed: "+ex);
             Application.Current.Shutdown(1);
         }
