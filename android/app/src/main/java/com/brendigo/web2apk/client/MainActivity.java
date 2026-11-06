@@ -41,7 +41,7 @@ public final class MainActivity extends Activity {
     private JSONObject editing;
     private WebView preview;
     private EditText name,packageName,url,version,adApp,adBanner;
-    private CheckBox javascript,admob,allowHttp,camera,microphone,location,uploads,downloads,splash,firebase,dom; 
+    private CheckBox javascript,admob,allowHttp,camera,microphone,location,uploads,downloads,splash,firebase,dom,pullRefresh; 
     private EditText splashDuration,privacyUrl;
     private CheckBox ownerConfirmed,dataSafetyChecked;
     private String exportedJson;
@@ -62,6 +62,7 @@ public final class MainActivity extends Activity {
         getWindow().setNavigationBarColor(BG);
         try { projects=new JSONArray(getPreferences(0).getString("projects","[]")); }
         catch(Exception ignored){ projects=new JSONArray(); }
+        if(!LicenseVerifier.activated(this)){showActivation();return;}
         if(!getPreferences(0).getBoolean("welcome_completed",false)) onboarding();
         else dashboard();
     }
@@ -99,7 +100,9 @@ public final class MainActivity extends Activity {
         identity.addView(text("Brendigo",15,Color.WHITE,true));
         identity.addView(text("Web2APK Builder",11,0xFFC6ADFF,true));
         header.addView(identity,idp);
-        Button home=button("⌂",this::dashboard,false);
+        Button home=button("⌂",()->{
+            if(LicenseVerifier.activated(this))dashboard();else showActivation();
+        },false);
         header.addView(home,new LinearLayout.LayoutParams(dp(48),dp(43)));
         root.addView(header);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);
@@ -112,7 +115,7 @@ public final class MainActivity extends Activity {
         label(subtitle,12,MUTED,0,17);
         scroll.addView(content);
         root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-        root.addView(bottomNavigation(title));
+        if(LicenseVerifier.activated(this))root.addView(bottomNavigation(title));
         setContentView(root);
     }
 
@@ -142,6 +145,37 @@ public final class MainActivity extends Activity {
             nav.addView(item,new LinearLayout.LayoutParams(0,dp(51),1));
         }
         return nav;
+    }
+    private void showActivation() {
+        page("Aktivacija","Unesite potpisanu licencu za odabrani paket.");
+        LinearLayout c=card();
+        info(c,"Aktivirajte Brendigo Web2APK Builder",
+            "Provjera digitalnog potpisa obavlja se na vašem uređaju, bez prijenosa podataka preko interneta.");
+        EditText key=new EditText(this);
+        key.setMinLines(3);key.setMaxLines(6);key.setSingleLine(false);
+        key.setTextSize(12);key.setTextColor(TEXT);key.setHintTextColor(MUTED);
+        key.setHint("BL2.…");
+        key.setPadding(dp(13),dp(13),dp(13),dp(13));
+        key.setBackground(background(0xFF0D1934,12));
+        key.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
+            android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE |
+            android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+        key.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(4096)});
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp(125));
+        lp.bottomMargin=dp(14);c.addView(key,lp);
+        final boolean previouslyActivated=LicenseVerifier.activated(this);
+        addButton(c,"Aktiviraj aplikaciju",()->{
+            if(!LicenseVerifier.activate(this,key.getText().toString().trim())) {
+                Toast.makeText(this,"Licenca nije valjana, istekla je ili nije namijenjena Androidu.",Toast.LENGTH_LONG).show();
+                return;
+            }
+            if(previouslyActivated) settings();
+            else {
+                getPreferences(0).edit().putBoolean("welcome_completed",false).apply();
+                onboarding();
+            }
+        },true);
+        label("Licenca ostaje na uređaju. Sačuvajte je za eventualnu novu instalaciju.",12,MUTED,12,0);
     }
     private void onboarding(){
         page("Vaši projekti. Uvijek uz vas.",
@@ -317,6 +351,7 @@ public final class MainActivity extends Activity {
         javascript=check(opts,"JavaScript",editing.optBoolean("JavaScript",true));
         dom=check(opts,"DOM Storage",editing.optBoolean("DomStorage",true));
         allowHttp=check(opts,"Dopusti HTTP (nesigurno)",editing.optBoolean("AllowHttp",false));
+        pullRefresh=check(opts,"Povucite za osvježavanje",editing.optBoolean("PullRefresh",false));
         LinearLayout permissions=card();
         info(permissions,"Android dozvole","Odaberite samo dozvole koje su potrebne generiranoj aplikaciji.");
         camera=check(permissions,"Kamera / WebRTC",editing.optBoolean("Camera",false));
@@ -360,7 +395,27 @@ public final class MainActivity extends Activity {
         wizardSections.add(play);
         wizardSections.add(footer);
         wizardNavigation=card();
+        packageName.addTextChangedListener(new android.text.TextWatcher(){
+            public void beforeTextChanged(CharSequence s,int start,int count,int after){}
+            public void onTextChanged(CharSequence s,int start,int before,int count){updateTierControls();}
+            public void afterTextChanged(android.text.Editable s){}
+        });
+        updateTierControls();
         showWizardStep(0);
+    }
+    private void updateTierControls(){
+        if(packageName==null || firebase==null)return;
+        String pkg=packageName.getText().toString().trim();
+        boolean developer=LicenseVerifier.allows(this,pkg,"advanced");
+        boolean pro=LicenseVerifier.allows(this,pkg,"firebase_push");
+        boolean basic=LicenseVerifier.allows(this,pkg,"branding");
+        admob.setEnabled(developer);
+        camera.setEnabled(developer);
+        microphone.setEnabled(developer);
+        location.setEnabled(developer);
+        firebase.setEnabled(pro);
+        pullRefresh.setEnabled(pro);
+        splash.setEnabled(basic || LicenseVerifier.allows(this,pkg,"apk"));
     }
     private void showWizardStep(int step){
         wizardStep=Math.max(0,Math.min(5,step));
@@ -426,6 +481,7 @@ public final class MainActivity extends Activity {
             editing.put("Name",title).put("PackageName",pkg).put("Url",address)
                 .put("VersionName",appVersion)
                 .put("JavaScript",javascript.isChecked()).put("DomStorage",dom.isChecked())
+                .put("PullRefresh",pullRefresh.isChecked())
                 .put("Camera",camera.isChecked()).put("Microphone",microphone.isChecked())
                 .put("Location",location.isChecked()).put("FileUploads",uploads.isChecked())
                 .put("Downloads",downloads.isChecked()).put("Splash",splash.isChecked())
@@ -438,6 +494,8 @@ public final class MainActivity extends Activity {
                 .put("AdMobAppId",adApp.getText().toString().trim())
                 .put("AdMobBannerId",adBanner.getText().toString().trim())
                 .put("UpdatedAt",utcNow());
+            String denied=LicenseVerifier.packageError(this,editing);
+            if(denied!=null)throw new IllegalArgumentException(denied);
             boolean found=false;
             for(int i=0;i<projects.length();i++) {
                 if(editing.optString("Id").equals(projects.optJSONObject(i).optString("Id"))) {
@@ -514,6 +572,8 @@ public final class MainActivity extends Activity {
     }
     private void exportProject(String id) {
         JSONObject p=find(id);if(p==null)return;
+        String denied=LicenseVerifier.packageError(this,p);
+        if(denied!=null){Toast.makeText(this,denied,Toast.LENGTH_LONG).show();return;}
         exportedJson=p.toString();
         Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT).setType("application/json")
             .addCategory(Intent.CATEGORY_OPENABLE).putExtra(Intent.EXTRA_TITLE,"Brendigo-"+p.optString("Name","project").replaceAll("[^a-zA-Z0-9_-]","-")+".json");
@@ -558,6 +618,8 @@ public final class MainActivity extends Activity {
             p.put("Id",UUID.randomUUID().toString());
                 p.remove("FirebaseConfigPath");
                 p.put("FirebasePushEnabled",false);
+                String denied=LicenseVerifier.packageError(this,p);
+                if(denied!=null)throw new Exception(denied);
                 projects.put(p);persist();list();
                 Toast.makeText(this,"Projekt je uvezen.",Toast.LENGTH_SHORT).show();
             }
@@ -570,6 +632,20 @@ public final class MainActivity extends Activity {
         info(c,"Prilagođen prikaz","Sadržaj se prilagođava mobitelu i tabletu.");
         info(c,"Izrada aplikacija","APK/AAB izrađuje se u povezanoj Windows aplikaciji.");
         addButton(c,"Uvezi JSON projekt",this::importProject,true);
+        LinearLayout plans=card();
+        info(plans,"Vaše licence","Paketi i aplikacije koji su aktivirani na ovom uređaju.");
+        for(LicenseVerifier.Claims license:LicenseVerifier.available(this)){
+            String title;
+            switch(license.tier){
+                case "demo": title="Demo · 0 €";break;
+                case "basic": title="Osnovno · 49 €";break;
+                case "pro": title="Profesionalac · 69 €";break;
+                default:title="Developer · vlasnik";
+            }
+            info(plans,title,license.tier.equals("developer")?
+                "Neograničene aplikacije · sve funkcije":license.packageId+" · doživotno");
+        }
+        addButton(plans,"Dodaj licencu",this::showActivation,true);
         addButton(c,"Privatnost i obrada podataka",this::showPrivacyInformation,false);
         LinearLayout about=card();info(about,"Autor · Brendigo","brendigo.com · Web2APK Builder");
         addButton(about,"Otvori brendigo.com",()->{
@@ -587,6 +663,7 @@ public final class MainActivity extends Activity {
             .setPositiveButton("U redu",null).show();
     }
     @Override public void onBackPressed(){
+        if(!LicenseVerifier.activated(this)){finish();return;}
         if(preview!=null && preview.canGoBack())preview.goBack();
         else if(currentPage.equals("Novi Android projekt") && wizardStep>0)showWizardStep(wizardStep-1);
         else dashboard();

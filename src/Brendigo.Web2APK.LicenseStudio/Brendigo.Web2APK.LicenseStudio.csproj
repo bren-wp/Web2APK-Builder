@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup>
+<OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework>
+<UseWPF>true</UseWPF><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+<EnableWindowsTargeting>true</EnableWindowsTargeting>
+<AssemblyName>Brendigo.LicenseStudio</AssemblyName>
+<RootNamespace>Brendigo.Web2APK.LicenseStudio</RootNamespace>
+<Version>0.4.0</Version><FileVersion>0.4.0.0</FileVersion><AssemblyVersion>0.4.0.0</AssemblyVersion>
+<ApplicationIcon>Assets/Brendigo.ico</ApplicationIcon>
+</PropertyGroup>
+<ItemGroup><ProjectReference Include="../Brendigo.Web2APK.Core/Brendigo.Web2APK.Core.csproj"/></ItemGroup>
+<ItemGroup><Resource Include="Assets/Brendigo.ico" /></ItemGroup>
+</Project>

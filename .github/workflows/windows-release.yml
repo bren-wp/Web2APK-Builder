@@ -22,10 +22,16 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Generate original Brendigo launcher ICO
         run: powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File scripts/make-icon.ps1
+      - name: Prepare License Studio icon
+        run: |
+          New-Item -ItemType Directory -Force -Path src/Brendigo.Web2APK.LicenseStudio/Assets | Out-Null
+          Copy-Item src/Brendigo.Web2APK.Windows/Assets/Brendigo.ico src/Brendigo.Web2APK.LicenseStudio/Assets/Brendigo.ico
       - name: Test Android generator and storage
         run: dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj
       - name: Verify production UI text and responsive layouts
         run: pwsh -NoProfile -File tests/check-ui-labels.ps1
+      - name: Compile Brendigo License Studio
+        run: dotnet build src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.LicenseStudio.csproj -c Release
       - name: Compile native Windows application
         run: dotnet build src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release
       - name: Publish self-contained portable.exe
@@ -33,6 +39,10 @@ jobs:
           dotnet publish src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -p:EnableCompressionInSingleFile=true -o publish
           New-Item -ItemType Directory -Force -Path release | Out-Null
           Copy-Item publish/Brendigo.Web2APK.exe release/Brendigo-Web2APK-portable.exe
+      - name: Publish License Studio standalone EXE
+        run: |
+          dotnet publish src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.LicenseStudio.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -p:EnableCompressionInSingleFile=true -o publish-license
+          Copy-Item publish-license/Brendigo.LicenseStudio.exe release/Brendigo-LicenseStudio-portable.exe
       - name: Install Inno Setup
         run: choco install innosetup --yes --no-progress
       - name: Build setup.exe
@@ -40,10 +50,12 @@ jobs:
           $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
           if (-not (Test-Path $compiler)) { $compiler = (Get-Command ISCC.exe -ErrorAction Stop).Source }
           & $compiler installer/Brendigo-Web2APK.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Main installer failed.' }
+          & $compiler installer/Brendigo-LicenseStudio.iss
           if ($LASTEXITCODE -ne 0) { throw 'Installer packaging failed.' }
       - name: Verify both Windows EXE packages
         run: |
-          foreach ($item in @("release/Brendigo-Web2APK-portable.exe","release/Brendigo-Web2APK-Setup.exe")) {
+          foreach ($item in @("release/Brendigo-Web2APK-portable.exe","release/Brendigo-Web2APK-Setup.exe","release/Brendigo-LicenseStudio-portable.exe","release/Brendigo-LicenseStudio-Setup.exe")) {
             if (-not (Test-Path $item)) { throw "Missing mandatory file: $item" }
             if ((Get-Item $item).Length -lt 1000000) { throw "Invalid file size: $item" }
             Write-Host "$item verified"
@@ -77,6 +89,11 @@ jobs:
           dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj -- --firebase-fixture fcm-smoke
           gradle -p fcm-smoke/project :app:assembleDebug --no-daemon
           if ($LASTEXITCODE -ne 0) { throw 'Firebase Messaging integration does not compile.' }
+      - name: Compile Professional pull-to-refresh Android project
+        run: |
+          dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj -- --refresh-fixture refresh-smoke
+          gradle -p refresh-smoke :app:assembleDebug --no-daemon
+          if ($LASTEXITCODE -ne 0) { throw 'Android pull-to-refresh integration does not compile.' }
       - name: Compile Android Mobile client (APK + AAB)
         run: |
           gradle -p android :app:assembleDebug :app:bundleRelease --no-daemon
@@ -87,9 +104,12 @@ jobs:
             if (-not (Test-Path $item)) { throw "Android package is missing: $item" }
             if ((Get-Item $item).Length -lt 30000) { throw "Android package is too small: $item" }
           }
+      - name: Build isolated UI capture executable (NOT included in release)
+        run: |
+          dotnet publish src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release -r win-x64 --self-contained true -p:DefineConstants=UI_CAPTURE -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o ui-capture
       - name: Capture and verify actual native WPF screens
         run: |
-          $exe = (Resolve-Path './publish/Brendigo.Web2APK.exe').Path
+          $exe = (Resolve-Path './ui-capture/Brendigo.Web2APK.exe').Path
           $process = Start-Process -FilePath $exe -ArgumentList '--capture-native' -WorkingDirectory $PWD -PassThru
           if (-not $process.WaitForExit(90000)) {
             $process.Kill()
@@ -111,11 +131,11 @@ jobs:
             git commit -m 'docs: capture real Windows WPF screens [skip ci]'
             git push origin HEAD:main
           }
-      - name: Publish native v0.3.2
+      - name: Publish native v0.4.0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = 'v0.3.2'
+          $tag = 'v0.4.0'
           gh release view $tag --repo "$env:GITHUB_REPOSITORY" 2>$null | Out-Null
           if ($LASTEXITCODE -eq 0) { throw 'Increment version for each new release.' }
-          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder v0.3.2 - Native Windows" --notes-file CHANGELOG.md
+          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.4.0" --notes-file CHANGELOG.md

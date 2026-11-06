@@ -50,9 +50,11 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(_dataDir);
         _store = new ProjectStore(_dataDir);
         MakeNavigation();
-        Navigate(_store.List().Count == 0 && !Environment.GetCommandLineArgs().Contains("--capture-native") ? "welcome" : "dashboard");
+        Navigate(_store.List().Count == 0 ? "welcome" : "dashboard");
+#if UI_CAPTURE
         if (Environment.GetCommandLineArgs().Contains("--capture-native"))
             Loaded += CaptureNativeScreensOnLoaded;
+#endif
     }
 
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsive();

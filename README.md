@@ -8,6 +8,29 @@
 
 ---
 
+## Licenciranje i Brendigo License Studio
+
+Brendigo License Studio zasebna je **nativna Windows aplikacija** za izdavanje proizvoljnih serija licenci uz vlasnički šifrirani PEM i lokalnu RSA-3072 digitalnu potpisnu provjeru. Glavna Windows aplikacija i Android klijent prihvaćaju samo licence s točnim digitalnim potpisom. Nema internetske aktivacije, udaljenog računa ni popisa milijuna ključeva u binarnom programu.
+
+**Privatni vlasnički ključ nije u ovom javnom GitHub repozitoriju niti u instalacijskom paketu.** Mora se čuvati odvojeno. Upute: [License Studio](docs/LICENSE-STUDIO-HR.md).
+
+**Ograničenje:** offline licence moguće je kopirati; opoziv i ograničenje jednog uređaja zahtijevaju zasebnu online provjeru.
+
+## Licencni paketi — po Android aplikaciji
+
+| Paket | Cijena | Podržane funkcije |
+|---|---:|---|
+| **Demo** | **0 €** | Trajna licenca, APK izvoz, bez oglasa, zadani izgled |
+| **Osnovno** | **49 €** | Sve iz Dema, APK/AAB, vlastita ikona, splash zaslon i brending |
+| **Profesionalac** | **69 €** | Sve iz Osnovnog, povlačenje za osvježavanje i Firebase Push |
+| **Developer · vlasnik** | **nije u prodaji** | **Neograničen broj aplikacija, sve funkcije, APK/AAB, AdMob, Push, napredne dozvole i sve postavke** |
+
+Demo, Osnovno i Profesionalac su **doživotne licence za jedan točno definiran Android package ID**. Licenca može dopustiti rad u Windows aplikaciji, Android klijentu ili na obje platforme. Developer je vlasnička licenca sa znakom `*` umjesto package ID-ja, koristi se na obje platforme i **nema ograničenje broja aplikacija**. Svi paketi koriste lokalnu provjeru RSA potpisa; privatni potpisni ključ ostaje isključivo kod vlasnika.
+
+**Napomena o Google Playu:** „kompatibilno” znači da program generira projekt s aktualnim API-jem i daje kontrolni popis. Odobrenje objave ovisi o pravilima, kvaliteti i stvarnim podacima aplikacije; nije zajamčeno kupnjom paketa. AdMob generiranje dopušteno je samo Developer paketu; ostali proizvode aplikacije bez ugrađenih oglasa iz Buildera.
+
+Dodatne upute: [Izdavanje licenci i vlasnički Developer paket](docs/LICENSE-STUDIO-HR.md).
+
 ## Windows Studio (.NET 10 / WPF)
 
 Nativni Windows program za kreiranje i konfiguriranje Android WebView aplikacija i lokalnu izradu APK/AAB paketa uz Android SDK. Ne zahtijeva Electron ni Chromium. Prozor se ne pokreće maksimiziran i prilagođava se širini zaslona.
@@ -56,6 +79,8 @@ Projekt **android/** sadrži nativnu Android aplikaciju s Brendigo brendingom, p
 |---|---|
 | **Brendigo-Web2APK-portable.exe** | Nativni Windows x64 bez instalacije |
 | **Brendigo-Web2APK-Setup.exe** | Instalacijski program za Windows x64 |
+| **Brendigo-LicenseStudio-portable.exe** | Zaseban program za izdavanje licenci, bez privatnog ključa |
+| **Brendigo-LicenseStudio-Setup.exe** | Instalacijska verzija programa za licence |
 | **Brendigo-Web2APK-Android-test.apk** | Testni Android klijent s debug potpisom; za testiranje |
 | **Brendigo-Web2APK-Android-unsigned.aab** | Nepotpisani AAB; za produkciju potreban je vlastiti trajni ključ |
 
@@ -95,6 +120,10 @@ Uz Android Mobile i osnovni WebView projekt, CI sada zasebno kompajlira generira
 Nativne WPF snimke pokušavaju se snimiti izvršavanjem pravog Windows programa; nedostajuće ili neuspjele snimke više se ne smiju prikazivati kao uspješno verificirane.
 
 Na Android klijentu sada je moguće konfigurirati kameru, mikrofon, lokaciju, prijenos datoteka, splash i zatražiti Firebase postavljanje. Firebase konfiguracijsku datoteku i završno potpisivanje postavlja se u Windows Studiju.
+
+## Status i sigurnosni pregled
+
+U verziji 0.4.0 aktivacija je obvezna u produkcijskom Windows programu i Android klijentu. Interni UI capture način zaseban je CI build i **nije dostupan u prodajnoj verziji**. Sigurnosni i dead-code pregled (opseg i preostale provjere): [Izvještaj](docs/SECURITY-DEADCODE-AUDIT-v0.4.0.md).
 
 ## Status
 

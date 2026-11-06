@@ -33,6 +33,14 @@ if (args.Length == 2 && args[0]=="--firebase-fixture") {
     Console.WriteLine("FCM test fixture generated");
     return;
 }
+if (args.Length == 2 && args[0]=="--refresh-fixture") {
+    var fixture=new ProjectDefinition { Name="Refresh Build Smoke",
+        PackageName="com.brendigo.refreshfixture",Url="https://example.com",
+        PullRefresh=true };
+    AndroidProjectGenerator.Generate(fixture,args[1]);
+    Console.WriteLine("Refresh test fixture generated");
+    return;
+}
 if (args.Length == 2 && args[0]=="--ads-fixture") {
     var fixture = new ProjectDefinition {
         Name="AdMob Build Smoke", PackageName="com.brendigo.adsfixture",
@@ -44,6 +52,40 @@ if (args.Length == 2 && args[0]=="--ads-fixture") {
     Console.WriteLine("AdMob test fixture generated");
     return;
 }
+Test(!BrendigoLicense.TryVerify("invalid","windows",out _),"Invalid activation rejected");
+Test(!BrendigoLicense.TryVerify("BL1.eyJ2IjoxLCJzIjoiOGFkOWMzN2IwMDgyMDdhZGIyMTM3OTQ4ZmY0MTk2NGQiLCJhIjoiYm90aCIsImlhdCI6MTc5Mzg3ODkwNSwiZXhwIjoxNzkzODkyNTA1fQ.UQUXxdvcS3iU_a62c5h7rU38IpNPf9A03ixM1JcGsf90VE8dfbEUohSRAVglMRnLUjVoi5u4YDZ7Q_ymCidoGtqN5Cz6TzbZFNK0XrHWSZcr4eXam0ignnxX8bDtoR6YhSjs9mnH0n39Vu1bFjmgH1NrprPFH5Nm8AqgvlSUGre8MB1FBWaRyAQY6K1hRF3UyL31dMqiyPYOaXdekUlVBiJa3JHUyjYah9Mn6SEMG6ujtQ_9oouhdCFCG6tfH0mSZWeyLl1BPVyj_jsYx0iF_IOl8bMy-hceDMR-BtOQWbTjuI4hVbl023bMcNVvx42XWXlACyyswWOfLVc5e63Uh0xIr9GQEk6_MJ1X9_Akj7yH790ShUtVrkFldBxU9w4PDeuUQtNb5ORQBR_uyZhm7k5WS6P9BvgklLn5r89lUmC7b7ytZ_8IUwFdSxXHPZ0qx1sbYGgSYqcdAIk22uoMf1nV2QOmPZxiWFjfEWmH38Pe4IPKAiwIlXVX2dEpQibw","windows",out _),"Authentic but expired license rejected");
+using (var forged=System.Security.Cryptography.RSA.Create(3072))
+{
+    Test(!BrendigoLicense.OwnerMatches(forged),"Unknown issuer key rejected");
+    bool refused=false;
+    try { BrendigoLicense.Issue(forged,"0102030405060708090a0b0c0d0e0f10","both",
+        DateTimeOffset.UtcNow.ToUnixTimeSeconds(),0,"developer","*"); }
+    catch(System.Security.Cryptography.CryptographicException) {refused=true;}
+    Test(refused,"Forged RSA issuer rejected before signing");
+}
+var now=DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+var demo=new BrendigoLicense.Claims(new string('a',32),"both",now,0,"demo","com.example.one");
+var basic=demo with { Tier="basic" };
+var pro=demo with { Tier="pro" };
+var owner=demo with { Tier="developer",PackageName="*" };
+Test(LicenseEntitlements.PriceEur("demo")==0 && LicenseEntitlements.PriceEur("basic")==49 &&
+    LicenseEntitlements.PriceEur("pro")==69,"Tier price metadata");
+Test(LicenseEntitlements.Allows(demo,"apk") && !LicenseEntitlements.Allows(demo,"aab") &&
+    !LicenseEntitlements.Allows(demo,"source"),"Demo restricted to APK");
+Test(LicenseEntitlements.Allows(basic,"aab") && LicenseEntitlements.Allows(basic,"custom_icon") &&
+    !LicenseEntitlements.Allows(basic,"firebase_push"),"Basic APK/AAB/branding only");
+Test(LicenseEntitlements.Allows(pro,"firebase_push") && LicenseEntitlements.Allows(pro,"pull_refresh") &&
+    !LicenseEntitlements.Allows(pro,"admob"),"Professional push and refresh, no ads");
+Test(LicenseEntitlements.Allows(owner,"admob") && LicenseEntitlements.Allows(owner,"aab") &&
+    LicenseEntitlements.Allows(owner,"unlimited_projects"),"Developer unrestricted entitlements");
+var other=new ProjectDefinition { Name="Other package",PackageName="com.other.product" };
+Test(!LicenseEntitlements.Check(demo,other,"apk",out _),"Per-app license package binding");
+Test(LicenseEntitlements.Check(owner,other,"aab",out _),"Owner Developer unlimited package IDs");
+var adsBlocked=new ProjectDefinition { Name="Ads",PackageName="com.example.one",AdMobEnabled=true };
+Test(!LicenseEntitlements.Check(pro,adsBlocked,"apk",out _),"Professional ad SDK prohibited");
+var pushAllowed=new ProjectDefinition { Name="Push",PackageName="com.example.one",FirebasePushEnabled=true };
+Test(LicenseEntitlements.Check(pro,pushAllowed,"aab",out _),"Professional push authorized");
+Test(!BrendigoLicense.TryVerify("BL1.invalid.invalid","windows",out _),"Legacy unscoped license rejected");
 var project = new ProjectDefinition { Name="Primjer", PackageName="com.brendigo.primjer", Url="https://example.com" };
 project.Validate();
 Test(project.MinSdk==24 && project.TargetSdk==36,"SDK defaults");
@@ -125,6 +167,14 @@ try {
     Test(File.Exists(Path.Combine(policyOutput,"GOOGLE_PLAY_CHECKLIST.txt")),"Play readiness checklist generated");
     Test(Throws(()=>new ProjectDefinition { Name="Bad policy",PrivacyPolicyUrl="http://bad.example.com/privacy" }.Validate()),
         "Only HTTPS privacy policy accepted");
+    var refresh=new ProjectDefinition { Name="Refresh",
+        PackageName="com.brendigo.refresh",PullRefresh=true };
+    var refreshFolder=AndroidProjectGenerator.Generate(refresh,Path.Combine(root,"refresh"));
+    Test(File.ReadAllText(Path.Combine(refreshFolder,"app","build.gradle"))
+        .Contains("swiperefreshlayout:1.2.0"),"Refresh AndroidX dependency generated");
+    Test(File.ReadAllText(Path.Combine(refreshFolder,"app","src","main","java",
+        "com","brendigo","refresh","MainActivity.java")).Contains("setOnRefreshListener"),
+        "Native Android pull-to-refresh handler generated");
     var web=Path.Combine(root,"web");Directory.CreateDirectory(web);
     File.WriteAllText(Path.Combine(web,"index.html"),"<h1>Offline</h1>");
     File.WriteAllText(Path.Combine(web,".env"),"secret");

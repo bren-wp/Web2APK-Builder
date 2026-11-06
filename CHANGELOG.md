@@ -1,5 +1,23 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.4.0 — Brendigo License Studio, četiri paketa i potpisane licence
+
+- Demo (0 €), Osnovno (49 €), Profesionalac (69 €) i **Developer · vlasnik**.
+- Developer koristi trajnu BL2 licencu za neograničen broj Android aplikacija na Windowsu i Androidu te otključava sve opcije.
+- Ostale licence vežu se uz jedan Android package ID; Demo proizvodi samo APK, Osnovno dodaje AAB/ikone/splash, a Profesionalac dodaje Firebase Push i povlačenje za osvježavanje.
+- Generator stvarno implementira AndroidX SwipeRefreshLayout 1.2.0 kada je opcija uključena.
+- Offline provjera RSA potpisa, zaštita privatnog ključa, više instaliranih licenci, kontrole pri izvozu i gradnji.
+
+
+- Dodana **zasebna Windows aplikacija** License Studio za kreiranje licenci za Windows, Android ili obje platforme.
+- Protočni CSV izvoz proizvoljno velikih serija (ovisno o vremenu i dostupnom disku), RSA-3072/SHA-256 potpis svake licence.
+- Šifrirani vlasnički PEM ne nalazi se u javnom repozitoriju ni izvršnom paketu.
+- Windows i Android imaju offline ekran za aktivaciju, provjeru potpisa i isteka.
+- Onemogućen ulaz bez licence preko javnog parametra za UI snimke; snimke se rade samo izdvojenim CI buildom.
+- Zatamnjeni Windows ComboBoxovi i dosljedne boje Brendigo sučelja.
+- Dodani sigurnosni pregled, testovi nevaljanih i krivotvorenih licenci, upute i dva nova Windows paketa.
+
+
 ## v0.3.2 — Brendigo Windows i Android ekran po ekran
 
 - Windows: novi splash i prvi welcome zaslon, poboljšana nadzorna ploča i tablica projekata.

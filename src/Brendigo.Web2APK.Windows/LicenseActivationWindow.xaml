@@ -1,0 +1,47 @@
+<Window x:Class="Brendigo.Web2APK.Windows.LicenseActivationWindow"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  Title="Aktivacija · Brendigo Web2APK Builder" Icon="Assets/Brendigo.ico"
+  Width="740" Height="580" MinWidth="600" MinHeight="490"
+  WindowStartupLocation="CenterScreen" WindowState="Normal"
+  ResizeMode="CanResize" Background="#090F21" UseLayoutRounding="True">
+  <Grid>
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Border Background="#131C37" Padding="27,23" BorderBrush="#324268" BorderThickness="0,0,0,1">
+      <DockPanel><Image Source="Assets/Brendigo.ico" Width="57" Height="57" DockPanel.Dock="Left" Margin="0,0,16,0"/>
+        <StackPanel><TextBlock Text="BRENDIGO WEB2APK BUILDER" Foreground="#F3F5FF"
+          FontWeight="Bold" FontSize="20"/>
+          <TextBlock Text="Sigurna offline aktivacija" Foreground="#B4BFE5"
+          FontSize="12" Margin="0,7,0,0"/></StackPanel>
+      </DockPanel>
+    </Border>
+    <ScrollViewer Grid.Row="1">
+      <StackPanel Margin="27,27">
+        <TextBlock Text="Aktivirajte svoju aplikaciju" Foreground="White" FontSize="24" FontWeight="Bold"/>
+        <TextBlock Text="Unesite licencu izdanu putem Brendigo License Studija. Za provjeru nije potrebna internetska veza."
+          TextWrapping="Wrap" Foreground="#ADBFE0" FontSize="13" Margin="0,11,0,22"/>
+        <TextBlock Text="LICENCA" Foreground="#A6B8D9" FontSize="11" FontWeight="Bold" Margin="0,0,0,9"/>
+        <TextBox x:Name="LicenseInput" MinHeight="120" MaxLength="4096" TextWrapping="Wrap"
+          VerticalScrollBarVisibility="Auto" AcceptsReturn="True"
+          Background="#101D39" Foreground="#F0F3FF" CaretBrush="#AA99FF"
+          BorderBrush="#435484" BorderThickness="1" FontFamily="Consolas" FontSize="12" Padding="12"/>
+        <TextBlock x:Name="Message" Foreground="#F2C2CE" FontSize="12"
+          TextWrapping="Wrap" Margin="0,12,0,0"/>
+        <Border Background="#1A2947" CornerRadius="12" Padding="15" Margin="0,25,0,0">
+          <TextBlock Text="Licenca se čuva lokalno na računalu. Privatni ključ nije dio ove aplikacije. Sačuvajte licencu za ponovnu instalaciju."
+            Foreground="#B6C8E8" FontSize="12" TextWrapping="Wrap"/>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+    <Border Grid.Row="2" Background="#111A33" BorderBrush="#293D68" BorderThickness="0,1,0,0"
+      Padding="24,16">
+      <DockPanel>
+        <TextBlock Text="© Brendigo · brendigo.com" DockPanel.Dock="Left" Foreground="#8DA3C8"
+          VerticalAlignment="Center" FontSize="11"/>
+        <Button DockPanel.Dock="Right" Content="Aktiviraj aplikaciju" Click="Activate_Click"
+          MinWidth="178" Height="43" Background="#7050D9" Foreground="White"
+          BorderBrush="#9577F5" FontSize="12" FontWeight="SemiBold" Padding="14,7"/>
+      </DockPanel>
+    </Border>
+  </Grid>
+</Window>

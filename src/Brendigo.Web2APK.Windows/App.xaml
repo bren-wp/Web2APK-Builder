@@ -61,10 +61,10 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style TargetType="ComboBox">
-            <Setter Property="Foreground" Value="#121B35"/>
-            <Setter Property="Background" Value="#E5E9FA"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="MinHeight" Value="41"/>
+            <Setter Property="Foreground" Value="#F1F4FF"/>
+            <Setter Property="Background" Value="#142344"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="MinHeight" Value="43"/>
             <Setter Property="Padding" Value="8,7"/>
         </Style>
         <Style TargetType="ComboBoxItem">

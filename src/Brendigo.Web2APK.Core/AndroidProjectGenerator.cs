@@ -77,9 +77,11 @@ dependencies {
     implementation 'androidx.core:core-splashscreen:1.0.1'
     @@ADS_DEPENDENCIES@@
     @@FIREBASE_DEPENDENCIES@@
+    @@REFRESH_DEPENDENCIES@@
 }
 """.Replace("@@GOOGLE_PLUGIN@@", project.FirebasePushEnabled ? "; id 'com.google.gms.google-services'" : "")
     .Replace("@@ADS_DEPENDENCIES@@", project.AdMobEnabled ? "implementation 'com.google.android.gms:play-services-ads:25.5.0'\\n    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'".Replace("\\n","\n") : "")
+    .Replace("@@REFRESH_DEPENDENCIES@@", project.PullRefresh ? "implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0'" : "")
     .Replace("@@FIREBASE_DEPENDENCIES@@", project.FirebasePushEnabled ? "implementation platform('com.google.firebase:firebase-bom:35.1.0')\\n    implementation 'com.google.firebase:firebase-messaging'".Replace("\\n","\n") : "")
     .Replace("@@PACKAGE@@", project.PackageName)
     .Replace("@@COMPILE@@", Math.Max(36, project.TargetSdk).ToString())
@@ -201,6 +203,8 @@ import androidx.webkit.WebViewAssetLoader;
 
 public final class MainActivity extends Activity {
     private WebView browser;
+    private android.view.View mainContent;
+    @@REFRESH_FIELD@@
     @@ADS_CLASS@@
     @@NON_AD_PRIVACY_MENU@@
     private static final String HOME = @@HOME@@;
@@ -214,6 +218,7 @@ public final class MainActivity extends Activity {
     }
     private static final boolean HTTP = @@HTTP@@;
     private static final boolean SPLASH = @@SPLASH@@;
+    private static final boolean PULL = @@PULL@@;
     private static final long SPLASH_MS = @@SPLASH_MS@@;
     private static final boolean CAMERA = @@CAMERA@@;
     private static final boolean MICROPHONE = @@MICROPHONE@@;
@@ -230,6 +235,12 @@ public final class MainActivity extends Activity {
     private String locationOrigin;
     private static final String[] EMPTY = new String[0];
 
+    private android.view.View contentForWebView() {
+        if(mainContent!=null)return mainContent;
+        @@REFRESH_INIT@@
+        mainContent=browser;
+        return mainContent;
+    }
     private void applySafeAreaInsets(android.view.View content) {
         if (@@FULLSCREEN@@) return;
         content.setOnApplyWindowInsetsListener((view,insets) -> {
@@ -324,6 +335,10 @@ public final class MainActivity extends Activity {
             }
         });
         browser.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view,String url) {
+                super.onPageFinished(view,url);
+                @@REFRESH_STOP@@
+            }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 return LOCAL ? loader.shouldInterceptRequest(request.getUrl()) : null;
             }
@@ -406,7 +421,19 @@ public final class MainActivity extends Activity {
     .Replace("@@SPLASH_MS@@", project.SplashDurationMs.ToString())
     .Replace("@@ADS_CLASS@@",project.AdMobEnabled ? GenerateAdsClass(project.AdMobBannerId) : "")
     .Replace("@@NON_AD_PRIVACY_MENU@@",project.AdMobEnabled ? "" : GeneratePrivacyMenu())
-    .Replace("@@CONTENT_VIEW@@",project.AdMobEnabled ? "setupAds();" : "setContentView(browser); applySafeAreaInsets(browser);")
+    .Replace("@@CONTENT_VIEW@@",project.AdMobEnabled ? "setupAds();" :
+        "android.view.View main=contentForWebView(); setContentView(main); applySafeAreaInsets(main);")
+    .Replace("@@REFRESH_FIELD@@",project.PullRefresh ?
+        "private androidx.swiperefreshlayout.widget.SwipeRefreshLayout refreshLayout;" : "")
+    .Replace("@@REFRESH_INIT@@",project.PullRefresh ?
+        "refreshLayout=new androidx.swiperefreshlayout.widget.SwipeRefreshLayout(this); "+
+        "refreshLayout.addView(browser); "+
+        "refreshLayout.setOnChildScrollUpCallback((parent,child)->browser.canScrollVertically(-1)); "+
+        "refreshLayout.setOnRefreshListener(() -> browser.reload()); "+
+        "mainContent=refreshLayout;return mainContent;" : "")
+    .Replace("@@REFRESH_STOP@@",project.PullRefresh ?
+        "if(refreshLayout!=null)refreshLayout.setRefreshing(false);" : "")
+    .Replace("@@PULL@@",project.PullRefresh.ToString().ToLowerInvariant())
     .Replace("@@ADS_DESTROY@@",project.AdMobEnabled ? "if (adView != null) { adView.destroy(); adView=null; }" : "")
     .Replace("@@PUSH_PROMPT@@",project.FirebasePushEnabled ?
         "if (android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) requestPermissions(new String[] { android.Manifest.permission.POST_NOTIFICATIONS },7100);" : "")
@@ -444,7 +471,7 @@ public final class MainActivity extends Activity {
     private void setupAds() {
         android.widget.LinearLayout holder = new android.widget.LinearLayout(this);
         holder.setOrientation(android.widget.LinearLayout.VERTICAL);
-        holder.addView(browser, new android.widget.LinearLayout.LayoutParams(-1,0,1f));
+        holder.addView(contentForWebView(), new android.widget.LinearLayout.LayoutParams(-1,0,1f));
         android.widget.Button privacy = new android.widget.Button(this);
         privacy.setText("Postavke privatnosti oglasa");
         privacy.setOnClickListener(v -> com.google.android.ump.UserMessagingPlatform.showPrivacyOptionsForm(this,error -> {}));

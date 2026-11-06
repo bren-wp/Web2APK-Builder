@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using Brendigo.Web2APK.Core;
 
 namespace Brendigo.Web2APK.Windows;
 
@@ -20,12 +21,25 @@ public partial class App : Application
             if (args.ExceptionObject is Exception exception) CaptureFailure(exception);
         };
         base.OnStartup(e);
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+#if UI_CAPTURE
         if (_capture)
         {
             var main = new MainWindow();
             MainWindow = main;
             main.Show();
             return;
+        }
+#endif
+        if (!LicenseActivationStore.IsActivated("windows"))
+        {
+            var dialog = new LicenseActivationWindow();
+            MainWindow = dialog;
+            if (dialog.ShowDialog() != true)
+            {
+                Shutdown(0);
+                return;
+            }
         }
         var splash = new SplashWindow();
         MainWindow = splash;
@@ -39,6 +53,7 @@ public partial class App : Application
                 var main = new MainWindow();
                 MainWindow = main;
                 main.Show();
+                ShutdownMode = ShutdownMode.OnMainWindowClose;
                 splash.Close();
             }
             catch (Exception exception)

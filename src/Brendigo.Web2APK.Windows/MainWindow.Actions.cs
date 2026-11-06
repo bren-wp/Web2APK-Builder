@@ -18,10 +18,24 @@ public partial class MainWindow
             ShowInfo(GooglePlayReadiness.AsText(_draft))));
         panel.Children.Add(Notice("Za APK/AAB moraju biti dostupni JDK 17, Gradle 9.6+ i Android SDK 36+. " +
             "Program ne preuzima razvojne alate bez vašeg odobrenja."));
+        var authorized = LicenseActivationStore.Installed("windows")
+            .Where(c => c.Tier == LicenseEntitlements.Developer || c.PackageName == _draft.PackageName)
+            .OrderByDescending(c => c.Tier switch {
+                "developer" => 4, "pro" => 3, "basic" => 2, _ => 1
+            }).FirstOrDefault();
+        var tierName = authorized is null ? "Nema licence za odabrani package ID"
+            : LicenseEntitlements.DisplayName(authorized.Tier);
+        panel.Children.Add(Feature("Aktivni licencni paket",tierName+" · "+(authorized?.PackageName ?? _draft.PackageName)));
         var actions = Row();
-        actions.Children.Add(Btn("⇩  Izvezi Android projekt", () => _ = ExportAsync(_draft)));
-        actions.Children.Add(Btn("▣  Izradi APK", () => _ = BuildAsync("apk"), true));
-        actions.Children.Add(Btn("▣  Izradi AAB", () => _ = BuildAsync("aab"), true));
+        var sourceBtn=Btn("⇩  Izvezi Android projekt", () => _ = ExportAsync(_draft));
+        sourceBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"source");
+        actions.Children.Add(sourceBtn);
+        var apkBtn=Btn("▣  Izradi APK", () => _ = BuildAsync("apk"), true);
+        apkBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"apk");
+        actions.Children.Add(apkBtn);
+        var aabBtn=Btn("▣  Izradi AAB", () => _ = BuildAsync("aab"), true);
+        aabBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"aab");
+        actions.Children.Add(aabBtn);
         actions.Children.Add(Btn("✕  Zaustavi", CancelBuild, false, true));
         panel.Children.Add(actions);
         panel.Children.Add(Divider());
@@ -97,6 +111,7 @@ public partial class MainWindow
         if (_busy) return;
         try
         {
+            LicenseActivationStore.Require("windows",project,"source");
             if (!SaveForExport(project, out var saved)) return;
             var dialog = new OpenFolderDialog { Title="Odaberite mapu za izvoz Android projekta", Multiselect=false };
             if (dialog.ShowDialog(this) != true) return;
@@ -124,6 +139,8 @@ public partial class MainWindow
     {
         if (_busy) return;
         if (!SaveDraft()) return;
+        try { LicenseActivationStore.Require("windows",_draft,format); }
+        catch (UnauthorizedAccessException e) { ShowError(e.Message); return; }
         var dialog = new OpenFolderDialog { Title = "Odaberite izlaznu mapu za Android paket", Multiselect = false };
         if (dialog.ShowDialog(this) != true) return;
         SigningOptions? signing = null;
@@ -236,6 +253,17 @@ public partial class MainWindow
     {
         Heading("Postavke", "Prilagodite izgled, sigurnost i način rada aplikacije.");
         var settings = Stack();
+        var installed=LicenseActivationStore.Installed("windows");
+        settings.Children.Add(Txt("Licence i paketi",17,true,White,new Thickness(0,0,0,10)));
+        foreach(var c in installed)
+            settings.Children.Add(Feature(LicenseEntitlements.DisplayName(c.Tier),
+                (c.Tier=="developer"?"Neograničeno aplikacija":c.PackageName)+
+                " · doživotno · "+(c.Audience=="both"?"Windows + Android":"Windows")));
+        settings.Children.Add(Btn("Dodaj novu licencu",()=>{
+            var dialog=new LicenseActivationWindow { Owner=this };
+            if(dialog.ShowDialog()==true) Navigate("settings");
+        },true));
+        settings.Children.Add(Divider());
         settings.Children.Add(Feature("Windows sučelje", "Ujednačeni prikaz, jasni izbornici i prilagodljiv raspored."));
         settings.Children.Add(Feature("Veličina prozora", "Promijenite veličinu prozora ili ga minimizirajte u svakom trenutku."));
         settings.Children.Add(Feature("Prilagodba zaslonu", "Izbornik i obrasci automatski se prilagođavaju dostupnom prostoru."));

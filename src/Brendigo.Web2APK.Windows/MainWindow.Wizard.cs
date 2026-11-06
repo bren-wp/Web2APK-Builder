@@ -161,6 +161,7 @@ public partial class MainWindow
         row.Children.Add(SelectField("Tema", _draft.Theme, ["dark","light"], s=>_draft.Theme=s));
         row.Children.Add(SelectField("Orijentacija", _draft.Orientation, ["portrait","landscape","unspecified"],
             s=>_draft.Orientation=s));
+        row.IsEnabled=HasLicenseFeature("branding");
         panel.Children.Add(row);
         panel.Children.Add(Txt("Primarna boja", 12, true, White, new Thickness(0,12,0,8)));
         var colors = Row();
@@ -173,30 +174,39 @@ public partial class MainWindow
             b.Width = 50;
             colors.Children.Add(b);
         }
+        colors.IsEnabled=HasLicenseFeature("branding");
         panel.Children.Add(colors);
         panel.Children.Add(Txt("Launcher ikonica (PNG)", 12, true, White, new Thickness(0,14,0,7)));
         panel.Children.Add(Txt(string.IsNullOrWhiteSpace(_draft.IconPath) ?
             "Zadana Brendigo ikona — odaberite svoju PNG datoteku." : _draft.IconPath,
             12, false, Muted, new Thickness(0,0,0,9)));
-        panel.Children.Add(Btn("Odaberi launcher PNG (min. 192×192)", () => {
+        var iconButton=Btn("Odaberi launcher PNG (min. 192×192)", () => {
             var dialog = new OpenFileDialog { Title="Odaberi launcher ikonu", Filter="PNG image (*.png)|*.png" };
             if (dialog.ShowDialog(this)==true) { _draft.IconPath=dialog.FileName; Navigate("new"); }
-        }));
+        });
+        iconButton.IsEnabled=HasLicenseFeature("custom_icon");
+        panel.Children.Add(iconButton);
         if (!string.IsNullOrEmpty(_draft.IconPath))
             panel.Children.Add(Btn("Vrati zadanu ikonu", () => { _draft.IconPath=""; Navigate("new"); }));
-        panel.Children.Add(OptionCheck("Dinamički početni splash",
-            "Prikaži izvornu Android splash animaciju i zadrži zaslon od 0 do 3000 ms.",
-            _draft.Splash, b=>_draft.Splash=b));
+        var splashToggle=OptionCheck("Dinamički početni splash",
+            "Od paketa Osnovno moguće je uređivati prikaz i trajanje splasha.",
+            _draft.Splash, b=>_draft.Splash=b);
+        splashToggle.IsEnabled=HasLicenseFeature("splash");
+        panel.Children.Add(splashToggle);
         if (_draft.Splash)
-            panel.Children.Add(SelectField("Trajanje splash zaslona (ms)", _draft.SplashDurationMs.ToString(),
+        {
+            var duration=SelectField("Trajanje splash zaslona (ms)", _draft.SplashDurationMs.ToString(),
                 ["0","300","500","700","1000","1500","2000","3000"],
-                s=>_draft.SplashDurationMs=int.Parse(s)));
+                s=>_draft.SplashDurationMs=int.Parse(s));
+            duration.IsEnabled=HasLicenseFeature("splash");
+            panel.Children.Add(duration);
+        }
         panel.Children.Add(OptionCheck("Statusna traka", "Prikaži standardnu Android statusnu traku.", _draft.StatusBar,
             b=>_draft.StatusBar=b));
         panel.Children.Add(OptionCheck("Puni zaslon", "Ukloni statusnu traku u generiranoj aplikaciji.", _draft.Fullscreen,
             b=>_draft.Fullscreen=b));
-        panel.Children.Add(Notice("Prilagođavanje launcher ikonice i animiranog splash zaslona zahtijeva zaseban modul. " +
-            "Za sada se generira osnovna vektorska Brendigo ikona."));
+        panel.Children.Add(Notice("Prilagođene boje, ikona i splash dostupni su od paketa Osnovno. " +
+            "Zadana launcher ikona ostaje dostupna svim paketima."));
     }
 
     private void WebViewStep(StackPanel panel)
@@ -214,11 +224,20 @@ public partial class MainWindow
         panel.Children.Add(Notice("File URL pristup, univerzalni pristup lokalnim datotekama i daljinsko debugiranje WebViewa zadano su isključeni."));
     }
 
+    private bool HasLicenseFeature(string feature)
+    {
+        return LicenseActivationStore.Installed("windows").Any(c=>
+            (c.Tier==LicenseEntitlements.Developer || c.PackageName==_draft.PackageName) &&
+            LicenseEntitlements.Allows(c,feature));
+    }
+
     private void FeaturesStep(StackPanel panel)
     {
         SectionHeader(panel, "Funkcionalnosti", "Opcije koje su dostupne u trenutačnom Windows generatoru.");
         panel.Children.Add(Feature("✓  Android APK", "Izrada instalacijskog paketa korištenjem lokalnog Gradlea."));
-        panel.Children.Add(Feature("✓  Android AAB", "Izrada App Bundlea za distribuciju prema pravilima trgovine."));
+        if(HasLicenseFeature("aab"))
+            panel.Children.Add(Feature("✓  Android AAB", "Izrada App Bundlea za distribuciju prema pravilima trgovine."));
+        else panel.Children.Add(Feature("○  Android AAB", "Dostupno od paketa Osnovno."));
         panel.Children.Add(Feature("✓  Izvoz izvornog projekta", "Android Gradle projekt koji možete otvoriti u Android Studiju."));
         panel.Children.Add(OptionCheck("Odabir datoteka i prijenos u web obrasce",
             "Omogućuje Androidov sistemski odabir datoteka uz korisničku potvrdu.",
@@ -229,8 +248,10 @@ public partial class MainWindow
         panel.Children.Add(Feature("✓  Lokalni keystore", "Vlastiti ključ ili sigurno generiran lokalni ključ."));
         panel.Children.Add(Divider());
         panel.Children.Add(Txt("Google AdMob · banner oglasi", 15, true));
-        panel.Children.Add(OptionCheck("Omogući AdMob", "SDK se ugrađuje samo uz vaše vlastite AdMob identifikatore i UMP pristanak korisnika.",
-            _draft.AdMobEnabled,b=>{ _draft.AdMobEnabled=b; Navigate("new"); }));
+        var adsChoice=OptionCheck("Omogući AdMob", "Oglasi su dostupni samo u vlasničkom Developer paketu.",
+            _draft.AdMobEnabled,b=>{ _draft.AdMobEnabled=b; Navigate("new"); });
+        adsChoice.IsEnabled=HasLicenseFeature("admob");
+        panel.Children.Add(adsChoice);
         if (_draft.AdMobEnabled) {
             panel.Children.Add(InputField("AdMob App ID (ca-app-pub-…~…)",_draft.AdMobAppId,
                 s=>_draft.AdMobAppId=s,true));
@@ -239,9 +260,16 @@ public partial class MainWindow
         }
         panel.Children.Add(Divider());
         panel.Children.Add(Txt("Firebase Cloud Messaging · Push", 15, true));
-        panel.Children.Add(OptionCheck("Omogući Firebase Push",
-            "Zahtijeva google-services.json s istim Android package ID-jem.",
-            _draft.FirebasePushEnabled,b=>{_draft.FirebasePushEnabled=b;Navigate("new");}));
+        var pushChoice=OptionCheck("Omogući Firebase Push",
+            "Profesionalac i Developer · zahtijeva odgovarajući google-services.json.",
+            _draft.FirebasePushEnabled,b=>{_draft.FirebasePushEnabled=b;Navigate("new");});
+        pushChoice.IsEnabled=HasLicenseFeature("firebase_push");
+        panel.Children.Add(pushChoice);
+        var refreshChoice=OptionCheck("Povucite za osvježavanje",
+            "Profesionalac i Developer · ponovo učitava WebView povlačenjem odozgo.",
+            _draft.PullRefresh,b=>_draft.PullRefresh=b);
+        refreshChoice.IsEnabled=HasLicenseFeature("pull_refresh");
+        panel.Children.Add(refreshChoice);
         if (_draft.FirebasePushEnabled) {
             panel.Children.Add(Txt(_draft.FirebaseConfigPath.Length == 0 ?
                 "Nije odabrana google-services.json datoteka." : _draft.FirebaseConfigPath,

@@ -13,3 +13,10 @@ node_modules/
 src/Brendigo.Web2APK.Windows/Assets/Brendigo.ico
 
 docs/screenshots/native-error.log
+
+*.pem
+*.p12
+*.key
+*private-key*
+LICENSE-ISSUER-PASSPHRASE.txt
+owner-license*.txt

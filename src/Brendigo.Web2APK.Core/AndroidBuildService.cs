@@ -59,6 +59,7 @@ public static class AndroidBuildService
     {
         if (format is not ("apk" or "aab")) throw new ArgumentException("Nepoznat Android format.");
         project.Validate();
+        LicenseActivationStore.Require("windows",project,format);
         signing?.Validate();
         Directory.CreateDirectory(destination);
         var work = Path.Combine(Path.GetTempPath(), "Brendigo-Web2APK", project.Id.ToString("N"), Guid.NewGuid().ToString("N"));
