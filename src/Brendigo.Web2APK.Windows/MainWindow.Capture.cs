@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -14,6 +15,11 @@ public partial class MainWindow
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
         try
         {
+            // Render independently from the GitHub runner's ~1024x768 desktop.
+            // This avoids black/clipped right and bottom areas in 1440x900 captures.
+            if(!ReferenceEquals(Content,Root))
+                throw new InvalidOperationException("Unexpected WPF root.");
+            Content=null;
             var folder = Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native");
             Directory.CreateDirectory(folder);
             // Render real WPF controls, never illustrative/mock-generated screenshots.
@@ -23,6 +29,8 @@ public partial class MainWindow
                 Root.Width=1440; Root.Height=900;
                 Root.Measure(outputSize);
                 Root.Arrange(new Rect(outputSize));
+                Root.UpdateLayout();
+                UpdateResponsive();
                 Root.UpdateLayout();
                 var img=new RenderTargetBitmap(1440,900,96,96,PixelFormats.Pbgra32);
                 img.Render(Root);

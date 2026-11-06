@@ -434,7 +434,7 @@ public partial class MainWindow
         var row=new DockPanel { LastChildFill=true,Margin=new Thickness(0,7,0,8) };
         var flag=new Border {Background=BrushOf(background),BorderThickness=new Thickness(1),
             BorderBrush=BrushOf("#54659B"),CornerRadius=new CornerRadius(13),
-            Padding=new Thickness(10,5),Margin=new Thickness(8,0,0,0),
+            Padding=new Thickness(10,5,10,5),Margin=new Thickness(8,0,0,0),
             VerticalAlignment=VerticalAlignment.Center,
             Child=Txt(badge,11,true,BrushOf("#C6F8E9"))};
         DockPanel.SetDock(flag,Dock.Right);row.Children.Add(flag);row.Children.Add(value);

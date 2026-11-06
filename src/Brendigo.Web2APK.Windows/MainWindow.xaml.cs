@@ -63,11 +63,12 @@ public partial class MainWindow : Window
     private void UpdateResponsive()
     {
         if (NavigationHost is null) return;
-        var compact = ActualWidth < 1020;
+        var logicalWidth=double.IsNaN(Root.Width) || Root.Width<=0?ActualWidth:Root.Width;
+        var compact = logicalWidth < 1020;
         SidebarColumn.Width = new GridLength(compact ? 82 : 250);
         BrandWords.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         SidebarFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
-        if (_heroPhone is not null) _heroPhone.Visibility = ActualWidth < 1200 ? Visibility.Collapsed : Visibility.Visible;
+        if (_heroPhone is not null) _heroPhone.Visibility = logicalWidth < 1200 ? Visibility.Collapsed : Visibility.Visible;
         foreach (var entry in _navButtons)
         {
             var item = entry.Value.Content as StackPanel;
