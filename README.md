@@ -31,6 +31,8 @@ Demo, Osnovno i Profesionalac su **doživotne licence za jedan točno definiran 
 
 Dodatne upute: [Izdavanje licenci i vlasnički Developer paket](docs/LICENSE-STUDIO-HR.md).
 
+**Google Play i naplata:** Android klijent koji se distribuira preko Google Playa i otključava plaćene digitalne funkcije mora poštovati [Google Play Payments pravila](https://support.google.com/googleplay/android-developer/answer/9858738). Ovisno o modelu distribucije, kupnji i regiji, to može zahtijevati Play Billing ili odobrenu alternativu. **Ova offline aktivacija ne implementira sustav kupnje niti jamči odobrenje na Google Playu.** U aplikaciji nema poveznica za alternativnu kupnju.
+
 ## Windows Studio (.NET 10 / WPF)
 
 Nativni Windows program za kreiranje i konfiguriranje Android WebView aplikacija i lokalnu izradu APK/AAB paketa uz Android SDK. Ne zahtijeva Electron ni Chromium. Prozor se ne pokreće maksimiziran i prilagođava se širini zaslona.

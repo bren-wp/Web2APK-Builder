@@ -6,6 +6,10 @@
 
 Offline potpis **ne sprječava kopiranje aktivacijskog tokena**, ne može pouzdano zaštititi od reverznog inženjeringa izvršnog programa i ne omogućuje opoziv već izdanog tokena bez dodatnog aktivacijskog servisa.
 
+## Google Play naplata i licenciranje
+
+Builder Mobile u ovoj verziji provjerava vlasničke offline licence. Ako se distribucija i naplata plaćenih digitalnih značajki provode kroz Google Play, potrebno je zasebno riješiti Play Billing ili dopuštenu alternativu / consumption-only model u skladu s politikama i regijom. Izostanak ugrađenog kupovnog toka nije potvrda automatske usklađenosti. Prije objave provjeriti: https://support.google.com/googleplay/android-developer/answer/9858738
+
 ## Granice provjere
 
 Ručno pregledani: .NET Core biblioteka, Android generator, WPF startup, Windows licenciranje, Android aktivacija, potpisni ključ, spremanje projekata, CI i dijelovi WPF/Android UI-ja. Automatski testovi i CI koriste se za kompilaciju, ali **nisu zamjena za neovisni penetracijski test, kompletni SAST ni testiranje na svim uređajima**.
