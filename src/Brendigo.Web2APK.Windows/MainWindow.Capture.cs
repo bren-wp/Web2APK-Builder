@@ -145,6 +145,8 @@ public partial class MainWindow
             CaptureCompact("preview","preview-small-900",900,650);
             CaptureCompact("welcome","welcome-small-900",900,650);
             CaptureCompact("dashboard","dashboard-small-900",900,650);
+            CaptureCompact("projects","projects-small-900",900,650);
+            CaptureCompact("settings","settings-small-900",900,650);
             Root.Width=double.NaN;Root.Height=double.NaN;
             captureSource.RootVisual=null;
             Console.WriteLine("Captured "+Directory.GetFiles(folder,"*.png").Length+" native WPF screenshots.");

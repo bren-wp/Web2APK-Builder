@@ -85,3 +85,21 @@ if($sdk -notmatch 'IsLocalAndroidPlatformInstalledFor' -or $sdk -notmatch 'targe
  throw 'Integrated Android SDK target chooser missing.'
 }
 Write-Host 'Window titlebar, resize chrome and Android SDK 36/37 installer verified.'
+
+# Verify that release tags, Windows assembly resources and the Android package metadata
+# all advance together. Older releases inadvertently kept their 0.6.1 file metadata.
+$winProject=Get-Content 'src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj' -Raw
+$studioProject=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.LicenseStudio.csproj' -Raw
+$gradleProject=Get-Content 'android/app/build.gradle' -Raw
+$releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
+foreach($project in @($winProject,$studioProject)){
+ foreach($marker in @('<Version>0.6.4</Version>','<FileVersion>0.6.4.0</FileVersion>','<AssemblyVersion>0.6.4.0</AssemblyVersion>')){
+  if(-not $project.Contains($marker)){throw "Release version mismatch: $marker"}
+ }
+}
+if(-not $gradleProject.Contains("versionCode 11") -or
+   -not $gradleProject.Contains("versionName '0.6.4'") -or
+   -not $releaseWorkflow.Contains("$('v0.6.4')")){
+ throw 'Android metadata and release workflow version must match v0.6.4.'
+}
+Write-Host 'Windows and Android release versions verified: 0.6.4 (Android code 11).'

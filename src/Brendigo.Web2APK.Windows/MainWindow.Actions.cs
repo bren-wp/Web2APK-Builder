@@ -394,6 +394,8 @@ public partial class MainWindow
         settings.Children.Add(Feature("Veličina prozora", "Promijenite veličinu prozora ili ga minimizirajte u svakom trenutku."));
         settings.Children.Add(Feature("Prilagodba zaslonu", "Izbornik i obrasci automatski se prilagođavaju dostupnom prostoru."));
         settings.Children.Add(Feature("Lokalna privatnost", "Podaci projekata spremaju se na lokalni disk; nema korisničkih računa ni telemetrije."));
+        settings.Children.Add(Feature("Sigurnosna kopija projekata",
+            "Prilikom svakog ažuriranja čuva se prethodni cijeli projects.json.bak. Više pokrenutih instanci koristi zajedničku zaštitu upisa. U slučaju oštećenja prvo kopirajte obje datoteke na sigurno mjesto."));
         settings.Children.Add(Feature("Sigurno potpisivanje", "Privatni ključ i lozinke za Android ostaju na vašem računalu."));
         settings.Children.Add(Btn("Otvori lokalnu mapu podataka", () =>
             Process.Start(new ProcessStartInfo { FileName = _dataDir, UseShellExecute = true }), true));

@@ -4,6 +4,9 @@ static void Test(bool valid, string name) {
     if (!valid) throw new InvalidOperationException("FAILED: "+name);
     Console.WriteLine("PASS "+name);
 }
+static bool ThrowsInvalidData(Action action) {
+    try { action(); return false; } catch (InvalidDataException) { return true; }
+}
 static bool Throws(Action action) {
     try { action(); return false; } catch (ArgumentException) { return true; }
 }
@@ -282,5 +285,35 @@ try {
     Test(File.Exists(Path.Combine(folder,"app","src","main","assets","index.html")),"Offline HTML copied");
     Test(!File.Exists(Path.Combine(folder,"app","src","main","assets",".env")),"Secrets excluded");
     store.Delete(saved.Id);Test(store.List().Count==0,"Delete");
+    var parallelDir=Path.Combine(root,"parallel-store");
+    var jobs=Enumerable.Range(0,24).Select(i=>Task.Run(()=>
+        new ProjectStore(parallelDir).Save(new ProjectDefinition {
+            Name="Projekt "+i,PackageName="com.brendigo.parallel"+i
+        }))).ToArray();
+    Task.WaitAll(jobs);
+    var parallel=new ProjectStore(parallelDir);
+    Test(parallel.List().Count==24 && parallel.List().Select(p=>p.Id).Distinct().Count()==24,
+        "Concurrent writes from separate store instances preserve all projects");
+    var dbFile=Path.Combine(parallelDir,"projects.json");
+    var dbBackup=dbFile+".bak";
+    Test(File.Exists(dbBackup) &&
+        System.Text.Json.JsonDocument.Parse(File.ReadAllText(dbBackup))
+            .RootElement.GetArrayLength()==23,
+        "Atomic writes keep the previous complete JSON database backup");
+    var original=File.ReadAllText(dbFile);
+    File.WriteAllText(dbFile,original[..Math.Min(30,original.Length)]);
+    Test(ThrowsInvalidData(()=>parallel.List()),
+        "Truncated project database is rejected instead of silently resetting");
+    File.WriteAllText(dbFile,original);
+    var projectsJson=System.Text.Json.JsonSerializer.Serialize(parallel.List());
+    var projectNode=System.Text.Json.JsonDocument.Parse(projectsJson).RootElement[0].GetRawText();
+    File.WriteAllText(dbFile,"["+projectNode+","+projectNode+"]");
+    Test(ThrowsInvalidData(()=>parallel.List()),
+        "Duplicate project IDs are rejected");
+    File.WriteAllText(dbFile,new string('x',8*1024*1024+1));
+    Test(ThrowsInvalidData(()=>parallel.List()),
+        "Oversized project databases are rejected before deserialization");
+    File.WriteAllText(dbFile,original);
+    Test(parallel.List().Count==24,"A valid database can be recovered without project loss");
 } finally { try { Directory.Delete(root,true); } catch(IOException){} }
 Console.WriteLine("Brendigo native core tests passed.");

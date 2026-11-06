@@ -162,7 +162,8 @@ public final class LicenseVerifier {
             return "Demo zahtijeva nepromjenjivu Brendigo ikonu i splash zaslon.";
         if(project.optBoolean("AdMobEnabled") && !allows(ctx,id,"admob"))
             return "AdMob je dostupan od paketa Profesionalac.";
-        if(project.optBoolean("FirebasePushRequested") && !allows(ctx,id,"firebase_push"))
+        if((project.optBoolean("FirebasePushRequested") ||
+            project.optBoolean("FirebasePushEnabled")) && !allows(ctx,id,"firebase_push"))
             return "Push obavijesti dostupne su u paketima Profesionalac i Developer.";
         if(project.optBoolean("PullRefresh") && !allows(ctx,id,"pull_refresh"))
             return "Povucite za osvježavanje dostupno je u paketima Profesionalac i Developer.";

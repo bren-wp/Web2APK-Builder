@@ -45,7 +45,7 @@ Snimke niže nastaju **automatskim renderiranjem stvarnog nativnog WPF sučelja*
 
 **Stvarni Brendigo License Studio:** ![License Studio — stvarni Windows WPF prozor](docs/screenshots/native/license-studio.png)
 
-**Dodatne snimke na malim prozorima:** [Početni zaslon 900 px](docs/screenshots/native/welcome-small-900.png) · [Nadzorna ploča 900 px](docs/screenshots/native/dashboard-small-900.png).
+**Dodatne snimke na malim prozorima:** [Početni zaslon 900 px](docs/screenshots/native/welcome-small-900.png) · [Nadzorna ploča 900 px](docs/screenshots/native/dashboard-small-900.png) · [Moji projekti 900 px](docs/screenshots/native/projects-small-900.png) · [Postavke 900 px](docs/screenshots/native/settings-small-900.png).
 
 **Responzivni Windows raspored:** [1024 px – čarobnjak](docs/screenshots/native/wizard-compact-1024.png) · [900 px – čarobnjak](docs/screenshots/native/wizard-small-900.png) · [1024 px – pregled](docs/screenshots/native/preview-compact-1024.png) · [900 px – pregled](docs/screenshots/native/preview-small-900.png).
 
@@ -79,6 +79,10 @@ Android WebView koristi širinu zaslona, viewport i sigurne rubove; konačni izg
 Licencama se upravlja kroz **Postavke → Licence**, uz prikaz zauzetih i preostalih mjesta automatskih licenci, maskirani prikaz i zamjenu ključa. Bez serverske provjere nije moguće pouzdano spriječiti vraćanje sistemskog sata niti kopiranje offline ključa; za komercijalnu pretplatu preporučena je online revizija u budućoj verziji.
 
 Brendigo License Studio generira potpisane licence s odabranim paketima i razdobljem, bez privatnog ključa u korisničkoj aplikaciji. [Potpune upute za izdavanje licenci](docs/LICENSE-STUDIO-HR.md).
+
+### Zaštita lokalne baze projekata
+
+Windows Studio pohranjuje projekte u lokalni `projects.json` i na svakom sljedećem spremanju zadržava prethodnu valjanu snimku kao `projects.json.bak`. Paralelna spremanja iz različitih instanci serijalizirana su zajedničkom blokadom, a neispravne, duplicirane i prevelike baze odbijaju se bez automatskog brisanja. Ako je baza oštećena, **nemojte prepisivati datoteke**; napravite sigurnosnu kopiju obje datoteke pa tek onda ručno vratite valjanu verziju. Pohrana nije zamjena za vanjsku sigurnosnu kopiju diska.
 
 ## Jedan Windows Studio za cijeli tijek rada
 
