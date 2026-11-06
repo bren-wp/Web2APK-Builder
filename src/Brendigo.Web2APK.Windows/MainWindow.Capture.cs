@@ -39,7 +39,7 @@ public partial class MainWindow
             void Reflow(int width,int height)
             {
                 var bounds=new Size(width,height);
-                captureSource.Resize(width,height);
+                // The HWND stays at 1440x900; the Root visual itself is laid out at the requested viewport.
                 Root.Width=width;Root.Height=height;
                 captureSource.Dispatcher.Invoke(()=>{ }, DispatcherPriority.Loaded);
                 Root.InvalidateMeasure();
