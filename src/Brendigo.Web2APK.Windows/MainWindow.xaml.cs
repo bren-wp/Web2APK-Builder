@@ -2,6 +2,7 @@ using Brendigo.Web2APK.Core;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -44,6 +45,8 @@ public partial class MainWindow : Window
         _store = new ProjectStore(_dataDir);
         MakeNavigation();
         Navigate("dashboard");
+        if (Environment.GetCommandLineArgs().Contains("--capture-native"))
+            Loaded += CaptureNativeScreensOnLoaded;
     }
 
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsive();
@@ -232,6 +235,8 @@ public partial class MainWindow : Window
         buttons.Children.Add(Btn("Uredi", () => Edit(project), true));
         if (full) {
             buttons.Children.Add(Btn("Izvezi", () => _ = ExportAsync(project)));
+            buttons.Children.Add(Btn("Dijeli JSON", () => ExportMobileProject(project)));
+
             buttons.Children.Add(Btn("Obriši", () => Delete(project), false, true));
         }
         DockPanel.SetDock(buttons, Dock.Right);
@@ -252,6 +257,8 @@ public partial class MainWindow : Window
         var row = Row();
         row.Children.Add(Btn("＋  Novi projekt", StartNew, true));
         row.Children.Add(Btn("Osvježi", () => Navigate("projects")));
+        row.Children.Add(Btn("Uvezi Android JSON", ImportMobileProject));
+
         PageHost.Children.Add(row);
         var stack = Stack();
         var all = _store.List();
@@ -271,6 +278,52 @@ public partial class MainWindow : Window
         try { _store.Delete(p.Id); if (_draft.Id == p.Id) _draft = new ProjectDefinition(); Navigate("projects"); }
         catch (Exception ex) { ShowError(ex.Message); }
     }
+    private void ImportMobileProject()
+    {
+        var dialog=new OpenFileDialog { Title="Uvoz projekta s Android klijenta",
+            Filter="Brendigo projekt (*.json)|*.json", CheckFileExists=true };
+        if (dialog.ShowDialog(this)!=true) return;
+        try
+        {
+            if (new FileInfo(dialog.FileName).Length>256*1024)
+                throw new InvalidDataException("JSON projekt je prevelik.");
+            var input=JsonSerializer.Deserialize<ProjectDefinition>(File.ReadAllText(dialog.FileName),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive=true })
+                ?? throw new InvalidDataException("JSON projekt je prazan.");
+            if (input.SourceType!="url")
+                throw new InvalidDataException("Mobilni uvoz podržava samo URL projekte.");
+            input.Id=Guid.NewGuid();
+            input.FirebaseConfigPath="";
+            input.FirebasePushEnabled=false;
+            input.IconPath="";
+            var saved=_store.Save(input);
+            ShowInfo("Projekt uspješno uvezen. Pregledajte AdMob podatke i dozvole prije izrade:\n"+saved.Name);
+            Navigate("projects");
+        }
+        catch(Exception e) { ShowError("Uvoz projekta nije uspio: "+e.Message); }
+    }
+    private void ExportMobileProject(ProjectDefinition project)
+    {
+        var dialog=new SaveFileDialog { Title="Izvoz projekta za Android klijenta",
+            Filter="Brendigo projekt (*.json)|*.json", DefaultExt=".json",
+            FileName="Brendigo-"+project.PackageName+".json" };
+        if(dialog.ShowDialog(this)!=true)return;
+        try
+        {
+            var mobile=project.Copy();
+            mobile.FirebaseConfigPath="";
+            mobile.FirebasePushEnabled=false;
+            mobile.IconPath="";
+            mobile.LocalPath="";
+            if(mobile.SourceType=="local")
+                throw new InvalidDataException("Lokalni HTML projekt nije prenosiv na telefon putem JSON konfiguracije.");
+            File.WriteAllText(dialog.FileName,JsonSerializer.Serialize(mobile,
+                new JsonSerializerOptions { WriteIndented=true }));
+            ShowInfo("Projektni JSON izvezen. Uvezite datoteku u Android klijentu.");
+        }
+        catch(Exception e){ ShowError(e.Message); }
+    }
+
     private void StartNew()
     {
         if (_busy) return;

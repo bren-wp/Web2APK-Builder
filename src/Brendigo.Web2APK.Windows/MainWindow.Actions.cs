@@ -35,6 +35,22 @@ public partial class MainWindow
             if (dialog.ShowDialog(this) == true) _keyStoreBox.Text = dialog.FileName;
         }));
         panel.Children.Add(signingRow);
+        panel.Children.Add(Btn("Generiraj novi slučajni ključ (lokalno)", async () => {
+            if (MessageBox.Show("Izraditi trajni privatni ključ na ovom računalu? Za buduća ažuriranja mora se čuvati isti ključ i njegova lozinka.",
+                "Novi Android ključ", MessageBoxButton.YesNo, MessageBoxImage.Warning)!=MessageBoxResult.Yes) return;
+            try {
+                var key=await LocalSigningKeyService.GenerateAsync(Path.Combine(_dataDir,"signing-keys"));
+                _keyStoreBox!.Text=key.KeyStorePath;
+                _keyAliasBox!.Text=key.Alias;
+                _storePassword!.Password=key.Password;
+                _keyPassword!.Password=key.Password;
+                var password=key.Password;
+                MessageBox.Show("Ključ je izrađen u lokalnoj mapi:\n"+key.KeyStorePath+
+                    "\n\nAlias: "+key.Alias+"\nLOZINKA (prikazuje se samo sada):\n"+password+
+                    "\n\nObavezno izradite sigurnosnu kopiju ključa i lozinke. Bez njih nećete moći potpisivati buduća ažuriranja.",
+                    "Novi Android ključ — spremite lozinku",MessageBoxButton.OK,MessageBoxImage.Information);
+            } catch(Exception ex) { ShowError("Generiranje ključa nije uspjelo: "+ex.Message); }
+        },true));
         var alias = Row();
         alias.Children.Add(Txt("Alias:",12,true,White,new Thickness(0,10,8,0)));
         _keyAliasBox = new TextBox { Width=240, Margin = new Thickness(0,0,0,7) };
@@ -160,8 +176,25 @@ public partial class MainWindow
         panel.Children.Add(refresh);
         tools.Children.Add(panel);
         tools.Children.Add(results);
-        tools.Children.Add(Notice("Build zahtijeva JDK 17, Gradle 9.6+ i Android SDK 36/37. " +
-            "Preporučuje se koristiti službene alate i provjeriti instalaciju prije izrade."));
+        tools.Children.Add(Feature("Gradle 9.6.1 · lokalno upravljanje",
+            ToolchainService.IsGradleInstalled ? "Službeni Gradle je instaliran u korisničkom profilu." :
+                "Gradle nije instaliran unutar Studija. Možete ga preuzeti uz prethodno odobrenje."));
+        tools.Children.Add(Btn("Preuzmi i instaliraj provjereni Gradle 9.6.1", async () => {
+            if (ToolchainService.IsGradleInstalled) { ShowInfo("Gradle je već instaliran."); return; }
+            if (MessageBox.Show("Preuzeti ~135 MB iz službenog Gradle repozitorija?\\n" +
+                "Provjerava se SHA-256 i datoteke se pohranjuju samo na vašem računalu.",
+                "Instalacija Gradlea", MessageBoxButton.YesNo, MessageBoxImage.Question)!=MessageBoxResult.Yes) return;
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(25));
+            try {
+                results.Text = "Instalacija...";
+                var path=await ToolchainService.InstallGradleAsync(
+                    msg=>Dispatcher.BeginInvoke(() => results.AppendText(msg+"\\n")), cancellation.Token);
+                results.AppendText("Gradle spreman: "+path);
+                ShowInfo("Provjereni Gradle 9.6.1 uspješno je instaliran.");
+            } catch(Exception ex) { ShowError("Gradle instalacija nije uspjela: "+ex.Message); }
+        },true));
+        tools.Children.Add(Notice("JDK 17 i Android SDK 36/37 moraju biti instalirani. " +
+            "SDK se preuzima nakon prihvaćanja Googleovih uvjeta, stoga se ne uključuje automatski u instalaciju Studija."));
         PageHost.Children.Add(Card(tools));
     }
 

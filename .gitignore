@@ -9,3 +9,5 @@ release/
 *.log
 node_modules/
 .DS_Store
+
+src/Brendigo.Web2APK.Windows/Assets/Brendigo.ico

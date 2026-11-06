@@ -1,20 +1,24 @@
-# Brendigo Web2APK Builder – izdavanja
+# Brendigo Web2APK Builder — promjene
 
-## v0.2.0 — Native Windows WPF Edition
+## v0.3.0 — Windows + Android, dozvole, AdMob, FCM i ključevi
 
-**Velika nadogradnja:** iz aktivnog desktop projekta uklonjen Electron. Novi Windows Studio implementiran je nativno u Microsoft .NET 10/WPF-u.
+- Nativni Windows WPF Studio zadržava lokalni Android Gradle generator i APK/AAB izradu.
+- Android Mobile klijent: dashboard, lokalni projekti, uređivač, HTTPS pregled, uvoz/izvoz JSON-a.
+- Opcionalna AdMob banner integracija s Google Mobile Ads SDK 25.5.0 i UMP 4.0.0, uz korisničke identifikatore.
+- Opcionalni Firebase FCM SDK kroz Firebase BoM 35.1.0, Google Services 4.5.0 i servis za obavijesti, uz vlastiti google-services.json.
+- Kamera, mikrofon, približna lokacija, Android datoteke i preuzimanja uz kontrolirane dozvole.
+- Adaptivne ikone, monokromatska ikona, korisnički launcher PNG, native splash s trajanjem.
+- Nasumični Android signing ključ preko lokalnog JDK keytool alata ili postojeći .p12/.jks.
+- Korisnički odobreno preuzimanje Gradle 9.6.1 sa SHA-256 provjerom.
+- Dodatni automatizirani testovi i Windows + Android build u CI-u.
+- U izdanju: portable.exe, setup.exe, Android testni APK i nepotpisani AAB.
 
-- Normalni prozor (1360 × 820, promjenjiv, minimalno 850 × 560), ne otvara se preko cijelog zaslona.
-- Tamni Brendigo vizualni stil, prilagodljivi bočni izbornik, kartice, čarobnjak u šest koraka.
-- Lokalna baza projekata i uređivanje identiteta, URL-a, lokalnih HTML projekata, SDK-a, tema i WebView konfiguracije.
-- Generator Android projekta izdvojen u .NET Core biblioteku s testovima.
-- Izrada Android APK/AAB paketa pomoću Android SDK + Gradle 9.6+ i potpisivanje lokalnim keystoreom.
-- Provjera Java/Gradle/ADB alata i lista Android uređaja.
-- Native Windows x64 portable.exe i setup.exe (Inno Setup), self-contained .NET.
-- Nema telemetrije ni korisničkog računa.
+**Ograničenja:** Stvarni Google računi/konfiguracije potrebni su za AdMob i Firebase. Android klijent ne kompajlira druge aplikacije. Testni Android APK nije produkcijski, AAB je nepotpisan, Windows EXE nije kodno potpisan. Potpuno pixel-perfect podudaranje sa svim referentnim zaslonima nije potvrđeno.
 
-**Poznata ograničenja:** stvarni rad APK/AAB ovisi o instaliranom Android SDK-u i alatima; AdMob, Firebase, potpuno upravljanje kamerom, dozvolama, animacijama i custom launcher ikonama još nisu implementirani. Nije verificirano poklapanje 1:1 sa svim 16 referentnih zaslona. Windows paketi nisu kodno potpisani.
+## v0.2.0 — nativna Windows WPF aplikacija
 
-## v0.1.0 — Electron prototip
+Migracija s Electrona na .NET 10/WPF, izvoz Android Gradle projekata, Windows portable i setup.
 
-Prethodni Windows prototip sa sučeljem, izvozom Android projekata, Gradle postupkom i inicijalnim referentnim screenshotovima. Zamijenjen nativnom verzijom 0.2.0.
+## v0.1.0 — inicijalni Windows prototip
+
+Početni Web2APK builder i renderer.

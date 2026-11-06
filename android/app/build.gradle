@@ -1,0 +1,33 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.brendigo.web2apk.client'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.brendigo.web2apk.client'
+        minSdk 24
+        targetSdk 36
+        versionCode 3
+        versionName '0.3.0'
+    }
+    signingConfigs {
+        release {
+            if (System.getenv('BRENDIGO_KEYSTORE')) {
+                storeFile file(System.getenv('BRENDIGO_KEYSTORE'))
+                storePassword System.getenv('BRENDIGO_STORE_PASSWORD')
+                keyAlias System.getenv('BRENDIGO_KEY_ALIAS')
+                keyPassword System.getenv('BRENDIGO_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (System.getenv('BRENDIGO_KEYSTORE')) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+dependencies { implementation 'androidx.core:core-splashscreen:1.0.1' }

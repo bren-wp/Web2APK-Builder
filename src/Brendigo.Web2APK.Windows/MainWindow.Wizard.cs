@@ -155,6 +155,23 @@ public partial class MainWindow
             colors.Children.Add(b);
         }
         panel.Children.Add(colors);
+        panel.Children.Add(Txt("Launcher ikonica (PNG)", 12, true, White, new Thickness(0,14,0,7)));
+        panel.Children.Add(Txt(string.IsNullOrWhiteSpace(_draft.IconPath) ?
+            "Zadana Brendigo ikona — odaberite svoju PNG datoteku." : _draft.IconPath,
+            12, false, Muted, new Thickness(0,0,0,9)));
+        panel.Children.Add(Btn("Odaberi launcher PNG (min. 192×192)", () => {
+            var dialog = new OpenFileDialog { Title="Odaberi launcher ikonu", Filter="PNG image (*.png)|*.png" };
+            if (dialog.ShowDialog(this)==true) { _draft.IconPath=dialog.FileName; Navigate("new"); }
+        }));
+        if (!string.IsNullOrEmpty(_draft.IconPath))
+            panel.Children.Add(Btn("Vrati zadanu ikonu", () => { _draft.IconPath=""; Navigate("new"); }));
+        panel.Children.Add(OptionCheck("Dinamički početni splash",
+            "Prikaži izvornu Android splash animaciju i zadrži zaslon od 0 do 3000 ms.",
+            _draft.Splash, b=>_draft.Splash=b));
+        if (_draft.Splash)
+            panel.Children.Add(SelectField("Trajanje splash zaslona (ms)", _draft.SplashDurationMs.ToString(),
+                ["0","300","500","700","1000","1500","2000","3000"],
+                s=>_draft.SplashDurationMs=int.Parse(s)));
         panel.Children.Add(OptionCheck("Statusna traka", "Prikaži standardnu Android statusnu traku.", _draft.StatusBar,
             b=>_draft.StatusBar=b));
         panel.Children.Add(OptionCheck("Puni zaslon", "Ukloni statusnu traku u generiranoj aplikaciji.", _draft.Fullscreen,
@@ -184,18 +201,63 @@ public partial class MainWindow
         panel.Children.Add(Feature("✓  Android APK", "Izrada instalacijskog paketa korištenjem lokalnog Gradlea."));
         panel.Children.Add(Feature("✓  Android AAB", "Izrada App Bundlea za distribuciju prema pravilima trgovine."));
         panel.Children.Add(Feature("✓  Izvoz izvornog projekta", "Android Gradle projekt koji možete otvoriti u Android Studiju."));
-        panel.Children.Add(Feature("✓  Lokalni keystore", "Opcionalno potpisivanje uz lozinke koje se ne spremaju."));
-        panel.Children.Add(Notice("AdMob, Firebase Push, dinamički splash, ugradnja kamere, datoteke i mikrofon još nisu aktivirani jer nisu implementirani. Ne prikazuju se kao funkcionalni prekidači."));
+        panel.Children.Add(OptionCheck("Odabir datoteka i prijenos u web obrasce",
+            "Omogućuje Androidov sistemski odabir datoteka uz korisničku potvrdu.",
+            _draft.FileUploads,b=>_draft.FileUploads=b));
+        panel.Children.Add(OptionCheck("Preuzimanje datoteka",
+            "Preuzima HTTP(S) datoteke u prostor aplikacije preko Android DownloadManagera.",
+            _draft.Downloads,b=>_draft.Downloads=b));
+        panel.Children.Add(Feature("✓  Lokalni keystore", "Vlastiti ključ ili sigurno generiran lokalni ključ."));
+        panel.Children.Add(Divider());
+        panel.Children.Add(Txt("Google AdMob · banner oglasi", 15, true));
+        panel.Children.Add(OptionCheck("Omogući AdMob", "SDK se ugrađuje samo uz vaše vlastite AdMob identifikatore i UMP pristanak korisnika.",
+            _draft.AdMobEnabled,b=>{ _draft.AdMobEnabled=b; Navigate("new"); }));
+        if (_draft.AdMobEnabled) {
+            panel.Children.Add(InputField("AdMob App ID (ca-app-pub-…~…)",_draft.AdMobAppId,
+                s=>_draft.AdMobAppId=s,true));
+            panel.Children.Add(InputField("Banner Ad Unit ID (ca-app-pub-…/…)",_draft.AdMobBannerId,
+                s=>_draft.AdMobBannerId=s,true));
+        }
+        panel.Children.Add(Divider());
+        panel.Children.Add(Txt("Firebase Cloud Messaging · Push", 15, true));
+        panel.Children.Add(OptionCheck("Omogući Firebase Push",
+            "Zahtijeva google-services.json s istim Android package ID-jem.",
+            _draft.FirebasePushEnabled,b=>{_draft.FirebasePushEnabled=b;Navigate("new");}));
+        if (_draft.FirebasePushEnabled) {
+            panel.Children.Add(Txt(_draft.FirebaseConfigPath.Length == 0 ?
+                "Nije odabrana google-services.json datoteka." : _draft.FirebaseConfigPath,
+                12,false,Muted,new Thickness(0,0,0,8)));
+            panel.Children.Add(Btn("Odaberi google-services.json", () => {
+                var dialog=new OpenFileDialog { Title="Firebase Android konfiguracija",
+                    Filter="Firebase JSON (google-services.json)|google-services.json|JSON datoteke (*.json)|*.json" };
+                if (dialog.ShowDialog(this)==true) { _draft.FirebaseConfigPath=dialog.FileName;Navigate("new"); }
+            }));
+        }
+        panel.Children.Add(Notice("AdMob traži stvarne identifikatore i pravilno konfiguriran pristanak. Firebase dostava zahtijeva Firebase projekt i test na uređaju."));
+
     }
 
     private void PermissionStep(StackPanel panel)
     {
-        SectionHeader(panel, "Dozvole i sigurnost", "Minimalne, provjerljive dozvole za Android WebView aplikaciju.");
-        panel.Children.Add(Feature("✓  INTERNET", "U manifest se dodaje internetsko dopuštenje."));
-        panel.Children.Add(Feature("✓  HTTPS prema zadanim postavkama", "Nesigurna mrežna komunikacija blokirana je ako nije izričito uključena."));
-        panel.Children.Add(Feature("✓  Izolirani lokalni HTML", "WebViewAssetLoader umjesto nesigurnih file:// putanja."));
-        panel.Children.Add(Feature("✓  Isključene suvišne dozvole", "Kamera, mikrofon, lokacija i datoteke nisu deklarirani dok funkcionalnost ne postoji."));
-        panel.Children.Add(Notice("Dopuštenja provjerite na stvarnom Android uređaju. Za objavu na Google Playu potrebni su aktualna pravila, testovi i potpisivanje."));
+        SectionHeader(panel,"Android dozvole i privatnost",
+            "Svaka osjetljiva dozvola traži odobrenje korisnika na Android uređaju.");
+        panel.Children.Add(OptionCheck("Kamera (WebRTC)",
+            "Dodaje CAMERA dozvolu; sigurni WebView pita korisnika prije korištenja kamere.",
+            _draft.Camera,b=>_draft.Camera=b));
+        panel.Children.Add(Divider());
+        panel.Children.Add(OptionCheck("Mikrofon (WebRTC)",
+            "Dodaje RECORD_AUDIO; Android traži dopuštenje pri web zahtjevu.",
+            _draft.Microphone,b=>_draft.Microphone=b));
+        panel.Children.Add(Divider());
+        panel.Children.Add(OptionCheck("Približna lokacija",
+            "Dodaje ACCESS_COARSE_LOCATION; web-lokacija i Android zasebno provjeravaju dopuštenje.",
+            _draft.Location,b=>_draft.Location=b));
+        panel.Children.Add(Divider());
+        panel.Children.Add(Feature("✓  Datoteke bez široke storage dozvole",
+            "Sistemski odabir dokumenta ne zahtijeva READ/WRITE_EXTERNAL_STORAGE."));
+        panel.Children.Add(Feature("✓  HTTPS i provjera web izvora",
+            "Kamera, mikrofon i lokacija dopuštaju se samo za podrijetlo izvorne web-stranice."));
+        panel.Children.Add(Notice("Uključuj samo dozvole koje trebaju tvojoj aplikaciji. Android će zatražiti korisnikovu odluku, a odbijanje se poštuje."));
     }
 
     private static Border Feature(string title, string description)

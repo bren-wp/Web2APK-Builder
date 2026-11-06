@@ -1,83 +1,79 @@
 <div align="center">
-  <img src="assets/readme-banner.svg" width="100%" alt="Brendigo Web2APK Builder">
-  <h1>BRENDIGO WEB2APK BUILDER</h1>
-  <p><b>Website → Android Studio project → APK / AAB</b></p>
-  <p>🖥️ Nativni Windows WPF · ⚡ .NET 10 · 🔒 Lokalna obrada · 🎨 Brendigo dizajn</p>
-  <p><a href="https://github.com/bren-wp/Web2APK-Builder/releases/latest">⬇️ Preuzmi Windows</a> · <a href="https://brendigo.com">🌐 brendigo.com</a> · <a href="SECURITY.md">🛡️ Sigurnost</a></p>
+<img src="assets/readme-banner.svg" width="100%" alt="Brendigo Web2APK Builder">
+<h1>Brendigo Web2APK Builder</h1>
+<strong>Nativni Windows Studio + Android Mobile klijent</strong>
+<p>🌐 Web → APK/AAB · 🎨 Napredni brending · 🔏 Lokalno potpisivanje · 🛡️ Kontrolirane dozvole</p>
+<p><a href="https://github.com/bren-wp/Web2APK-Builder/releases/latest">Preuzmi najnovije izdanje</a> · <a href="https://brendigo.com">brendigo.com</a> · <a href="SECURITY.md">Sigurnost</a></p>
 </div>
 
 ---
 
-## 🖥️ Windows Studio · Native Edition 0.2.0
+## Windows Studio (.NET 10 / WPF)
 
-Brendigo Web2APK Builder je **stvarna nativna Windows aplikacija** temeljena na Microsoft .NET 10 i WPF-u. Koristi Windows prozor s naslovnom trakom, standardnim Windows minimiziranjem/maksimiziranjem, promjenjivom veličinom i prilagodbom rasporeda; ne zahtijeva Electron ni Chromium.
+Nativni Windows program za kreiranje i konfiguriranje Android WebView aplikacija i lokalnu izradu APK/AAB paketa uz Android SDK. Ne zahtijeva Electron ni Chromium. Prozor se ne pokreće maksimiziran i prilagođava se širini zaslona.
 
-Svi projekti ostaju na računalu. Umetnite HTTPS URL ili lokalni HTML projekt s `index.html`, konfigurirajte Android WebView i izvezite Android izvorni kod ili napravite APK/AAB putem lokalnog razvojnog lanca.
+**Ključne značajke:** lokalno upravljanje projektima, HTTPS i offline HTML, tema i prilagodljive ikone, dinamički splash, kamera, mikrofon, približna lokacija, Android odabir i preuzimanje datoteka, AdMob banner s UMP korisničkim pristankom, Firebase Cloud Messaging i lokalno potpisivanje s vlastitim ili slučajno generiranim trajnim ključem.
 
-### ✨ Što je funkcionalno
+### Stvarni nativni zasloni
 
-- 📊 **Početna ploča** — broj projekata, HTTPS konfiguracija, nedavno korišteni projekti
-- 📁 **Moji projekti** — kreiranje, uređivanje, spremanje i brisanje
-- ⚙️ **Čarobnjak u šest koraka** — osnovno, izgled, WebView, funkcije, dozvole, izrada
-- 🌍 **HTTPS ili offline HTML** — Android WebViewAssetLoader za lokalne mape
-- 🎨 **Brending** — naziv, package ID, primarna boja, tema, orijentacija, verzije
-- 🛡️ **Sigurnost** — zabrana file URL pristupa; HTTPS i minimalne Android dozvole prema zadanim postavkama
-- 📦 **Android APK/AAB** — lokalni Gradle 9.6+, Android Gradle plugin 9.5, Android SDK 36+
-- 🔐 **Opcionalno potpisivanje** — postojeći keystore, lozinke se ne čuvaju u projektima
-- 🛠️ **Razvojni alati** — provjera Jave, Gradlea, SDK-a i ADB uređaja
+Snimke se automatski stvaraju iz WPF renderera tijekom CI-ja, a ne umjetnim generiranjem:
 
-### 🎨 Brendigo UI / UX
+| Početni zaslon | Novi projekt |
+|---|---|
+| ![Nativni Windows dashboard](docs/screenshots/native/dashboard.png) | ![Novi projekt](docs/screenshots/native/wizard-1-basics.png) |
+| Izgled i splash | AdMob i Firebase |
+| ![Windows appearance](docs/screenshots/native/wizard-2-appearance.png) | ![Windows features](docs/screenshots/native/wizard-4-features.png) |
+| Dozvole | Potpisivanje i izrada |
+| ![Windows permissions](docs/screenshots/native/wizard-5-permissions.png) | ![Windows build](docs/screenshots/native/wizard-6-build.png) |
 
-**Referentni Windows dizajn**, izrađen ranije u ovom projektu, služi za usporedbu boja, rasporeda i komponenti. Sljedeći prikazi su snimke **ranijeg v0.1.0 renderera**, a ne fotografije nativnog 0.2.0 WPF izdanja. Nativne snimke bit će objavljene nakon potvrđene vizualne provjere.
+Ako screenshotovi još nisu prisutni, postupak snimanja nije potvrđen. **Pixel-perfect 1:1 podudaranje sa svim referencama još nije verificirano.**
 
-| Referenca: početna ploča | Referenca: novi projekt |
-| :---: | :---: |
-| ![Dashboard 0.1.0](docs/screenshots/dashboard.png) | ![Novi projekt 0.1.0](docs/screenshots/new-project.png) |
-| Referenca: funkcionalnosti | Referenca: izrada |
-| ![Funkcije 0.1.0](docs/screenshots/features.png) | ![Build 0.1.0](docs/screenshots/build.png) |
+## Android Mobile klijent
 
-**Pixel-perfect 1:1 još nije verificiran na svim rezolucijama.** Dizajn se usklađuje zaslon po zaslon prema izvornim referencama 1440 × 900 te isprobava na drugim veličinama i DPI postavkama.
+Projekt **android/** sadrži nativnu Android aplikaciju s Brendigo brendingom, početnim zaslonom, projektima, editorom, pregledom HTTPS sadržaja i lokalnim JSON uvozom/izvozom. Konfiguracije se mogu ručno prenositi u Windows Studio i obratno. Privatni ključevi i lozinke se ne prenose.
 
-### ⬇️ Windows izdanja
+**Android Mobile ne kompajlira APK/AAB na telefonu.** Izradu generiranih Android paketa izvodi Windows Studio. AdMob i FCM opcije odnose se na generirane aplikacije i nisu oglasi ili obavijesti ugrađeni u sam Builder klijent.
+
+## Izdanje i preuzimanje
 
 | Paket | Namjena |
-| --- | --- |
-| **Brendigo-Web2APK-portable.exe** | Samostalni, self-contained Windows x64 EXE |
-| **Brendigo-Web2APK-Setup.exe** | Instalacija za Windows x64 putem Inno Setupa |
+|---|---|
+| **Brendigo-Web2APK-portable.exe** | Nativni Windows x64 bez instalacije |
+| **Brendigo-Web2APK-Setup.exe** | Instalacijski program za Windows x64 |
+| **Brendigo-Web2APK-Android-test.apk** | Testni Android klijent s debug potpisom; za testiranje |
+| **Brendigo-Web2APK-Android-unsigned.aab** | Nepotpisani AAB; za produkciju potreban je vlastiti trajni ključ |
 
-➡️ **[Preuzmi najnovije Windows izdanje](https://github.com/bren-wp/Web2APK-Builder/releases/latest)**
+[GitHub izdanja](https://github.com/bren-wp/Web2APK-Builder/releases)
 
-Windows binarne datoteke nisu digitalno potpisane dok ne bude dostupan odgovarajući izdavački certifikat; SmartScreen može prikazati upozorenje.
+Windows EXE nije digitalno potpisan izdavačkim certifikatom. Debug Android potpis ne jamči nadogradnju u budućim izdanjima, a nepotpisani AAB nije spreman za Google Play.
 
-### 🚀 Koraci za prvu Android aplikaciju
+## Kako izraditi aplikaciju
 
-1. Otvorite **Novi projekt** i unesite naziv, Android package ID, HTTPS URL ili lokalnu HTML mapu.
-2. Uredite **Izgled**, **WebView** i **Dozvole**.
-3. Kliknite **Spremi projekt** — projekt se lokalno sprema u korisnički Windows profil.
-4. U koraku **Izrada** odaberite izvoz Android Gradle projekta ili izradu APK/AAB.
-5. Instalirajte JDK 17, Gradle 9.6+ i Android SDK 36 ili noviji te ih učinite dostupnima u Windows PATH i ANDROID_HOME.
-6. Za potpisani Android paket odaberite vlastiti keystore i unesite lozinke.
+1. U Windows Studiju kliknite **Novi projekt** i unesite naziv, identifikator aplikacije i HTTPS URL ili HTML mapu.
+2. Podesite temu, PNG launcher ikonu, splash, WebView i potrebne Android dozvole.
+3. Za **AdMob** unesite stvarni App ID i Banner Unit ID; za **Firebase** odaberite vlastiti google-services.json sa zadanim Android package ID-jem.
+4. Za potpis odaberite postojeći keystore ili kliknite **Generiraj novi slučajni ključ**. **Istog ključa i lozinke morate se držati u svim budućim ažuriranjima!**
+5. Instalirajte JDK 17, Android SDK Platform 36 i Gradle 9.6+. Gradle je moguće instalirati kroz Studio uz privolu i SHA-256 provjeru.
+6. Izradite APK/AAB, provjerite dozvole i rad na stvarnom Android uređaju te ispunite aktualna Google Play pravila.
 
-**Važno:** nepodpisani Android release APK ne može se smatrati spremnim za distribuciju. Android build zahtijeva instalirane lokalne alate i za prve vanjske Maven ovisnosti može trebati internetsku vezu.
+**Stvarna dostava FCM poruka i prikaz AdMob oglasa zahtijevaju valjan Firebase odnosno AdMob račun, odgovarajuće konfiguracije, korisnički pristanak i testiranje.** Ove ovisnosti dolaze iz Googleova repozitorija i ne obrađuju se potpuno offline.
 
-### 👨‍💻 Razvoj
+## Razvoj i testovi
 
-Potreban je .NET SDK 10 na Windows 10/11:
+Na Windowsu koristite .NET 10, a za Android JDK 17, SDK 36 i Gradle 9.6+.
 
-~~~powershell
-git clone https://github.com/bren-wp/Web2APK-Builder.git
-cd Web2APK-Builder
-dotnet run --project src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj
-dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj
-dotnet publish src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
-~~~
+Windows: dotnet run --project src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj
 
-Svako novo izdanje priprema se preko [Windows Release workflowa](.github/workflows/windows-release.yml) koji kompilira WPF, pokreće testove i zahtijeva oba EXE paketa. Novi broj verzije obvezan je prije sljedećeg izdanja.
+Testovi: dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj
 
-### 🧩 Jasno definirane granice
+Android: gradle -p android :app:assembleDebug :app:bundleRelease
 
-Repozitorij razvija **samo Windows aplikaciju**. Nema zasebnog Brendigo Android klijenta. Generirani Android projekt nije zaseban desktop program. AdMob, Firebase Push, kamera, mikrofon, dinamički splash i napredne ikone trenutno **nisu implementirani** te nisu predstavljeni kao funkcionalne opcije. Uvođenje tih mogućnosti zahtijeva njihove prave integracije, testove i provjeru pravila Google Playa.
+Ikonica: powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File scripts/make-icon.ps1
 
----
+Automatizacija: [Windows/Android Release](.github/workflows/windows-release.yml) · [Quality](.github/workflows/quality.yml).
 
-<div align="center"><img src="assets/brand-icon.svg" width="60" alt="Brendigo logo"><br><b>Made by Brendigo</b><br><a href="https://brendigo.com">brendigo.com</a></div>
+## Status
+
+Poboljšanja UI/UX-a i funkcionalna testiranja napreduju zaslon po zaslon. CI kompilacija ne jamči besprijekoran rad svih integracija na svim uređajima, niti su sve vizualne reference provjerene pixel po pixel. Pogledajte [CHANGELOG.md](CHANGELOG.md) i [SECURITY.md](SECURITY.md).
+
+<div align="center"><img src="assets/brand-icon.svg" width="58" alt="Brendigo logo"><p><strong>Brendigo · brendigo.com</strong></p></div>

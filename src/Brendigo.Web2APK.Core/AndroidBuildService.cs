@@ -23,9 +23,23 @@ public static class AndroidBuildService
         try
         {
             var output = new StringBuilder();
-            var start = new ProcessStartInfo("cmd.exe") { UseShellExecute = false, CreateNoWindow = true,
+            var managed = executable.Equals("gradle",StringComparison.OrdinalIgnoreCase) &&
+                ToolchainService.IsGradleInstalled;
+            var javaPath = Environment.GetEnvironmentVariable("JAVA_HOME");
+            var javaExe = !string.IsNullOrWhiteSpace(javaPath) &&
+                File.Exists(Path.Combine(javaPath,"bin","java.exe")) ?
+                Path.Combine(javaPath,"bin","java.exe") : "java";
+            var start = new ProcessStartInfo(managed ? javaExe : "cmd.exe") {
+                UseShellExecute = false, CreateNoWindow = true,
                 RedirectStandardError = true, RedirectStandardOutput = true };
-            start.ArgumentList.Add("/d"); start.ArgumentList.Add("/c"); start.ArgumentList.Add(executable);
+            if (managed)
+            {
+                start.ArgumentList.Add("-cp");
+                start.ArgumentList.Add(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(ToolchainService.GradleExecutable)!)!,
+                    "lib","gradle-launcher-"+ToolchainService.GradleVersion+".jar"));
+                start.ArgumentList.Add("org.gradle.launcher.GradleMain");
+            }
+            else { start.ArgumentList.Add("/d"); start.ArgumentList.Add("/c"); start.ArgumentList.Add(executable); }
             foreach (var a in args) start.ArgumentList.Add(a);
             using var process = new Process { StartInfo = start };
             process.Start();
@@ -52,9 +66,23 @@ public static class AndroidBuildService
         {
             AndroidProjectGenerator.Generate(project, work);
             var task = format == "apk" ? ":app:assembleRelease" : ":app:bundleRelease";
-            var start = new ProcessStartInfo("cmd.exe") { WorkingDirectory = work, UseShellExecute = false,
+            var managed = ToolchainService.IsGradleInstalled;
+            var jdk = Environment.GetEnvironmentVariable("JAVA_HOME");
+            var javaExecutable = !string.IsNullOrWhiteSpace(jdk) && File.Exists(Path.Combine(jdk,"bin","java.exe"))
+                ? Path.Combine(jdk,"bin","java.exe") : "java";
+            var start = new ProcessStartInfo(managed ? javaExecutable : "cmd.exe") {
+                WorkingDirectory = work, UseShellExecute = false,
                 CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true };
-            foreach (var part in new[] { "/d", "/c", "gradle", "--no-daemon", task }) start.ArgumentList.Add(part);
+            if (managed)
+            {
+                var lib = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(ToolchainService.GradleExecutable)!)!,
+                    "lib","gradle-launcher-"+ToolchainService.GradleVersion+".jar");
+                start.ArgumentList.Add("-cp"); start.ArgumentList.Add(lib);
+                start.ArgumentList.Add("org.gradle.launcher.GradleMain");
+                start.ArgumentList.Add("--no-daemon"); start.ArgumentList.Add(task);
+            }
+            else foreach (var part in new[] { "/d", "/c", "gradle", "--no-daemon", task })
+                start.ArgumentList.Add(part);
             if (signing is { Enabled: true })
             {
                 start.Environment["BRENDIGO_KEYSTORE"] = signing.KeyStore;
@@ -77,7 +105,7 @@ public static class AndroidBuildService
             var target = Path.Combine(destination, project.PackageName + "-" + project.VersionName +
                 ((signing is { Enabled: true }) ? "" : "-unsigned") + "." + format);
             File.Copy(artifact, target, overwrite: false);
-            return new BuildResult(target, signing is { Enabled: true }, work);
+            return new BuildResult(target, signing is { Enabled: true }, "Privremena mapa briše se po završetku izrade.");
         }
         finally
         {
