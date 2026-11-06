@@ -29,9 +29,8 @@ public partial class MainWindow
             .OrderByDescending(c => c.Tier switch {
                 "developer" => 5, "agency" => 4, "pro" => 3, "basic" => 2, _ => 1
             }).FirstOrDefault();
-        var tierName = authorized is null ? "Nema slobodnog licencnog mjesta za ovaj package ID"
-            : LicenseEntitlements.DisplayName(authorized.Tier);
-        panel.Children.Add(Feature("Aktivni licencni paket",tierName+" · "+(authorized?.PackageName ?? _draft.PackageName)));
+        panel.Children.Add(Feature("Windows izdanje bez licenci",
+            "Sve mogućnosti izrade APK, AAB i izvornog koda dostupne su bez aktivacijskog ključa."));
         var actions = Row();
         var sourceBtn=Btn("⇩  Izvezi Android projekt", () => _ = ExportAsync(_draft));
         sourceBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"source");
@@ -359,42 +358,12 @@ public partial class MainWindow
     {
         Heading("Postavke", "Prilagodite izgled, sigurnost i način rada aplikacije.");
         var settings = Stack();
-        var installed=LicenseActivationStore.InstalledMasked("windows");
-        settings.Children.Add(Txt("Licence i paketi",17,true,White,new Thickness(0,0,0,10)));
-        if(installed.Count==0)settings.Children.Add(Notice("Nema aktivnih licenci."));
-        foreach(var entry in installed)
-        {
-            var c=entry.Claims;
-            var card=Stack();
-            card.Children.Add(Txt(LicenseEntitlements.DisplayName(c.Tier),15,true));
-            var scope=c.Tier is "developer" or "agency" ? "Neograničeno aplikacija" :
-                c.PackageName==LicenseEntitlements.AutomaticScope
-                    ? AutomaticLicenseSeats.Usage(c,out var used,out var status)
-                        ? $"Automatski · iskorišteno {used}/{LicenseEntitlements.ApplicationLimit(c.Tier)} · preostalo {LicenseEntitlements.ApplicationLimit(c.Tier)-used}"
-                        : "Evidencija mjesta nije dostupna: "+status
-                    : c.PackageName.Replace(",",", ");
-            card.Children.Add(Txt(scope+
-                (c.ExpiresAt==0?" · doživotno":" · vrijedi do "+
-                    DateTimeOffset.FromUnixTimeSeconds(c.ExpiresAt).ToLocalTime().ToString("dd.MM.yyyy"))+
-                " · "+(c.Audience=="both"?"Windows + Android":"Windows"),
-                12,false,Muted,new Thickness(0,5,0,7)));
-            if(c.PackageName==LicenseEntitlements.AutomaticScope &&
-                AutomaticLicenseSeats.ReadBindings(c,out var bound,out _))
-                card.Children.Add(Txt(bound.Count==0
-                    ? "Nijedna aplikacija još nije povezana."
-                    : "Povezani package ID-jevi: "+string.Join(", ",bound),
-                    11,false,Muted,new Thickness(0,4,0,7)));
-            card.Children.Add(Txt("Licencni ključ: "+entry.MaskedToken,11,false,Muted));
-            card.Children.Add(Btn("Zamijeni ovu licencu",()=>{
-                var window=new LicenseActivationWindow {Owner=this,ReplacingSerial=c.Serial};
-                if(window.ShowDialog()==true)Navigate("settings");
-            }));
-            settings.Children.Add(Card(card,new Thickness(14)));
-        }
-        settings.Children.Add(Btn("Dodaj novu licencu",()=>{
-            var dialog=new LicenseActivationWindow { Owner=this };
-            if(dialog.ShowDialog()==true) Navigate("settings");
-        },true));
+        settings.Children.Add(Txt("Windows Builder - bez licenci",17,true,White,
+            new Thickness(0,0,0,10)));
+        settings.Children.Add(Feature("Sve funkcije uključene",
+            "Windows Portable i Setup ne traže licencu, aktivacijski ključ, registraciju ili prijavu. "+
+            "APK, AAB, izvorni kod, vlastiti brending, oglasi i Firebase dostupni su bez naplate. "+
+            "Za objavu na Google Playu i dalje trebate vlastiti potpisni ključ."));
         settings.Children.Add(Divider());
         settings.Children.Add(Feature("Windows sučelje", "Ujednačeni prikaz, jasni izbornici i prilagodljiv raspored."));
         settings.Children.Add(Feature("Veličina prozora", "Promijenite veličinu prozora ili ga minimizirajte u svakom trenutku."));

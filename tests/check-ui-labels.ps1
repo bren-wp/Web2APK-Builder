@@ -42,7 +42,7 @@ foreach($path in $frontends){
  }
 }
 $actions=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Actions.cs' -Raw
-foreach($item in @('apk.com.hr','info@apk.com.hr','Windows Builder — bez licenci','Nepotpisani APK','Debug APK')){
+foreach($item in @('apk.com.hr','info@apk.com.hr','Windows Builder - bez licenci','Nepotpisani APK','Debug APK')){
  if(-not($actions.Contains($item))){throw "Missing production feature: $item"}
 }
 $license=Get-Content 'src/Brendigo.Web2APK.Core/LicenseEntitlements.cs' -Raw
