@@ -18,7 +18,7 @@ public partial class MainWindow
         details.Margin=new Thickness(0,15,0,0);
         details.Children.Add(new Border {
             Background=BrushOf("#302864"),CornerRadius=new CornerRadius(13),
-            HorizontalAlignment=HorizontalAlignment.Left,Padding=new Thickness(11,6),
+            HorizontalAlignment=HorizontalAlignment.Left,Padding=new Thickness(11,6,11,6),
             Child=Txt("✦  WINDOWS STUDIO",11,true,BrushOf("#C6B7FF"))
         });
         details.Children.Add(Txt("Pretvorite web u Android aplikaciju",29,true,White,
