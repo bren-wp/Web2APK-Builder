@@ -93,20 +93,38 @@ $studioProject=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.
 $gradleProject=Get-Content 'android/app/build.gradle' -Raw
 $releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
 foreach($project in @($winProject,$studioProject)){
- foreach($marker in @('<Version>0.6.5</Version>','<FileVersion>0.6.5.0</FileVersion>','<AssemblyVersion>0.6.5.0</AssemblyVersion>')){
+ foreach($marker in @('<Version>0.6.6</Version>','<FileVersion>0.6.6.0</FileVersion>','<AssemblyVersion>0.6.6.0</AssemblyVersion>')){
   if(-not $project.Contains($marker)){throw "Release version mismatch: $marker"}
  }
 }
-if(-not $gradleProject.Contains("versionCode 12") -or
-   -not $gradleProject.Contains("versionName '0.6.5'") -or
-   -not $releaseWorkflow.Contains("$('v0.6.5')")){
- throw 'Android metadata and release workflow version must match v0.6.5.'
+if(-not $gradleProject.Contains("versionCode 13") -or
+   -not $gradleProject.Contains("versionName '0.6.6'") -or
+   -not $releaseWorkflow.Contains("$('v0.6.6')")){
+ throw 'Android metadata and release workflow version must match v0.6.6.'
 }
-Write-Host 'Windows and Android release versions verified: 0.6.5 (Android code 12).'
+Write-Host 'Windows and Android release versions verified: 0.6.6 (Android code 13).'
 
 foreach($installer in @('installer/Brendigo-Web2APK.iss','installer/Brendigo-LicenseStudio.iss')) {
- if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.5"')) {
+ if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.6"')) {
    throw "Installer version mismatch: $installer"
  }
 }
 Write-Host 'Installer and Android package IDs verified.'
+
+# Verify the recovery entry point remains reachable if the project database is corrupt.
+$startup=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml.cs' -Raw
+$settings=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Actions.cs' -Raw
+$recovery=Get-Content 'src/Brendigo.Web2APK.Core/ProjectStore.cs' -Raw
+$generator=Get-Content 'src/Brendigo.Web2APK.Core/AndroidProjectGenerator.cs' -Raw
+if(-not ($startup.Contains('catch(InvalidDataException e)') -and
+          $startup.Contains('Navigate("settings")') -and
+          $settings.Contains('RestoreBackup()') -and
+          $settings.Contains('BackupProjectCount()') -and
+          $recovery.Contains('File.Move(temp,_path,overwrite:true)'))){
+  throw 'Windows safe-recovery flow is incomplete.'
+}
+foreach($sensitive in @('credentials.json','google-services.json','service-account.json',
+ 'firebase-adminsdk','.p12','.pem','.jks')) {
+ if(-not $generator.Contains($sensitive)){throw "Local secret exclusion missing: $sensitive"}
+}
+Write-Host 'Startup recovery and offline asset secret exclusions verified.'

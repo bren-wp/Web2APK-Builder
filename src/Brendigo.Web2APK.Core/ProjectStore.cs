@@ -30,16 +30,53 @@ public sealed class ProjectStore
             "Brendigo-Web2APK-Projects-"+Convert.ToHexString(hash);
     }
 
-    public IReadOnlyList<ProjectDefinition> List()
+    public string BackupPath => _path+".bak";
+
+    public IReadOnlyList<ProjectDefinition> List() => ReadDatabase(_path,missingIsEmpty:true);
+
+    public int BackupProjectCount() => ReadDatabase(BackupPath,missingIsEmpty:false).Count;
+
+    /// <summary>
+    /// Explicit user-requested rollback to the previous complete JSON snapshot.
+    /// It never changes the license seat ledger and retains the existing database
+    /// in a separately named forensic copy before an atomic replacement.
+    /// </summary>
+    public string RestoreBackup() => WithWriteLock(() =>
     {
-        if(!File.Exists(_path))return [];
+        var previous=ReadDatabase(BackupPath,missingIsEmpty:false);
+        string archived="";
+        if(File.Exists(_path))
+        {
+            archived=_path+".recovery-"+DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+
+                "-"+Guid.NewGuid().ToString("N")[..8]+".json";
+            File.Copy(_path,archived);
+        }
+        var temp=_path+"."+Guid.NewGuid().ToString("N")+".restore.tmp";
         try
         {
-            var bytes=new FileInfo(_path).Length;
+            File.Copy(BackupPath,temp);
+            File.Move(temp,_path,overwrite:true);
+        }
+        finally { if(File.Exists(temp))File.Delete(temp); }
+        if(ReadDatabase(_path,missingIsEmpty:false).Count!=previous.Count)
+            throw new InvalidDataException("Vraćena datoteka ne odgovara sigurnosnoj kopiji.");
+        return archived;
+    });
+
+    private static IReadOnlyList<ProjectDefinition> ReadDatabase(string path,bool missingIsEmpty)
+    {
+        if(!File.Exists(path))
+        {
+            if(missingIsEmpty)return Array.Empty<ProjectDefinition>();
+            throw new InvalidDataException("Sigurnosna kopija projekata ne postoji.");
+        }
+        try
+        {
+            var bytes=new FileInfo(path).Length;
             if(bytes is < 2 or > MaxDatabaseBytes)
-                throw new InvalidDataException("Datoteka projekata premašuje dopuštenu veličinu od 8 MB ili je prazna.");
+                throw new InvalidDataException("Baza projekata premašuje dopuštenu veličinu od 8 MB ili je prazna.");
             var values=JsonSerializer.Deserialize<List<ProjectDefinition>>(
-                File.ReadAllText(_path,Encoding.UTF8),Options)
+                File.ReadAllText(path,Encoding.UTF8),Options)
                 ?? throw new InvalidDataException("Datoteka projekata je prazna.");
             if(values.Count>MaxProjects ||
                 values.Any(p=>p is null || p.Id==Guid.Empty ||
@@ -50,9 +87,8 @@ public sealed class ProjectStore
         }
         catch(Exception e) when(e is JsonException or InvalidDataException)
         {
-            // Never silently reset a damaged database. The previous snapshot is at .bak.
             throw new InvalidDataException(
-                "Datoteka projekata nije ispravna. Sačuvajte projects.json i projects.json.bak prije popravka. "+
+                "Baza projekata nije valjana. Sačuvajte projects.json i projects.json.bak prije popravka. "+
                 e.Message,e);
         }
     }

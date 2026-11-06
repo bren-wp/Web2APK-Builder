@@ -402,6 +402,52 @@ public partial class MainWindow
         settings.Children.Add(Feature("Lokalna privatnost", "Podaci projekata spremaju se na lokalni disk; nema korisničkih računa ni telemetrije."));
         settings.Children.Add(Feature("Sigurnosna kopija projekata",
             "Prilikom svakog ažuriranja čuva se prethodni cijeli projects.json.bak. Više pokrenutih instanci koristi zajedničku zaštitu upisa. U slučaju oštećenja prvo kopirajte obje datoteke na sigurno mjesto."));
+        if(_startupDataIssue is not null)
+            settings.Children.Add(Notice("Baza projekata ne može se učitati. "+
+                "Program je otvorio Postavke za siguran oporavak. "+_startupDataIssue));
+        if(File.Exists(_store.BackupPath))
+        {
+            try
+            {
+                var backupCount=_store.BackupProjectCount();
+                settings.Children.Add(Feature("Dostupna prethodna verzija",
+                    "Sigurnosna kopija sadrži "+backupCount+
+                    " projekata. Vraćanje zamjenjuje trenutačni popis prethodnom verzijom, "+
+                    "bez promjene podataka o licencnim mjestima."));
+                settings.Children.Add(Btn("Vrati projekte iz sigurnosne kopije",() =>
+                {
+                    if(MessageBox.Show(this,
+                        "Vratiti "+backupCount+" projekata iz prethodne sigurnosne kopije?\n\n"+
+                        "Trenutačni projects.json ostat će sačuvan u zasebnoj datoteci. "+
+                        "Oporavak ne vraća niti oslobađa licencna mjesta.\n\n"+
+                        "Preporuka: najprije kopirajte cijelu lokalnu mapu podataka na sigurno mjesto.",
+                        "Potvrda oporavka projekata",MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning)!=MessageBoxResult.Yes)return;
+                    try
+                    {
+                        var archived=_store.RestoreBackup();
+                        _startupDataIssue=null;
+                        ShowInfo("Vraćeno je "+_store.List().Count+
+                            " projekata iz prethodne valjane kopije.\n"+
+                            (archived.Length>0?"Prethodna datoteka: "+archived:
+                            "Prethodna baza nije postojala.")+
+                            "\nPo potrebi je spremite za daljnju analizu.");
+                        Navigate("dashboard");
+                    }
+                    catch(Exception ex) when(ex is IOException or InvalidDataException or
+                        UnauthorizedAccessException)
+                    {
+                        ShowError("Sigurnosni oporavak nije uspio: "+ex.Message);
+                    }
+                },true));
+            }
+            catch(Exception e) when(e is InvalidDataException or IOException or
+                UnauthorizedAccessException)
+            {
+                settings.Children.Add(Notice("Sigurnosna kopija nije čitljiva: "+e.Message+
+                    " Automatski povrat nije dopušten."));
+            }
+        }
         settings.Children.Add(Feature("Sigurno potpisivanje", "Privatni ključ i lozinke za Android ostaju na vašem računalu."));
         settings.Children.Add(Btn("Otvori lokalnu mapu podataka", () =>
             Process.Start(new ProcessStartInfo { FileName = _dataDir, UseShellExecute = true }), true));
@@ -416,7 +462,7 @@ public partial class MainWindow
             "U Postavkama otvorite Licence. Dodajte BL2 ključ, provjerite paket i maskirani identifikator. "+
             "Nove licence automatski povezuju tri aplikacije u paketu Profesionalac; stare BL2 licence zadržavaju potpisane ID-jeve. Agencija i Developer nemaju limit. Zamjena licence provjerava novi ključ prije uklanjanja starog."));
         docs.Children.Add(Feature("02 · Novo Android izdanje",
-            "Odaberite Novi projekt i unesite naziv (2–70 znakova), package ID, izvornu HTTPS web-adresu ili mapu s index.html. "+
+            "Odaberite Novi projekt i unesite naziv (2–70 znakova); package ID nastaje automatski i može se urediti prije objave. Dodajte izvornu HTTPS web-adresu ili mapu s index.html. "+
             "Package ID nije moguće olako mijenjati nakon objave na Google Playu. Povećajte versionCode za svako ažuriranje."));
         docs.Children.Add(Feature("03 · Zadana ikonica, splash i izgled",
             "Svaki projekt započinje s Brendigo ikonom i splash zaslonom. U Demo paketu oboje je zaključano. "+

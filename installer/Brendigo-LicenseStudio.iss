@@ -1,5 +1,5 @@
 #define MyAppName "Brendigo License Studio"
-#define MyAppVersion "0.6.5"
+#define MyAppVersion "0.6.6"
 #define MyAppPublisher "Brendigo"
 #define MyAppExeName "Brendigo.LicenseStudio.exe"
 [Setup]

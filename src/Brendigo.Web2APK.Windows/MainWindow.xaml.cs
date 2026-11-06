@@ -21,6 +21,7 @@ public partial class MainWindow : Window
     private ProjectDefinition _draft = new();
     private bool _autoGeneratePackage;
     private bool _settingAutomaticPackage;
+    private string? _startupDataIssue;
     private readonly List<FrameworkElement> _fieldCells = [];
     private readonly List<Border> _stats = [];
     private readonly Dictionary<string, Button> _navButtons = [];
@@ -63,7 +64,16 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(_dataDir);
         _store = new ProjectStore(_dataDir);
         MakeNavigation();
-        Navigate(_store.List().Count == 0 ? "welcome" : "dashboard");
+        try
+        {
+            Navigate(_store.List().Count == 0 ? "welcome" : "dashboard");
+        }
+        catch(InvalidDataException e)
+        {
+            // An invalid local database must not prevent access to Recovery in Settings.
+            _startupDataIssue=e.Message;
+            Navigate("settings");
+        }
 #if UI_CAPTURE
         if (Environment.GetCommandLineArgs().Contains("--capture-native"))
             Loaded += CaptureNativeScreensOnLoaded;

@@ -45,7 +45,7 @@ Snimke niže nastaju **automatskim renderiranjem stvarnog nativnog WPF sučelja*
 
 **Stvarni Brendigo License Studio:** ![License Studio — stvarni Windows WPF prozor](docs/screenshots/native/license-studio.png)
 
-**Dodatne snimke na malim prozorima:** [Početni zaslon 900 px](docs/screenshots/native/welcome-small-900.png) · [Nadzorna ploča 900 px](docs/screenshots/native/dashboard-small-900.png) · [Moji projekti 900 px](docs/screenshots/native/projects-small-900.png) · [Postavke 900 px](docs/screenshots/native/settings-small-900.png).
+**Dodatne snimke na malim prozorima:** [Početni zaslon 900 px](docs/screenshots/native/welcome-small-900.png) · [Nadzorna ploča 900 px](docs/screenshots/native/dashboard-small-900.png) · [Moji projekti 900 px](docs/screenshots/native/projects-small-900.png) · [Postavke 900 px](docs/screenshots/native/settings-small-900.png) · [Razvojni alati 900 px](docs/screenshots/native/tools-small-900.png) · [Dokumentacija 900 px](docs/screenshots/native/docs-small-900.png).
 
 **Snimke WPF čarobnjaka pri većoj gustoći rasterizacije:** [125 %](docs/screenshots/native/wizard-density-125.png) · [150 %](docs/screenshots/native/wizard-density-150.png) · [200 %](docs/screenshots/native/wizard-density-200.png). To su stvarni WPF renderi s višom DPI gustoćom, a **nisu** potvrda fizičkog Windows DPI skaliranja ni povećanog teksta.
 
@@ -72,6 +72,8 @@ Android WebView koristi širinu zaslona, viewport i sigurne rubove; konačni izg
 | AdMob, kamera, mikrofon i lokacija | — | — | ✓ | ✓ | ✓ |
 | Izrada aplikacija za klijente | — | — | do tri ID-ja | **da** | vlasnik |
 
+**Sigurnost lokalnog HTML izvoza:** u APK/AAB se prenose samo dopuštene datoteke lokalnog web projekta; skrivene datoteke, najčešće datoteke s privatnim ključevima (`.pem`, `.p12`, `.jks` itd.) i tipične tajne konfiguracije (`credentials.json`, `google-services.json`, `service-account.json`) isključuju se iz Android assets. To je zaštita od slučajnog uključivanja poznatih vrsta tajni, ne zamjena za pregled vlastitog HTML sadržaja prije distribucije. [Zabilješke sigurnosnog pregleda v0.6.6](docs/SECURITY-DEADCODE-AUDIT-v0.6.6.md).
+
 **Automatski package ID:** novi Windows projekti dobivaju jedinstveni Android `applicationId` iz naziva (uključujući hrvatska slova) i stabilnog internog GUID-a. Nema obveznog ručnog unosa. ID možete urediti prije prve objave; nakon spremanja ime aplikacije može se mijenjati bez promjene ID-ja. Ako promijenite ID već spremljenog projekta, Windows Builder traži izričitu potvrdu jer Google Play to tretira kao drugu aplikaciju, a licenca može zauzeti dodatno mjesto.
 
 **Automatsko povezivanje licenci:** za nove licence Demo, Osnovno i Profesionalac License Studio više ne traži ručni package ID. Digitalno potpisana BL2 licenca ima automatski opseg `@`; Windows Builder pri prvom izvozu ili izradi bilježi package ID u lokalnoj DPAPI-zaštićenoj evidenciji. Demo i Osnovno dopuštaju jednu aplikaciju, Profesionalac tri. Ponovne izrade istog ID-ja ne troše nova mjesta; brisanje projekta ih ne oslobađa. Stare licence s unaprijed potpisanim package ID-jevima ostaju podržane. Ovo je **lokalno ograničenje**: bez aktivacijskog poslužitelja nije moguće pouzdano spriječiti brisanje evidencije ni uskladiti upotrebu na više računala.
@@ -86,7 +88,7 @@ Brendigo License Studio generira potpisane licence s odabranim paketima i razdob
 
 ### Zaštita lokalne baze projekata
 
-Windows Studio pohranjuje projekte u lokalni `projects.json` i na svakom sljedećem spremanju zadržava prethodnu valjanu snimku kao `projects.json.bak`. Paralelna spremanja iz različitih instanci serijalizirana su zajedničkom blokadom, a neispravne, duplicirane i prevelike baze odbijaju se bez automatskog brisanja. Ako je baza oštećena, **nemojte prepisivati datoteke**; napravite sigurnosnu kopiju obje datoteke pa tek onda ručno vratite valjanu verziju. Pohrana nije zamjena za vanjsku sigurnosnu kopiju diska.
+Windows Studio pohranjuje projekte u lokalni `projects.json` i na svakom sljedećem spremanju zadržava prethodnu valjanu snimku kao `projects.json.bak`. Paralelna spremanja iz različitih instanci serijalizirana su zajedničkom blokadom, a neispravne, duplicirane i prevelike baze odbijaju se bez automatskog brisanja. Ako je baza oštećena, Studio otvara Postavke umjesto prekidanja pokretanja i omogućuje **Vraćanje projekata iz sigurnosne kopije** uz izričitu potvrdu. Prije oporavka provjerava se valjanost kopije, a zatečeni `projects.json` ostaje spremljen kao `projects.json.recovery-*.json`; obnova ne oslobađa niti poništava licencna mjesta. Preporučuje se dodatna sigurnosna kopija cijele mape podataka prije oporavka. Pohrana nije zamjena za vanjsku sigurnosnu kopiju diska.
 
 ## Jedan Windows Studio za cijeli tijek rada
 

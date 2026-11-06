@@ -595,7 +595,15 @@ public final class PushMessagingService extends FirebaseMessagingService {
     private static void CopyLocalContent(string from, string to)
     {
         var blocked = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { ".git", ".env", ".idea", ".gradle", ".vscode", "node_modules", "build", "dist" };
+        {
+            ".git", ".env", ".idea", ".gradle", ".vscode", "node_modules",
+            "build", "dist", "google-services.json", "service-account.json",
+            "credentials.json", "secrets.json", "id_rsa", "id_ed25519"
+        };
+        var forbiddenExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".pem", ".key", ".p12", ".pfx", ".jks", ".keystore", ".license"
+        };
         int totalFiles = 0;
         long totalBytes = 0;
         void Copy(string source, string destination)
@@ -603,7 +611,10 @@ public final class PushMessagingService extends FirebaseMessagingService {
             Directory.CreateDirectory(destination);
             foreach (var entry in new DirectoryInfo(source).EnumerateFileSystemInfos())
             {
-                if (entry.Name.StartsWith('.') || blocked.Contains(entry.Name)) continue;
+                if (entry.Name.StartsWith('.') || blocked.Contains(entry.Name) ||
+                    (entry is FileInfo && forbiddenExtensions.Contains(Path.GetExtension(entry.Name))) ||
+                    entry.Name.StartsWith("firebase-adminsdk",StringComparison.OrdinalIgnoreCase))
+                    continue;
                 if ((entry.Attributes & FileAttributes.ReparsePoint) != 0)
                     throw new IOException("Simboličke poveznice nisu podržane.");
                 if (entry is DirectoryInfo sub) Copy(sub.FullName, Path.Combine(destination, sub.Name));

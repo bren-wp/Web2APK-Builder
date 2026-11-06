@@ -1,5 +1,17 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.6 — oporavak oštećenih projekata i privatniji lokalni HTML izvoz
+
+- Ispravljen prekid pri otvaranju Windows Studija ako je lokalna baza `projects.json` oštećena: dostupne su Postavke i kontrolirani oporavak.
+- Dodan gumb za sigurno vraćanje projekata iz `projects.json.bak`, uz prethodnu validaciju, izričitu potvrdu i arhiviranje izvorne datoteke `projects.json.recovery-*.json`; automatska licencna mjesta ostaju netaknuta.
+- Testiran oporavak 23 projekta nakon oštećenja baze; nevaljana kopija blokira vraćanje i čuva postojeće podatke.
+- Spriječeno uključivanje u lokalni Android HTML sadržaj tipičnih privatnih ključeva i konfiguracija (`.pem`, `.pfx`, `.p12`, `.jks`, `.keystore`, `credentials.json`, `google-services.json`, `service-account.json`, `firebase-adminsdk*`).
+- Ugrađene korisničke upute o oporavku i osvježena dokumentacija izvornog koda; dodan sigurnosni pregled s otvorenim pitanjima i ograničenjima.
+- Proširene stvarne WPF snimke zaslona Razvojni alati i Dokumentacija na 900 px; Release sada provjerava najmanje 30 stvarnih snimaka.
+- Usklađene verzije programa i oba Windows instalera na 0.6.6 te Android klijenta na versionName 0.6.6 i versionCode 13.
+- Zadržana postojeća BL2 kompatibilnost, cijene, paketi i pravila zauzetih mjesta.
+
+
 ## v0.6.5 — automatski Android identitet, transparentno licenciranje i WPF DPI provjere
 
 - Novi projekti u Windows čarobnjaku automatski dobivaju jedinstven package ID iz naziva i internog GUID-a; hrvatski znakovi pretvaraju se u valjani ASCII, ručni unos nije obvezan.

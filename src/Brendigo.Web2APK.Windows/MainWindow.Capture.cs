@@ -147,6 +147,8 @@ public partial class MainWindow
             CaptureCompact("dashboard","dashboard-small-900",900,650);
             CaptureCompact("projects","projects-small-900",900,650);
             CaptureCompact("settings","settings-small-900",900,650);
+            CaptureCompact("tools","tools-small-900",900,650);
+            CaptureCompact("docs","docs-small-900",900,650);
             // Render high-density raster captures at the same 900x650 logical viewport.
             // This verifies WPF rendering at 125, 150 and 200 percent bitmap density,
             // but is not a substitute for physical per-monitor DPI or font-scale tests.

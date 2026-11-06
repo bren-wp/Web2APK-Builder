@@ -286,10 +286,19 @@ try {
     var web=Path.Combine(root,"web");Directory.CreateDirectory(web);
     File.WriteAllText(Path.Combine(web,"index.html"),"<h1>Offline</h1>");
     File.WriteAllText(Path.Combine(web,".env"),"secret");
+    File.WriteAllText(Path.Combine(web,"signing-key.pem"),"private");
+    File.WriteAllText(Path.Combine(web,"my-upload.jks"),"private");
+    File.WriteAllText(Path.Combine(web,"google-services.json"),"config");
+    File.WriteAllText(Path.Combine(web,"credentials.json"),"private");
+    File.WriteAllText(Path.Combine(web,"firebase-adminsdk-secret.json"),"private");
     var off=new ProjectDefinition { Name="Offline",PackageName="com.brendigo.offline",SourceType="local",LocalPath=web };
     var folder=AndroidProjectGenerator.Generate(off,Path.Combine(root,"offline"));
     Test(File.Exists(Path.Combine(folder,"app","src","main","assets","index.html")),"Offline HTML copied");
     Test(!File.Exists(Path.Combine(folder,"app","src","main","assets",".env")),"Secrets excluded");
+    foreach(var secret in new[]{"signing-key.pem","my-upload.jks",
+        "google-services.json","credentials.json","firebase-adminsdk-secret.json"})
+        Test(!File.Exists(Path.Combine(folder,"app","src","main","assets",secret)),
+            "Sensitive file excluded from packaged Android assets: "+secret);
     store.Delete(saved.Id);Test(store.List().Count==0,"Delete");
     var parallelDir=Path.Combine(root,"parallel-store");
     var jobs=Enumerable.Range(0,24).Select(i=>Task.Run(()=>
@@ -321,5 +330,24 @@ try {
         "Oversized project databases are rejected before deserialization");
     File.WriteAllText(dbFile,original);
     Test(parallel.List().Count==24,"A valid database can be recovered without project loss");
+
+    // A real recovery always preserves the damaged original for forensic inspection.
+    File.WriteAllText(dbFile,"{damaged-json");
+    Test(ThrowsInvalidData(()=>parallel.List()),"Broken database blocks normal project view");
+    Test(parallel.BackupProjectCount()==23,"Recovery validates the previous backup");
+    var forensic=parallel.RestoreBackup();
+    Test(File.Exists(forensic) && File.ReadAllText(forensic)=="{damaged-json",
+        "Recovery preserves the corrupted original without losing evidence");
+    Test(parallel.List().Count==23,"Restored database contains all previously backed-up projects");
+    Test(parallel.BackupProjectCount()==23,
+        "Recovery leaves the backup file intact instead of overwriting it");
+    File.WriteAllText(dbBackup,"[invalid");
+    var restored=File.ReadAllText(dbFile);
+    Test(ThrowsInvalidData(()=>parallel.BackupProjectCount()),
+        "Invalid backup cannot be offered for one-click recovery");
+    Test(ThrowsInvalidData(()=>parallel.RestoreBackup()),
+        "Recovery fails closed on a tampered backup");
+    Test(File.ReadAllText(dbFile)==restored,
+        "Failed recovery leaves current projects untouched");
 } finally { try { Directory.Delete(root,true); } catch(IOException){} }
 Console.WriteLine("Brendigo native core tests passed.");
