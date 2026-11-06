@@ -174,7 +174,10 @@ try {
             "Professional max three unique packages");
         Test(AutomaticLicenseSeats.Usage(proAuto,out var three,out _,seats) && three==3,
             "Professional usage persisted");
-        var encrypted=Directory.GetFiles(seats,"*.dpapi").Single();
+        var encrypted=Path.Combine(seats,
+            Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(proAuto.Serial)))+".dpapi");
+        Test(File.Exists(encrypted),"Encrypted Professional ledger file exists");
         Test(!System.Text.Encoding.UTF8.GetString(File.ReadAllBytes(encrypted))
             .Contains("com.demo.first",StringComparison.Ordinal),
             "Windows seat ledger encrypted");
