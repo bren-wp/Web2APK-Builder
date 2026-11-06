@@ -21,12 +21,13 @@ public partial class MainWindow
         panel.Children.Add(sdkChoice);
         panel.Children.Add(Btn("Google Play · provjeri spremnost",() =>
             ShowInfo(GooglePlayReadiness.AsText(_draft))));
-        panel.Children.Add(Notice("Za APK/AAB moraju biti dostupni JDK 17, Gradle 9.6+ i Android SDK 36+. " +
-            "Program ne preuzima razvojne alate bez vašeg odobrenja."));
+        panel.Children.Add(Notice("Za APK/AAB Studio provjerava JDK 17, Gradle 9.6+ i Android SDK 36. " +
+            "Ako alat nedostaje, sam ga priprema u lokalnoj mapi nakon vaše privole. " +
+            "Android Studio ne morate instalirati."));
         var authorized = LicenseActivationStore.Installed("windows")
-            .Where(c => c.Tier == LicenseEntitlements.Developer || c.PackageName == _draft.PackageName)
+            .Where(c => LicenseEntitlements.PackageMatches(c,_draft.PackageName))
             .OrderByDescending(c => c.Tier switch {
-                "developer" => 4, "pro" => 3, "basic" => 2, _ => 1
+                "developer" => 5, "agency" => 4, "pro" => 3, "basic" => 2, _ => 1
             }).FirstOrDefault();
         var tierName = authorized is null ? "Nema licence za odabrani package ID"
             : LicenseEntitlements.DisplayName(authorized.Tier);
@@ -35,6 +36,9 @@ public partial class MainWindow
         var sourceBtn=Btn("⇩  Izvezi Android projekt", () => _ = ExportAsync(_draft));
         sourceBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"source");
         actions.Children.Add(sourceBtn);
+        var viewSource=Btn("⌘  Pregledaj izvorni kod",()=>OpenSourceViewer(_draft));
+        viewSource.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"source");
+        actions.Children.Add(viewSource);
         var apkBtn=Btn("▣  Izradi APK", () => _ = BuildAsync("apk"), true);
         apkBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"apk");
         actions.Children.Add(apkBtn);
@@ -119,6 +123,18 @@ public partial class MainWindow
         _buildLog.ScrollToEnd();
     }
 
+    private void OpenSourceViewer(ProjectDefinition project)
+    {
+        if(_busy)return;
+        try {
+            LicenseActivationStore.Require("windows",project,"source");
+            if(!SaveForExport(project,out var saved))return;
+            var viewer=new SourceViewerWindow(saved) { Owner=this };
+            viewer.ShowDialog();
+        }
+        catch(Exception e){ShowError("Pregled izvornog koda nije uspio: "+e.Message);}
+    }
+
     private async Task ExportAsync(ProjectDefinition project)
     {
         if (_busy) return;
@@ -148,6 +164,43 @@ public partial class MainWindow
         catch (Exception ex) { ShowError(ex.Message); return false; }
     }
 
+    /// <summary>
+    /// No separate installer is needed. After consent the Studio prepares all tools
+    /// in its own user folder. Google's SDK terms prevent us bundling it inside EXEs.
+    /// </summary>
+    private async Task EnsureBuildToolchainAsync(CancellationToken token)
+    {
+        var java=Environment.GetEnvironmentVariable("JAVA_HOME");
+        bool haveJava=ToolchainService.IsLocalJdkInstalled ||
+            (!string.IsNullOrWhiteSpace(java) &&
+                File.Exists(Path.Combine(java,"bin","java.exe")));
+        var sdk=Environment.GetEnvironmentVariable("ANDROID_HOME") ??
+            Environment.GetEnvironmentVariable("ANDROID_SDK_ROOT") ?? "";
+        bool haveSdk=ToolchainService.IsLocalAndroidPlatformInstalled ||
+            (!string.IsNullOrWhiteSpace(sdk) &&
+                File.Exists(Path.Combine(sdk,"platforms","android-36","android.jar")));
+        bool haveGradle=ToolchainService.IsGradleInstalled;
+        if(haveJava&&haveSdk&&haveGradle)return;
+        var confirm=MessageBox.Show(
+            "Za izradu APK/AAB Studio će pripremiti potrebne razvojne alate " +
+            "iz službenih izvora u vlastitoj lokalnoj mapi. Nema potrebe zasebno "+
+            "instalirati Android Studio.\n\n" +
+            "Preuzimanje zahtijeva internetsku vezu i može zauzeti više stotina MB. " +
+            "Preuzete arhive provjeravaju se SHA-256. " +
+            "Googleovi SDK uvjeti: https://developer.android.com/studio/terms\n\n" +
+            "Odabirom DA potvrđujete da ste pročitali i prihvatili te uvjete. "+
+            "Želite li nastaviti?",
+            "Priprema Android alata",MessageBoxButton.YesNo,MessageBoxImage.Question);
+        if(confirm!=MessageBoxResult.Yes)
+            throw new OperationCanceledException("Priprema alata nije odobrena.");
+        var progress=new Action<string>(msg=>
+            Dispatcher.BeginInvoke(() => AddLog(msg+Environment.NewLine)));
+        if(!haveJava)await ToolchainService.InstallJdkAsync(progress,token);
+        if(!haveGradle)await ToolchainService.InstallGradleAsync(progress,token);
+        if(!haveSdk)await ToolchainService.InstallAndroidSdkAsync(progress,token);
+        UpdateToolStatus();
+    }
+
     private async Task BuildAsync(string format)
     {
         if (_busy) return;
@@ -170,6 +223,7 @@ public partial class MainWindow
         AddLog(Environment.NewLine + "Pokrećem lokalnu izradu " + format.ToUpperInvariant() + "..." + Environment.NewLine);
         try
         {
+            await EnsureBuildToolchainAsync(_buildCancellation.Token);
             var result = await AndroidBuildService.BuildAsync(_draft.Copy(), dialog.FolderName, format,
                 signing, line => Dispatcher.BeginInvoke(() => AddLog(line)), _buildCancellation.Token);
             AddLog("Izrada uspješno završena: " + result.File + Environment.NewLine);
@@ -305,8 +359,10 @@ public partial class MainWindow
             var c=entry.Claims;
             var card=Stack();
             card.Children.Add(Txt(LicenseEntitlements.DisplayName(c.Tier),15,true));
-            card.Children.Add(Txt((c.Tier=="developer"?"Neograničeno aplikacija":c.PackageName)+
-                " · doživotno · "+(c.Audience=="both"?"Windows + Android":"Windows"),
+            card.Children.Add(Txt((c.Tier is "developer" or "agency"?"Neograničeno aplikacija":c.PackageName.Replace(",",", "))+
+                (c.ExpiresAt==0?" · doživotno":" · vrijedi do "+
+                    DateTimeOffset.FromUnixTimeSeconds(c.ExpiresAt).ToLocalTime().ToString("dd.MM.yyyy"))+
+                " · "+(c.Audience=="both"?"Windows + Android":"Windows"),
                 12,false,Muted,new Thickness(0,5,0,7)));
             card.Children.Add(Txt("Licencni ključ: "+entry.MaskedToken,11,false,Muted));
             card.Children.Add(Btn("Zamijeni ovu licencu",()=>{
@@ -336,13 +392,13 @@ public partial class MainWindow
         var docs=Stack();
         docs.Children.Add(Feature("01 · Prva upotreba i licence",
             "U Postavkama otvorite Licence. Dodajte BL2 ključ, provjerite paket i maskirani identifikator. "+
-            "Za drugi package ID uzmite drugu licencu ili Developer. Zamjena licence provjerava novi ključ prije uklanjanja starog."));
+            "Profesionalac pokriva do tri unaprijed potpisana package ID-ja. Agencija i Developer nemaju limit broja projekata. Zamjena licence provjerava novi ključ prije uklanjanja starog."));
         docs.Children.Add(Feature("02 · Novo Android izdanje",
             "Odaberite Novi projekt i unesite naziv (2–70 znakova), package ID, izvornu HTTPS web-adresu ili mapu s index.html. "+
             "Package ID nije moguće olako mijenjati nakon objave na Google Playu. Povećajte versionCode za svako ažuriranje."));
         docs.Children.Add(Feature("03 · Zadana ikonica, splash i izgled",
             "Svaki projekt započinje s Brendigo ikonom i splash zaslonom. U Demo paketu oboje je zaključano. "+
-            "Osnovno, Profesionalac i Developer mogu odabrati vlastitu PNG ikonu od najmanje 192×192, "+
+            "Osnovno, Profesionalac, Agencija i Developer mogu odabrati vlastitu PNG ikonu od najmanje 192×192, "+
             "prilagoditi boju i isključiti Brendigo splash. Pregledajte rezultat na stvarnom Android uređaju."));
         docs.Children.Add(Feature("04 · WebView, offline HTML i kompatibilnost",
             "HTTPS je zadano obvezan. JavaScript i DOM Storage uključujte samo za pouzdani sadržaj. "+
@@ -350,12 +406,12 @@ public partial class MainWindow
             "WebView pregled na Windowsu ne zamjenjuje test na telefonu."));
         docs.Children.Add(Feature("05 · Kamera, mikrofon, datoteke i lokacija",
             "Osjetljive dozvole uključujte samo kada su potrebne. Android od korisnika zasebno traži odobrenje. "+
-            "Kamera, mikrofon i lokacija dostupni su vlasničkom Developer paketu. "+
+            "Kamera, mikrofon i lokacija dostupni su od paketa Profesionalac. "+
             "Izbjegavajte široke storage dozvole; za datoteke se koristi sistemski odabir."));
         docs.Children.Add(Feature("06 · Push i oglasi",
-            "Profesionalac i Developer mogu uključiti povlačenje za osvježavanje i Firebase Push. "+
+            "Profesionalac, Agencija i Developer mogu uključiti povlačenje za osvježavanje i Firebase Push. "+
             "Za Firebase odaberite odgovarajući google-services.json s istim package ID-jem. "+
-            "AdMob je Developer funkcija i traži vlastite oglasne identifikatore, UMP privolu i deklaracije."));
+            "AdMob je funkcija paketa Profesionalac, Agencija i Developer i traži vlastite oglasne identifikatore, UMP privolu i deklaracije."));
         docs.Children.Add(Feature("07 · Android alati bez drugih programa",
             "Otvorite Razvojni alati i odaberite Pripremi JDK + Gradle + Android SDK unutar Studija. "+
             "Pročitajte i prihvatite uvjete, omogućite preuzimanje, a Studio provjerava kontrolne zbrojeve i "+

@@ -126,8 +126,10 @@ public partial class MainWindow
         versions.Children.Add(InputField("Version code",_draft.VersionCode.ToString(),s=>
             _draft.VersionCode=int.TryParse(s,out var n)?n:0));
         panel.Children.Add(versions);
-        panel.Children.Add(SelectField("Minimalni Android SDK",_draft.MinSdk.ToString(),
-            ["24","26","28","30","33","34","35","36"],s=>_draft.MinSdk=int.Parse(s)));
+        var minSdkChoice=SelectField("Minimalni Android SDK",_draft.MinSdk.ToString(),
+            ["24","26","28","30","33","34","35","36"],s=>_draft.MinSdk=int.Parse(s));
+        minSdkChoice.Tag="wide";
+        panel.Children.Add(minSdkChoice);
         panel.Children.Add(Txt("Minimalna verzija određuje podržane Android uređaje.",
             11,false,Muted,new Thickness(0,0,0,5)));
     }
@@ -254,7 +256,7 @@ public partial class MainWindow
     private bool HasLicenseFeature(string feature)
     {
         return LicenseActivationStore.Installed("windows").Any(c=>
-            (c.Tier==LicenseEntitlements.Developer || c.PackageName==_draft.PackageName) &&
+            LicenseEntitlements.PackageMatches(c,_draft.PackageName) &&
             LicenseEntitlements.Allows(c,feature));
     }
 
@@ -265,7 +267,10 @@ public partial class MainWindow
         if(HasLicenseFeature("aab"))
             panel.Children.Add(Feature("✓  Android AAB", "Izrada App Bundlea za distribuciju prema pravilima trgovine."));
         else panel.Children.Add(Feature("○  Android AAB", "Dostupno od paketa Osnovno."));
-        panel.Children.Add(Feature("✓  Izvoz izvornog projekta", "Android Gradle projekt koji možete otvoriti u Android Studiju."));
+        if(HasLicenseFeature("source"))
+            panel.Children.Add(Feature("✓  Izvorni kod", "Prikaz i preuzimanje svih generiranih Java/XML/Gradle datoteka."));
+        else
+            panel.Children.Add(Feature("○  Izvorni kod", "Dostupno od paketa Osnovno."));
         panel.Children.Add(OptionCheck("Odabir datoteka i prijenos u web obrasce",
             "Omogućuje Androidov sistemski odabir datoteka uz korisničku potvrdu.",
             _draft.FileUploads,b=>_draft.FileUploads=b));
@@ -275,7 +280,7 @@ public partial class MainWindow
         panel.Children.Add(Feature("✓  Lokalni keystore", "Vlastiti ključ ili sigurno generiran lokalni ključ."));
         panel.Children.Add(Divider());
         panel.Children.Add(Txt("Google AdMob · banner oglasi", 15, true));
-        var adsChoice=OptionCheck("Omogući AdMob", "Oglasi su dostupni samo u vlasničkom Developer paketu.",
+        var adsChoice=OptionCheck("Omogući AdMob", "Oglasi su dostupni od paketa Profesionalac.",
             _draft.AdMobEnabled,b=>{ _draft.AdMobEnabled=b; Navigate("new"); });
         adsChoice.IsEnabled=HasLicenseFeature("admob");
         panel.Children.Add(adsChoice);
@@ -288,12 +293,12 @@ public partial class MainWindow
         panel.Children.Add(Divider());
         panel.Children.Add(Txt("Firebase Cloud Messaging · Push", 15, true));
         var pushChoice=OptionCheck("Omogući Firebase Push",
-            "Profesionalac i Developer · zahtijeva odgovarajući google-services.json.",
+            "Profesionalac, Agencija i Developer · zahtijeva google-services.json.",
             _draft.FirebasePushEnabled,b=>{_draft.FirebasePushEnabled=b;Navigate("new");});
         pushChoice.IsEnabled=HasLicenseFeature("firebase_push");
         panel.Children.Add(pushChoice);
         var refreshChoice=OptionCheck("Povucite za osvježavanje",
-            "Profesionalac i Developer · ponovo učitava WebView povlačenjem odozgo.",
+            "Profesionalac, Agencija i Developer · WebView osvježavanje.",
             _draft.PullRefresh,b=>_draft.PullRefresh=b);
         refreshChoice.IsEnabled=HasLicenseFeature("pull_refresh");
         panel.Children.Add(refreshChoice);
@@ -412,8 +417,8 @@ public partial class MainWindow
         panel.Children.Add(Divider());
 
         var supported=LicenseActivationStore.Installed("windows")
-            .Where(c=>c.Tier==LicenseEntitlements.Developer || c.PackageName==_draft.PackageName)
-            .OrderByDescending(c=>c.Tier switch {"developer"=>4,"pro"=>3,"basic"=>2,_=>1})
+            .Where(c=>LicenseEntitlements.PackageMatches(c,_draft.PackageName))
+            .OrderByDescending(c=>c.Tier switch {"developer"=>5,"agency"=>4,"pro"=>3,"basic"=>2,_=>1})
             .FirstOrDefault();
         var export=Stack();
         export.Children.Add(Txt("Izvoz",12,true));

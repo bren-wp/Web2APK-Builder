@@ -9,38 +9,60 @@ public static class LicenseEntitlements
     public const string Basic = "basic";
     public const string Professional = "pro";
     public const string Developer = "developer";
+    public const string Agency = "agency";
 
-    public static bool ValidTier(string? tier) => tier is Demo or Basic or Professional or Developer;
+    public static bool ValidTier(string? tier) => tier is Demo or Basic or Professional or Agency or Developer;
+    private static bool SinglePackage(string name) =>
+        name.Length is > 3 and <= 180 &&
+        Regex.IsMatch(name,@"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$",
+            RegexOptions.CultureInvariant,TimeSpan.FromSeconds(1));
+
     public static bool ValidPackage(string tier,string? package)
     {
-        if(tier==Developer)return package=="*";
-        return package is {Length: <= 180} &&
-            Regex.IsMatch(package,@"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$",
-                RegexOptions.CultureInvariant,TimeSpan.FromSeconds(1));
+        if(tier is Developer or Agency)return package=="*";
+        if(package is null)return false;
+        if(tier!=Professional)return SinglePackage(package);
+        var ids=package.Split(',',StringSplitOptions.None);
+        return ids.Length is >=1 and <=3 && ids.All(SinglePackage) &&
+            ids.Distinct(StringComparer.Ordinal).Count()==ids.Length;
     }
+    public static bool PackageMatches(BrendigoLicense.Claims claim,string package) =>
+        claim.Tier is Developer or Agency ||
+        (claim.Tier==Professional
+            ? claim.PackageName.Split(',').Contains(package,StringComparer.Ordinal)
+            : string.Equals(claim.PackageName,package,StringComparison.Ordinal));
+    public static int ApplicationLimit(string tier) => tier switch
+    {
+        Developer or Agency=>int.MaxValue,Professional=>3,_=>1
+    };
+    public static int AgencyPriceEur(int months) => months switch
+    {
+        1=>39,12=>390,_=>throw new ArgumentException("Agencija vrijedi 1 ili 12 mjeseci.")
+    };
 
     public static string DisplayName(string tier) => tier switch
     {
         Demo => "Demo",
         Basic => "Osnovno",
-        Professional => "Profesionalac",
+        Professional => "Profesionalac · tri aplikacije",
+        Agency => "Agencija · pretplata",
         Developer => "Developer · vlasnik",
         _ => "Nepoznat paket"
     };
 
     public static int PriceEur(string tier) => tier switch
     {
-        Demo => 0, Basic => 49, Professional => 69, Developer => 0,
+        Demo => 0, Basic => 49, Professional => 69, Agency=>39, Developer => 0,
         _ => throw new ArgumentException("Nepoznat paket.")
     };
 
     public static bool Allows(BrendigoLicense.Claims c, string feature) => feature switch
     {
         "apk" => ValidTier(c.Tier),
-        "aab" or "source" or "branding" or "custom_icon" or "splash" => c.Tier is Basic or Professional or Developer,
-        "pull_refresh" or "firebase_push" => c.Tier is Professional or Developer,
-        "admob" or "camera" or "microphone" or "location" or "advanced" => c.Tier==Developer,
-        "unlimited_projects" => c.Tier==Developer,
+        "aab" or "source" or "branding" or "custom_icon" or "splash" => c.Tier is Basic or Professional or Agency or Developer,
+        "pull_refresh" or "firebase_push" => c.Tier is Professional or Agency or Developer,
+        "admob" or "camera" or "microphone" or "location" or "advanced" => c.Tier is Professional or Agency or Developer,
+        "unlimited_projects" or "resale" => c.Tier is Agency or Developer,
         _ => false
     };
 
@@ -48,10 +70,15 @@ public static class LicenseEntitlements
         string operation, out string reason)
     {
         reason="";
-        if(c.Tier!=Developer && !string.Equals(c.PackageName,project.PackageName,StringComparison.Ordinal))
+        if(c.Tier==Agency && c.ExpiresAt<=DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+        {
+            reason="Agencijska pretplata nije aktivna. Obnovite licencu prije novog izvoza.";
+            return false;
+        }
+        if(!PackageMatches(c,project.PackageName))
         {
             reason="Licenca "+DisplayName(c.Tier)+" vrijedi isključivo za "+c.PackageName+
-                ". Za novu aplikaciju unesite licencu za njezin package ID.";
+                ". Profesionalac vrijedi za najviše tri unaprijed navedena package ID-ja.";
             return false;
         }
         if(!Allows(c,operation))
@@ -61,15 +88,15 @@ public static class LicenseEntitlements
             return false;
         }
         if(project.AdMobEnabled && !Allows(c,"admob"))
-            reason="AdMob je dostupan samo uz Developer licencu.";
+            reason="AdMob je dostupan od paketa Profesionalac.";
         else if(project.FirebasePushEnabled && !Allows(c,"firebase_push"))
-            reason="Firebase Push dostupan je u paketu Profesionalac ili Developer.";
+            reason="Firebase Push dostupan je od paketa Profesionalac.";
         else if(project.PullRefresh && !Allows(c,"pull_refresh"))
-            reason="Povucite za osvježavanje dostupno je u paketu Profesionalac ili Developer.";
+            reason="Povucite za osvježavanje dostupno je od paketa Profesionalac.";
         else if(!string.IsNullOrWhiteSpace(project.IconPath) && !Allows(c,"custom_icon"))
             reason="Vlastita ikona dostupna je od paketa Osnovno.";
-        else if((project.Camera || project.Microphone || project.Location) && c.Tier!=Developer)
-            reason="Kamera, mikrofon i lokacija dostupni su u Developer paketu.";
+        else if((project.Camera || project.Microphone || project.Location) && !Allows(c,"advanced"))
+            reason="Kamera, mikrofon i lokacija dostupni su od paketa Profesionalac.";
         else if(c.Tier==Demo && (project.Theme!="dark" ||
             !string.Equals(project.Accent,"#7253FF",StringComparison.OrdinalIgnoreCase) ||
             project.SplashDurationMs!=700 || !project.Splash || !project.BrendigoSplashBranding))

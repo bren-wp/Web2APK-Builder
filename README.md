@@ -47,33 +47,42 @@ Snimke niže nastaju **automatskim renderiranjem stvarnog nativnog WPF sučelja*
 
 ## Vaš brending odmah pri prvom projektu
 
-Svaka nova aplikacija po zadanim postavkama dobiva originalnu **Brendigo launcher ikonu** i **Brendigo splash** sa službenom oznakom `apk.com.hr`. U paketu **Demo** to ostaje zaključano. U paketima **Osnovno**, **Profesionalac** i **Developer** možete prilagoditi ikonicu, splash, trajanje i boje.
+Svaka nova aplikacija po zadanim postavkama dobiva originalnu **Brendigo launcher ikonu** i **Brendigo splash** sa službenom oznakom `apk.com.hr`. U paketu **Demo** to ostaje zaključano. U paketima **Osnovno**, **Profesionalac** , **Agencija** i **Developer** možete prilagoditi ikonicu, splash, trajanje i boje.
 
 Android WebView koristi širinu zaslona, viewport i sigurne rubove; konačni izgled udaljene web-stranice ovisi i o responzivnom HTML/CSS-u samog izvora.
 
-## Doživotni licencni paketi
+## Paketi i licence
 
-| Funkcija | Demo · 0 € | Osnovno · 49 € | Profesionalac · 69 € | Developer · vlasnik |
-|---|:--:|:--:|:--:|:--:|
-| Neograničeno vrijeme korištenja | ✓ | ✓ | ✓ | ✓ |
-| APK | ✓ | ✓ | ✓ | ✓ |
-| AAB | — | ✓ | ✓ | ✓ |
-| Vlastita ikona i splash | — | ✓ | ✓ | ✓ |
-| Vlastiti brending | — | ✓ | ✓ | ✓ |
-| Povlačenje za osvježavanje | — | — | ✓ | ✓ |
-| Firebase Push | — | — | ✓ | ✓ |
-| AdMob i napredne dozvole | — | — | — | ✓ |
-| Broj različitih Android aplikacija | 1 | 1 | 1 | **Neograničeno** |
+| Mogućnost | Demo · 0 € | Osnovno · 49 € | Profesionalac · 69 € | Agencija · 39 €/mj. ili 390 €/god. | Developer |
+|---|:--:|:--:|:--:|:--:|:--:|
+| Trajno korištenje / rok | doživotno | doživotno | doživotno | **1 ili 12 mjeseci** | doživotno |
+| Broj Android aplikacija | 1 | 1 | **3** | **neograničeno** | **neograničeno** |
+| APK | ✓ | ✓ | ✓ | ✓ | ✓ |
+| AAB | — | ✓ | ✓ | ✓ | ✓ |
+| Vlastita ikona i splash | — | ✓ | ✓ | ✓ | ✓ |
+| Pregled Java/XML/Gradle izvora | — | ✓ | ✓ | ✓ | ✓ |
+| Preuzimanje izvornog koda kao ZIP | — | ✓ | ✓ | ✓ | ✓ |
+| Firebase Push i osvježavanje | — | — | ✓ | ✓ | ✓ |
+| AdMob, kamera, mikrofon i lokacija | — | — | ✓ | ✓ | ✓ |
+| Izrada aplikacija za klijente | — | — | do tri ID-ja | **da** | vlasnik |
 
-Licenca je potpisani **BL2** token vezan uz jedan Android package ID ili uz neograničena vlasnička prava. U **Postavke → Licence** možete vidjeti aktivni paket, **maskirani licencni ključ**, dodati novi ili **zamijeniti odabrani ključ**. Nema obvezne online aktivacije.
+**Profesionalac:** jedna doživotna licenca dopušta najviše tri **unaprijed upisana i digitalno potpisana package ID-ja** odvojena zarezima (npr. `hr.agencija.prva,hr.agencija.druga,hr.agencija.treca`). Nova četvrta aplikacija zahtijeva drugu licencu. Zamjena jednog od upisanih ID-jeva zahtijeva novi vlasnički potpis.
 
-Zaseban **Brendigo License Studio** za Windows omogućuje vlasniku generiranje proizvoljnog broja doživotnih licenci (Demo, Osnovno, Profesionalac i Developer) uz privatni šifrirani RSA ključ. Privatni ključ **nije** ugrađen u javni program. [Upute za License Studio](docs/LICENSE-STUDIO-HR.md).
+**Agencija:** predloženi komercijalni model **39 €/mj. ili 390 €/god.**, sve mogućnosti Developera i pravo izrade te komercijalne isporuke APK/AAB aplikacija klijentima tijekom aktivne pretplate. Licenca ima kriptografski potpisan datum isteka; za produženje se izdaje novi token. Pravo preprodaje aplikacija **nije pravo preprodaje vlasničkog License Studija ili privatnih licencnih ključeva**. Ovo je tehnički predloženi cjenik, ne aktiviran sustav automatske naplate.
 
-*Nijedan paket ne dodaje Builderove vlastite oglase u generiranu aplikaciju. Ako sama web-stranica prikazuje oglase, Builder ih ne uklanja.*
+**Developer:** neograničena vlasnička doživotna licenca, sve opcije; nije namijenjena prodaji.
+
+Licencama se upravlja kroz **Postavke → Licence**, uz maskirani prikaz i zamjenu ključa. Bez serverske provjere nije moguće pouzdano spriječiti vraćanje sistemskog sata niti kopiranje offline ključa; za komercijalnu pretplatu preporučena je online revizija u budućoj verziji.
+
+Brendigo License Studio generira potpisane licence s odabranim paketima i razdobljem, bez privatnog ključa u korisničkoj aplikaciji. [Potpune upute za izdavanje licenci](docs/LICENSE-STUDIO-HR.md).
 
 ## Jedan Windows Studio za cijeli tijek rada
 
-Windows aplikacija može sama preuzeti **Eclipse Temurin JDK 17, Gradle 9.6.1 i Android SDK 36** iz službenih izvora u lokalni korisnički profil, uz potvrdu uvjeta i provjeru SHA-256. Ne morate zasebno instalirati Android Studio. **Za prvo preuzimanje potrebni su internet, slobodan prostor i prihvaćanje Googleovih SDK uvjeta.** Priprema novog alatnog lanca još zahtijeva provjeru na čistoj Windows instalaciji.
+Windows aplikacija pri prvom APK/AAB buildu, uz vašu potvrdu, automatski može preuzeti **Eclipse Temurin JDK 17, Gradle 9.6.1 i Android SDK 36** iz službenih izvora u lokalni korisnički profil, uz potvrdu uvjeta i provjeru SHA-256. Ne morate zasebno instalirati Android Studio. **Za prvo preuzimanje potrebni su internet, slobodan prostor i prihvaćanje Googleovih SDK uvjeta.** Priprema novog alatnog lanca još zahtijeva provjeru na čistoj Windows instalaciji.
+
+**Bez zasebnog Android Studija:** Windows aplikacija automatski priprema potrebne alate na prvom buildu, bez vanjskih instalacijskih programa. Google SDK se ne redistribuira unutar instalacijskog paketa zbog uvjeta licence: preuzima se izravno s Googleovog izvora nakon izričitog prihvaćanja uvjeta, dok su Gradle i JDK u vlastitoj lokalnoj mapi.
+
+**Pristup izvornom kodu:** plaćeni paketi mogu kliknuti **Pregledaj izvorni kod**, otvoriti Java/XML/Gradle datoteke u ugrađenom tamnom pregledniku i izvesti ZIP arhivu ili cijeli projekt. Demo nema pristup niti izvozu.
 
 Izaberite oblik izvoza prema svrsi:
 - **Debug APK:** potpisan Android razvojnim ključem, za lokalno testiranje.
@@ -96,7 +105,7 @@ Android klijent služi za pregled i uređivanje konfiguracija, prijenos projekat
 - Službene ovisnosti i Google SDK-ovi preuzimaju se samo uz odobrenje. AdMob, Firebase i odabrani web-sadržaj mogu samostalno obrađivati mrežne podatke.
 - Napredne Google Play značajke ovise o pravilima, korisničkoj privoli, stvarnim vjerodajnicama i dodatnim uređajskim testovima; izrada AAB-a **ne jamči odobrenje** aplikacije.
 
-Pročitajte [sigurnosna pravila](SECURITY.md), [pregled sigurnosti i dead codea](docs/SECURITY-DEADCODE-AUDIT-v0.5.0.md) te [detaljne korisničke upute](docs/KORISNICKE-UPUTE-HR.md).
+Pročitajte [sigurnosna pravila](SECURITY.md), [pregled sigurnosti i dead codea](docs/SECURITY-DEADCODE-AUDIT-v0.6.0.md) te [detaljne korisničke upute](docs/KORISNICKE-UPUTE-HR.md).
 
 ## Preuzimanja
 

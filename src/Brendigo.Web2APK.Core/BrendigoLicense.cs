@@ -31,13 +31,16 @@ public static class BrendigoLicense
         if(!OwnerMatches(issuer)) throw new CryptographicException("Nepoznat vlasnički potpisni ključ.");
         if(!Regex.IsMatch(serial,@"^[0-9a-f]{32}$",RegexOptions.CultureInvariant,TimeSpan.FromSeconds(1)) ||
             audience is not ("both" or "windows" or "android") ||
-            issuedAt <= 0 || expiresAt != 0 || !LicenseEntitlements.ValidTier(tier) ||
+            issuedAt <= 0 ||
+            (tier==LicenseEntitlements.Agency
+                ? expiresAt<=issuedAt || expiresAt>issuedAt+370L*86400L
+                : expiresAt!=0) || !LicenseEntitlements.ValidTier(tier) ||
             !LicenseEntitlements.ValidPackage(tier,packageName))
             throw new ArgumentException("Neispravan paket, package ID, trajanje ili serijski broj.");
         var payload=Encoding.UTF8.GetBytes(
             "{\"v\":2,\"s\":\""+serial+"\",\"a\":\""+audience+"\",\"t\":\""+tier+
             "\",\"p\":\""+packageName+"\",\"iat\":"+issuedAt.ToString(CultureInfo.InvariantCulture)+
-            ",\"exp\":0}");
+            ",\"exp\":"+expiresAt.ToString(CultureInfo.InvariantCulture)+"}");
         var signature=issuer.SignData(payload,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
         return Prefix+"."+Encode(payload)+"."+Encode(signature);
     }
@@ -71,7 +74,9 @@ public static class BrendigoLicense
                 audience is not ("both" or "windows" or "android") ||
                 tier is null || package is null || !LicenseEntitlements.ValidTier(tier) ||
                 !LicenseEntitlements.ValidPackage(tier,package) ||
-                expires!=0 || issued<=0 || issued>now+300 ||
+                (tier==LicenseEntitlements.Agency
+                    ? expires<=issued || expires>issued+370L*86400L || expires<=now
+                    : expires!=0) || issued<=0 || issued>now+300 ||
                 (audience!="both" && audience!=platform))return false;
             claims=new(serial,audience,issued,expires,tier,package);
             return true;

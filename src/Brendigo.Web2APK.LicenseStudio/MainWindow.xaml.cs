@@ -36,11 +36,17 @@ public partial class MainWindow : Window
     {
         _tier=tier;
         foreach(var item in new[]{(DemoButton,"demo"),(BasicButton,"basic"),
-            (ProButton,"pro"),(DeveloperButton,"developer")})
+            (ProButton,"pro"),(AgencyButton,"agency"),(DeveloperButton,"developer")})
             item.Item1.Background=new SolidColorBrush((Color)ColorConverter.ConvertFromString(
                 item.Item2==tier?"#6650D6":"#24365F"));
-        bool developer=tier==LicenseEntitlements.Developer;
-        if(developer)
+        bool unlimited=tier is LicenseEntitlements.Developer or LicenseEntitlements.Agency;
+        AgencyDuration.IsEnabled=tier==LicenseEntitlements.Agency;
+        ScopeHint.Text=tier==LicenseEntitlements.Professional
+            ?"Profesionalac: upišite do tri točna package ID-ja odvojena zarezom. Naknadni ID-jevi traže novu vlasnički potpisanu licencu."
+            :tier==LicenseEntitlements.Agency
+                ?"Agencija: neograničeno klijentskih aplikacija, valjana vremenska pretplata."
+                :"Svaka licenca vrijedi za jedan package ID, osim Agencije i Developera.";
+        if(unlimited)
         {
             if(PackageBox.IsEnabled)_lastPackage=PackageBox.Text;
             PackageBox.Text="*";
@@ -60,13 +66,15 @@ public partial class MainWindow : Window
         {
             "demo"=>"Demo · 0 € · APK bez reklama · jedna aplikacija · doživotno.",
             "basic"=>"Osnovno · 49 € · APK/AAB, vlastita ikona, splash i brending · jedna aplikacija · doživotno.",
-            "pro"=>"Profesionalac · 69 € · sve iz Osnovnog, povlačenje za osvježavanje i Firebase Push · doživotno.",
-            _=>"Developer · samo vlasnik · neograničene aplikacije i sve funkcije (uključujući AdMob)."
+            "pro"=>"Profesionalac · 69 € · tri aplikacije, AdMob, napredne dozvole, Push, osvježavanje i izvorni kod · doživotno.",
+            "agency"=>"Agencija · 39 €/mj. ili 390 €/god. · sve opcije, neograničeno klijentskih aplikacija i komercijalna isporuka.",
+            _=>"Developer · samo vlasnik · neograničene aplikacije i sve funkcije."
         };
     }
     private void Demo_Click(object s,RoutedEventArgs e)=>SelectTier("demo");
     private void Basic_Click(object s,RoutedEventArgs e)=>SelectTier("basic");
     private void Pro_Click(object s,RoutedEventArgs e)=>SelectTier("pro");
+    private void Agency_Click(object s,RoutedEventArgs e)=>SelectTier("agency");
     private void Developer_Click(object s,RoutedEventArgs e)=>SelectTier("developer");
     private void Cancel_Click(object s,RoutedEventArgs e)=>_cancel?.Cancel();
     private async void Export_Click(object sender,RoutedEventArgs e)
@@ -95,7 +103,8 @@ public partial class MainWindow : Window
         var keyPath=KeyPath.Text;
         var audience=_audience;
         var tier=_tier;
-        var package=PackageBox.Text.Trim();
+        var package=PackageBox.Text.Replace(" ","").Trim();
+        var agencyMonths=AgencyDuration.SelectedIndex==1?12:1;
         try {
             StatusText.Text="Otvaram vlasnički ključ…";
             using var rsa=await Task.Run(()=>BrendigoLicenseIssuer.OpenIssuer(keyPath,password),_cancel.Token);
@@ -107,7 +116,7 @@ public partial class MainWindow : Window
             var output=await Task.Run(()=>BrendigoLicenseIssuer.ExportCsvAsync(
                 rsa,filename,count,audience,tier,package,
                 (done,total)=>((IProgress<(long,long)>)progress).Report((done,total)),
-                _cancel.Token),_cancel.Token);
+                _cancel.Token,agencyMonths),_cancel.Token);
             Progress.Value=100;
             StatusText.Text="Gotovo: "+count.ToString("N0")+" · "+LicenseEntitlements.DisplayName(tier);
             MessageBox.Show(this,"Licence su izvezene u:\n"+output+"\n\nPrivatni ključ ostao je izvan aplikacije za korisnike.",

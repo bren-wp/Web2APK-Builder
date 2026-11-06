@@ -364,7 +364,12 @@ public partial class MainWindow : Window
         buttons.Margin = new Thickness(8,0,0,0);
         buttons.Children.Add(Btn("Uredi", () => Edit(project), true));
         if (full) {
-            buttons.Children.Add(Btn("Izvezi", () => _ = ExportAsync(project)));
+            var view=Btn("Izvorni kod",()=>OpenSourceViewer(project));
+            view.IsEnabled=LicenseActivationStore.TryAuthorize("windows",project,"source",out _,out _);
+            buttons.Children.Add(view);
+            var export=Btn("Izvezi", () => _ = ExportAsync(project));
+            export.IsEnabled=view.IsEnabled;
+            buttons.Children.Add(export);
             buttons.Children.Add(Btn("Dijeli JSON", () => ExportMobileProject(project)));
 
             buttons.Children.Add(Btn("Obriši", () => Delete(project), false, true));

@@ -41,12 +41,21 @@ public final class LicenseVerifier {
                 audience=json.getString("a");
             long issued=json.getLong("iat"),expires=json.getLong("exp");
             if(!serial.matches("[0-9a-f]{32}") || !(audience.equals("both")||audience.equals("android")) ||
-                issued<=0 || issued>System.currentTimeMillis()/1000+300 || expires!=0)return null;
-            if(tier.equals("developer")) {
+                issued<=0 || issued>System.currentTimeMillis()/1000+300 ||
+                (tier.equals("agency")
+                    ? expires<=issued || expires>issued+370L*86400L ||
+                        expires<=System.currentTimeMillis()/1000
+                    : expires!=0))return null;
+            if(tier.equals("developer")||tier.equals("agency")) {
                 if(!pkg.equals("*"))return null;
             } else {
-                if(!(tier.equals("demo")||tier.equals("basic")||tier.equals("pro")) ||
-                   !pkg.matches("[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+"))return null;
+                if(!(tier.equals("demo")||tier.equals("basic")||tier.equals("pro")))return null;
+                String[] ids=pkg.split(",",-1);
+                if(ids.length<1 || ids.length>(tier.equals("pro")?3:1))return null;
+                java.util.HashSet<String> unique=new java.util.HashSet<>();
+                for(String id:ids)
+                    if(id.length()>180 || !id.matches("[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+") ||
+                        !unique.add(id))return null;
             }
             return new Claims(serial,tier,pkg);
         }catch(Exception ignored){return null;}
@@ -89,20 +98,24 @@ public final class LicenseVerifier {
     public static Claims forPackage(Context ctx,String packageId) {
         Claims result=null;
         for(Claims c:available(ctx)) {
-            if(!c.tier.equals("developer") && !c.packageId.equals(packageId))continue;
+            if(!(c.tier.equals("developer")||c.tier.equals("agency")) &&
+                !java.util.Arrays.asList(c.packageId.split(",")).contains(packageId))continue;
             if(result==null || rank(c.tier)>rank(result.tier))result=c;
         }
         return result;
     }
     private static int rank(String tier) {
-        switch(tier){case "developer":return 4;case "pro":return 3;case "basic":return 2;default:return 1;}
+        switch(tier){case "developer":return 5;case "agency":return 4;case "pro":return 3;case "basic":return 2;default:return 1;}
     }
     public static boolean allows(Context ctx,String packageId,String feature) {
         Claims c=forPackage(ctx,packageId);
         if(c==null)return false;
-        if(c.tier.equals("developer"))return true;
+        if(c.tier.equals("developer")||c.tier.equals("agency"))return true;
         if(feature.equals("apk"))return true;
-        if(feature.equals("aab")||feature.equals("branding"))
+        if(feature.equals("admob")||feature.equals("camera")||
+           feature.equals("microphone")||feature.equals("location")||
+           feature.equals("advanced"))return c.tier.equals("pro");
+        if(feature.equals("aab")||feature.equals("branding")||feature.equals("source"))
             return c.tier.equals("basic")||c.tier.equals("pro");
         if(feature.equals("pull_refresh")||feature.equals("firebase_push"))
             return c.tier.equals("pro");
@@ -121,13 +134,14 @@ public final class LicenseVerifier {
              !project.optString("IconPath","").isEmpty()))
             return "Demo zahtijeva nepromjenjivu Brendigo ikonu i splash zaslon.";
         if(project.optBoolean("AdMobEnabled") && !allows(ctx,id,"admob"))
-            return "AdMob je dostupan samo u paketu Developer.";
+            return "AdMob je dostupan od paketa Profesionalac.";
         if(project.optBoolean("FirebasePushRequested") && !allows(ctx,id,"firebase_push"))
             return "Push obavijesti dostupne su u paketima Profesionalac i Developer.";
         if(project.optBoolean("PullRefresh") && !allows(ctx,id,"pull_refresh"))
             return "Povucite za osvježavanje dostupno je u paketima Profesionalac i Developer.";
         if(project.optBoolean("Camera")||project.optBoolean("Microphone")||project.optBoolean("Location"))
-            if(!c.tier.equals("developer"))return "Kamera, mikrofon i lokacija dostupni su samo u paketu Developer.";
+            if(!(c.tier.equals("developer")||c.tier.equals("agency")||c.tier.equals("pro")))
+                return "Kamera, mikrofon i lokacija dostupni su od paketa Profesionalac.";
         return null;
     }
 }

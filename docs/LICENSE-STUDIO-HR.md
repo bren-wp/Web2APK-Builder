@@ -8,10 +8,11 @@
 |---|---:|---|
 | Demo | 0 € | jedan package ID, APK, zadani izgled |
 | Osnovno | 49 € | jedan package ID, APK/AAB, vlastiti brending i splash |
-| Profesionalac | 69 € | jedan package ID, prethodno + Firebase Push + povlačenje za osvježavanje |
+| Profesionalac | 69 € doživotno | do tri unaprijed potpisana package ID-ja; AAB, AdMob, napredne dozvole, Firebase, osvježavanje, izvorni kod |
+| Agencija | 39 €/mj. ili 390 €/god. (prijedlog) | neograničeno klijentskih aplikacija, sve opcije, prodaja izrađenih aplikacija tijekom licence; nije prodaja izdavateljskih ključeva |
 | **Developer · vlasnik** | **interno** | **neograničene Android aplikacije, sve opcije, obje platforme** |
 
-Za svaki paket osim Developera u License Studio upišite točan **Android package ID** (npr. `com.tvrtka.aplikacija`). Licence drugih paketa ne mogu se koristiti za različiti package ID. Za Developer se upisuje `*` i automatski dopuštaju obje platforme. Sve licence izdaju se doživotno (bez isteka).
+Za svaki paket osim Agencije i Developera u License Studio upišite točan **Android package ID** (npr. `com.tvrtka.aplikacija`). Licence drugih paketa ne mogu se koristiti za različiti package ID. Za Developer se upisuje `*` i automatski dopuštaju obje platforme. Sve licence izdaju se doživotno (bez isteka).
 
 **Nikada nemojte objaviti Developer licencu ili privatni potpisni ključ na javnom GitHubu.** Sam BL2 token može se kopirati, pa offline licenciranje ne može potpuno spriječiti dijeljenje tokena. Za stroga ograničenja instalacija potreban je aktivacijski servis.
 
@@ -41,3 +42,6 @@ Izdavanje velikih serija kao što je 100 milijuna licenci moguće je programski,
 BL2.[base64url(JSON)].[base64url(RSA-SHA256 signature)] bez razmaka. Payload sadrži v=2, s (128-bitni serijski broj), a (platforma), t (paket), p (package ID ili *), iat i exp=0. Potpis je RSA-3072 PKCS#1 v1.5 uz SHA-256. Zajednički format podržavaju .NET 10 i Android API 24+. Privatni PEM izvozi se kao šifrirani PKCS#8.
 
 Javni ključ SHA-256 identifikator: 14b4a104359724ffeed91bbb08ccc99588afc7f676018f8cc5a4cd0788142424.
+
+## Profesionalac, Agencija i vremensko izdavanje
+Profesionalac prihvaća najviše tri točna Android package ID-ja odvojena zarezom, bez ponavljanja. Kada izdate licencu, potpisani opseg nije moguće proizvoljno mijenjati bez novog privatnog potpisa. Agencija i Developer koriste opseg `*`; Agencija ima odabir **1 mjesec (39 €)** ili **12 mjeseci (390 €)**. Datum isteka ulazi u RSA-potpisani token i CSV. Nakon isteka nema novih izvoza. Plaćanje pretplate i pravo izdavanja novih licenci nisu automatizirani.

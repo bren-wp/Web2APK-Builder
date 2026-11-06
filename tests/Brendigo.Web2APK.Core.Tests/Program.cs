@@ -68,6 +68,28 @@ var demo=new BrendigoLicense.Claims(new string('a',32),"both",now,0,"demo","com.
 var basic=demo with { Tier="basic" };
 var pro=demo with { Tier="pro" };
 var owner=demo with { Tier="developer",PackageName="*" };
+var triplePro=pro with { PackageName="com.demo.one,com.demo.two,com.demo.three" };
+var agency=demo with {Tier="agency",PackageName="*",ExpiresAt=now+30L*86400};
+Test(LicenseEntitlements.ValidPackage("pro",triplePro.PackageName),"Three package IDs accepted");
+Test(!LicenseEntitlements.ValidPackage("pro","com.demo.one,com.demo.two,com.demo.three,com.demo.four"),
+    "Four package IDs rejected");
+Test(!LicenseEntitlements.ValidPackage("pro","com.demo.one,com.demo.one"),
+    "Duplicated package ID rejected");
+Test(!LicenseEntitlements.ValidPackage("agency","com.demo.one"),
+    "Agency requires wildcard scope");
+Test(LicenseEntitlements.PackageMatches(triplePro,"com.demo.two") &&
+    !LicenseEntitlements.PackageMatches(triplePro,"com.demo.four"),
+    "Professional signed package scope enforced");
+Test(LicenseEntitlements.ApplicationLimit("pro")==3 &&
+    LicenseEntitlements.ApplicationLimit("agency")==int.MaxValue &&
+    LicenseEntitlements.ApplicationLimit("developer")==int.MaxValue,"Plan application limits");
+Test(LicenseEntitlements.AgencyPriceEur(1)==39 && LicenseEntitlements.AgencyPriceEur(12)==390,
+    "Agency proposed monthly and yearly rates");
+Test(LicenseEntitlements.Check(agency,new ProjectDefinition{Name="Agency test",
+    PackageName="com.agency.client"},"source",out _),"Agency unrestricted source access");
+var agencyExpired=agency with {ExpiresAt=now-1};
+Test(!LicenseEntitlements.Check(agencyExpired,new ProjectDefinition{Name="Expired agency",
+    PackageName="com.agency.client"},"apk",out _),"Expired agency cannot export new apps");
 Test(LicenseEntitlements.PriceEur("demo")==0 && LicenseEntitlements.PriceEur("basic")==49 &&
     LicenseEntitlements.PriceEur("pro")==69,"Tier price metadata");
 Test(LicenseEntitlements.Allows(demo,"apk") && !LicenseEntitlements.Allows(demo,"aab") &&
@@ -75,11 +97,18 @@ Test(LicenseEntitlements.Allows(demo,"apk") && !LicenseEntitlements.Allows(demo,
 Test(LicenseEntitlements.Allows(basic,"aab") && LicenseEntitlements.Allows(basic,"custom_icon") &&
     !LicenseEntitlements.Allows(basic,"firebase_push"),"Basic APK/AAB/branding only");
 Test(LicenseEntitlements.Allows(pro,"firebase_push") && LicenseEntitlements.Allows(pro,"pull_refresh") &&
-    !LicenseEntitlements.Allows(pro,"admob"),"Professional push and refresh, no ads");
+    LicenseEntitlements.Allows(pro,"admob") && LicenseEntitlements.Allows(pro,"advanced"),"Professional push, ads and advanced permissions");
 Test(LicenseEntitlements.Allows(owner,"admob") && LicenseEntitlements.Allows(owner,"aab") &&
     LicenseEntitlements.Allows(owner,"unlimited_projects"),"Developer unrestricted entitlements");
 var other=new ProjectDefinition { Name="Other package",PackageName="com.other.product" };
 Test(!LicenseEntitlements.Check(demo,other,"apk",out _),"Per-app license package binding");
+Test(LicenseEntitlements.Check(triplePro,new ProjectDefinition{Name="Third app",
+    PackageName="com.demo.three"},"aab",out _),"Pro third Android app allowed");
+Test(!LicenseEntitlements.Check(triplePro,new ProjectDefinition{Name="Fourth app",
+    PackageName="com.demo.four"},"apk",out _),"Pro fourth Android app blocked");
+Test(!LicenseEntitlements.Allows(demo,"source") && LicenseEntitlements.Allows(basic,"source")
+    && LicenseEntitlements.Allows(pro,"source") && LicenseEntitlements.Allows(agency,"source"),
+    "Source browsing and download restricted to paid tiers");
 Test(LicenseEntitlements.Check(owner,other,"aab",out _),"Owner Developer unlimited package IDs");
 Test(new ProjectDefinition().BrendigoSplashBranding,"Default projects use Brendigo splash branding");
 var tamperedDemo=new ProjectDefinition{Name="Demo change",PackageName="com.example.one",
@@ -93,7 +122,7 @@ tamperedDemo.IconPath="not-a-real-file.png";
 Test(!LicenseEntitlements.Check(demo,tamperedDemo,"apk",out _),
     "Demo cannot use custom launcher icon");
 var adsBlocked=new ProjectDefinition { Name="Ads",PackageName="com.example.one",AdMobEnabled=true };
-Test(!LicenseEntitlements.Check(pro,adsBlocked,"apk",out _),"Professional ad SDK prohibited");
+Test(LicenseEntitlements.Check(pro,adsBlocked,"apk",out _),"Professional can use AdMob");
 var pushAllowed=new ProjectDefinition { Name="Push",PackageName="com.example.one",FirebasePushEnabled=true };
 Test(LicenseEntitlements.Check(pro,pushAllowed,"aab",out _),"Professional push authorized");
 Test(!BrendigoLicense.TryVerify("BL1.invalid.invalid","windows",out _),"Legacy unscoped license rejected");

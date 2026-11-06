@@ -50,3 +50,24 @@ if(-not($license.Contains('!project.BrendigoSplashBranding'))){
  throw 'Demo splash-lock enforcement is missing'
 }
 Write-Host 'Public program URLs, masked licensing, demo splash and export modes verified.'
+
+$ent=Get-Content 'src/Brendigo.Web2APK.Core/LicenseEntitlements.cs' -Raw
+if(-not ($ent.Contains('public const string Agency') -and
+    $ent.Contains('ApplicationLimit') -and $ent.Contains('PackageMatches') -and
+    $ent.Contains('"source"'))) {
+    throw 'Agency tier, three-app scope or paid source entitlement missing.'
+}
+$viewer=Get-Content 'src/Brendigo.Web2APK.Windows/SourceViewerWindow.cs' -Raw
+if(-not ($viewer.Contains('LicenseActivationStore.Require') -and
+    $viewer.Contains('ZipFile.CreateFromDirectory'))) {
+    throw 'Paid source-code browser or ZIP export missing.'
+}
+$studio=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/MainWindow.xaml' -Raw
+if(-not ($studio.Contains('AgencyDuration') -and $studio.Contains('AgencyButton'))) {
+    throw 'Agency monthly/yearly licensing controls missing.'
+}
+$themed=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/App.xaml' -Raw
+if(-not ($themed.Contains('PART_Popup') -and $themed.Contains('ComboBoxItem'))) {
+    throw 'License Studio dark selection popup missing.'
+}
+Write-Host 'Agency, multi-app Professional, gated source viewer and dark License Studio verified.'

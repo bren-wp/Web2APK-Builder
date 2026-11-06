@@ -24,7 +24,7 @@ public static class BrendigoLicenseIssuer
 
     public static async Task<string> ExportCsvAsync(RSA issuer, string outputFile,long count,
         string audience, string tier, string packageName, Action<long,long>? progress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,int agencyMonths=1)
     {
         if(!BrendigoLicense.OwnerMatches(issuer))throw new CryptographicException("Nepoznat potpisni ključ.");
         if(count<1 || audience is not ("both" or "windows" or "android") ||
@@ -41,15 +41,19 @@ public static class BrendigoLicenseIssuer
                 Math.Ceiling(estimated/1e9).ToString("0.0",CultureInfo.InvariantCulture)+" GB.");
         if(File.Exists(output))throw new IOException("Odaberite novi naziv datoteke (postojeća neće biti prebrisana).");
         var temp=output+"."+Guid.NewGuid().ToString("N")+".partial";
-        var now=DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        const long exp=0;
+        if(tier==LicenseEntitlements.Agency && agencyMonths is not (1 or 12))
+            throw new ArgumentException("Agencijski paket: odaberite 1 ili 12 mjeseci.");
+        var nowDate=DateTimeOffset.UtcNow;
+        var now=nowDate.ToUnixTimeSeconds();
+        long exp=tier==LicenseEntitlements.Agency
+            ?nowDate.AddMonths(agencyMonths).ToUnixTimeSeconds():0;
         var seed=RandomNumberGenerator.GetBytes(8);
         try {
             {
             await using var file=new FileStream(temp,FileMode.CreateNew,FileAccess.Write,FileShare.None,
                 1024*1024,FileOptions.Asynchronous|FileOptions.SequentialScan);
             await using var writer=new StreamWriter(file,new UTF8Encoding(false),1024*1024,leaveOpen:true);
-            await writer.WriteLineAsync("SERIAL;PAKET;PACKAGE_ID;PLATFORMA;CIJENA_EUR;LICENCA");
+            await writer.WriteLineAsync("SERIAL;PAKET;PACKAGE_ID;PLATFORMA;CIJENA_EUR;VRIJEDI_DO_UTC;LICENCA");
             for(long i=0;i<count;i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -58,7 +62,9 @@ public static class BrendigoLicenseIssuer
                 BinaryPrimitives.WriteUInt64BigEndian(id.AsSpan(8),checked((ulong)i));
                 var serial=Convert.ToHexStringLower(id);
                 var token=BrendigoLicense.Issue(issuer,serial,audience,now,exp,tier,packageName);
-                await writer.WriteLineAsync(serial+";"+tier+";"+packageName+";"+audience+";"+LicenseEntitlements.PriceEur(tier)+";"+token);
+                await writer.WriteLineAsync(serial+";"+tier+";"+packageName+";"+audience+";"+(tier==LicenseEntitlements.Agency ? LicenseEntitlements.AgencyPriceEur(agencyMonths)
+                    :LicenseEntitlements.PriceEur(tier))+";"+
+                    (exp==0?"Doživotno":DateTimeOffset.FromUnixTimeSeconds(exp).ToString("yyyy-MM-dd"))+";"+token);
                 if(i%100==0 || i==count-1) progress?.Invoke(i+1,count);
             }
             await writer.FlushAsync(cancellationToken);

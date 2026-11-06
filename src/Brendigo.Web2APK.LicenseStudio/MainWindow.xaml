@@ -67,11 +67,12 @@
         <Border Background="#16203D" BorderBrush="#364978" BorderThickness="1" CornerRadius="16"
                 Padding="22" Margin="0,16,0,0">
           <StackPanel>
-            <TextBlock Text="4 · Odaberite paket licence" FontSize="17" FontWeight="Bold" Margin="0,0,0,13"/>
+            <TextBlock Text="5 · Odaberite paket licence" FontSize="17" FontWeight="Bold" Margin="0,0,0,13"/>
             <WrapPanel>
               <Button x:Name="DemoButton" Content="Demo · 0 €" Click="Demo_Click" Background="#6650D6" Margin="0,0,8,8"/>
               <Button x:Name="BasicButton" Content="Osnovno · 49 €" Click="Basic_Click" Margin="0,0,8,8"/>
               <Button x:Name="ProButton" Content="Profesionalac · 69 €" Click="Pro_Click" Margin="0,0,8,8"/>
+              <Button x:Name="AgencyButton" Content="Agencija · 39 €/mj." Click="Agency_Click" Margin="0,0,8,8"/>
               <Button x:Name="DeveloperButton" Content="Developer · vlasnik" Click="Developer_Click" Margin="0,0,8,8"/>
             </WrapPanel>
             <TextBlock x:Name="TierDetails" Text="Demo: APK bez oglasa, jedna aplikacija, trajno."
@@ -79,6 +80,16 @@
             <TextBlock Text="Android package ID (jedna aplikacija; Developer nema ograničenje)" FontSize="12"
                        Foreground="#C0CCEA" Margin="0,14,0,7"/>
             <TextBox x:Name="PackageBox" Text="com.brendigo.mojaaplikacija"/>
+            <TextBlock x:Name="ScopeHint" Foreground="#A9B9D9" FontSize="11"
+              Text="Profesionalac: do 3 package ID-ja odvojena zarezom." TextWrapping="Wrap"
+              Margin="0,8,0,0"/>
+            <TextBlock Foreground="#C0CCEA" FontSize="12" Text="Agencijsko razdoblje"
+              Margin="0,14,0,7"/>
+            <ComboBox x:Name="AgencyDuration" SelectedIndex="0" IsEnabled="False"
+              Background="#16274C" Foreground="#EFF2FF" BorderBrush="#435889">
+              <ComboBoxItem Content="1 mjesec · 39 €"/>
+              <ComboBoxItem Content="12 mjeseci · 390 €"/>
+            </ComboBox>
           </StackPanel>
         </Border>
         <TextBlock x:Name="StatusText" Text="Spremno za izdavanje licenci." Foreground="#A9BDDF"

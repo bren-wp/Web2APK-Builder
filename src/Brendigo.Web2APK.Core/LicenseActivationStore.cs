@@ -113,7 +113,8 @@ public static class LicenseActivationStore
         // Developer first, then more capable package; neither tier nor project scope is trusted until verified.
         foreach(var c in Installed(platform).OrderByDescending(c=>c.Tier switch
         {
-            LicenseEntitlements.Developer=>4,LicenseEntitlements.Professional=>3,
+            LicenseEntitlements.Developer=>5,LicenseEntitlements.Agency=>4,
+            LicenseEntitlements.Professional=>3,
             LicenseEntitlements.Basic=>2,_=>1
         }))
         {

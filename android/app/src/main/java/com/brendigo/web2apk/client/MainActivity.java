@@ -668,10 +668,11 @@ public final class MainActivity extends Activity {
             switch(license.tier){
                 case "demo": title="Demo · 0 €";break;
                 case "basic": title="Osnovno · 49 €";break;
-                case "pro": title="Profesionalac · 69 €";break;
+                case "pro": title="Profesionalac · 69 € · do 3 aplikacije";break;
+                case "agency": title="Agencija · pretplata";break;
                 default:title="Developer · vlasnik";
             }
-            info(plans,title,license.tier.equals("developer")?
+            info(plans,title,(license.tier.equals("developer")||license.tier.equals("agency"))?
                 "Neograničene aplikacije · sve funkcije":license.packageId+" · doživotno");
             info(plans,"Licencni ključ",LicenseVerifier.masked(this,license.serial));
             addButton(plans,"Zamijeni licencu · "+title,()->{
