@@ -14,7 +14,7 @@ public sealed record SigningOptions(string KeyStore, string Alias, string StoreP
             throw new ArgumentException("Za potpisivanje odaberi keystore, alias i obje lozinke.");
     }
 }
-public sealed record BuildResult(string File, bool Signed, string SourceDirectory);
+public sealed record BuildResult(string File, bool Signed, string SourceDirectory, bool Debug=false);
 
 public static class AndroidBuildService
 {
@@ -25,11 +25,18 @@ public static class AndroidBuildService
             var output = new StringBuilder();
             var managed = executable.Equals("gradle",StringComparison.OrdinalIgnoreCase) &&
                 ToolchainService.IsGradleInstalled;
-            var javaPath = Environment.GetEnvironmentVariable("JAVA_HOME");
+            var javaPath = ToolchainService.IsLocalJdkInstalled ?
+                ToolchainService.LocalJdkHome : Environment.GetEnvironmentVariable("JAVA_HOME");
             var javaExe = !string.IsNullOrWhiteSpace(javaPath) &&
                 File.Exists(Path.Combine(javaPath,"bin","java.exe")) ?
                 Path.Combine(javaPath,"bin","java.exe") : "java";
-            var start = new ProcessStartInfo(managed ? javaExe : "cmd.exe") {
+            var ownJava=executable.Equals("java",StringComparison.OrdinalIgnoreCase) &&
+                ToolchainService.IsLocalJdkInstalled;
+            var ownAdb=executable.Equals("adb",StringComparison.OrdinalIgnoreCase) &&
+                ToolchainService.IsLocalAdbInstalled;
+            var start = new ProcessStartInfo(managed?javaExe:
+                ownJava?ToolchainService.LocalJavaExecutable:
+                ownAdb?ToolchainService.LocalAdbExecutable:"cmd.exe") {
                 UseShellExecute = false, CreateNoWindow = true,
                 RedirectStandardError = true, RedirectStandardOutput = true };
             if (managed)
@@ -39,7 +46,10 @@ public static class AndroidBuildService
                     "lib","gradle-launcher-"+ToolchainService.GradleVersion+".jar"));
                 start.ArgumentList.Add("org.gradle.launcher.GradleMain");
             }
-            else { start.ArgumentList.Add("/d"); start.ArgumentList.Add("/c"); start.ArgumentList.Add(executable); }
+            else if(!ownJava&&!ownAdb) {
+                start.ArgumentList.Add("/d"); start.ArgumentList.Add("/c"); start.ArgumentList.Add(executable);
+            }
+            ToolchainService.ApplyEnvironment(start);
             foreach (var a in args) start.ArgumentList.Add(a);
             using var process = new Process { StartInfo = start };
             process.Start();
@@ -57,18 +67,26 @@ public static class AndroidBuildService
     public static async Task<BuildResult> BuildAsync(ProjectDefinition project, string destination, string format,
         SigningOptions? signing, Action<string> log, CancellationToken cancel)
     {
-        if (format is not ("apk" or "aab")) throw new ArgumentException("Nepoznat Android format.");
+        if (format is not ("apk" or "aab" or "apk-debug" or "apk-unsigned"))
+            throw new ArgumentException("Nepoznat Android format.");
+        var isDebug=format=="apk-debug";
+        var explicitUnsigned=format=="apk-unsigned";
+        if ((isDebug || explicitUnsigned) && signing is { Enabled: true })
+            throw new ArgumentException("Debug/unsigned izvoz ne prihvaća produkcijski potpisni ključ.");
+        var licenseAction=format=="aab"?"aab":"apk";
         project.Validate();
-        LicenseActivationStore.Require("windows",project,format);
+        LicenseActivationStore.Require("windows",project,licenseAction);
         signing?.Validate();
         Directory.CreateDirectory(destination);
         var work = Path.Combine(Path.GetTempPath(), "Brendigo-Web2APK", project.Id.ToString("N"), Guid.NewGuid().ToString("N"));
         try
         {
             AndroidProjectGenerator.Generate(project, work);
-            var task = format == "apk" ? ":app:assembleRelease" : ":app:bundleRelease";
+            var task = format=="aab"?":app:bundleRelease":
+                isDebug?":app:assembleDebug":":app:assembleRelease";
             var managed = ToolchainService.IsGradleInstalled;
-            var jdk = Environment.GetEnvironmentVariable("JAVA_HOME");
+            var jdk = ToolchainService.IsLocalJdkInstalled ?
+                ToolchainService.LocalJdkHome : Environment.GetEnvironmentVariable("JAVA_HOME");
             var javaExecutable = !string.IsNullOrWhiteSpace(jdk) && File.Exists(Path.Combine(jdk,"bin","java.exe"))
                 ? Path.Combine(jdk,"bin","java.exe") : "java";
             var start = new ProcessStartInfo(managed ? javaExecutable : "cmd.exe") {
@@ -84,6 +102,7 @@ public static class AndroidBuildService
             }
             else foreach (var part in new[] { "/d", "/c", "gradle", "--no-daemon", task })
                 start.ArgumentList.Add(part);
+            ToolchainService.ApplyEnvironment(start);
             if (signing is { Enabled: true })
             {
                 start.Environment["BRENDIGO_KEYSTORE"] = signing.KeyStore;
@@ -99,14 +118,18 @@ public static class AndroidBuildService
             using var registration = cancel.Register(() => { try { if (!process.HasExited) process.Kill(true); } catch (InvalidOperationException) {} });
             await process.WaitForExitAsync(cancel);
             if (process.ExitCode != 0) throw new IOException("Gradle izrada nije uspjela (kod " + process.ExitCode + "). Provjerite zapisnik.");
-            var artifactDir = Path.Combine(work, "app", "build", "outputs", format == "apk" ? "apk" : "bundle", "release");
-            if (!Directory.Exists(artifactDir)) throw new IOException("Gradle nije proizveo očekivanu izlaznu mapu.");
-            var artifact = Directory.GetFiles(artifactDir, "*." + format).FirstOrDefault()
-                ?? throw new IOException("Nije pronađen " + format.ToUpperInvariant() + " nakon izrade.");
-            var target = Path.Combine(destination, project.PackageName + "-" + project.VersionName +
-                ((signing is { Enabled: true }) ? "" : "-unsigned") + "." + format);
-            File.Copy(artifact, target, overwrite: false);
-            return new BuildResult(target, signing is { Enabled: true }, "Privremena mapa briše se po završetku izrade.");
+            var extension=licenseAction;
+            var artifactDir=Path.Combine(work,"app","build","outputs",
+                extension=="apk"?"apk":"bundle",isDebug?"debug":"release");
+            if(!Directory.Exists(artifactDir))
+                throw new IOException("Gradle nije proizveo očekivanu izlaznu mapu.");
+            var artifact=Directory.GetFiles(artifactDir,"*."+extension).FirstOrDefault()
+                ?? throw new IOException("Nije pronađen "+extension.ToUpperInvariant()+" nakon izrade.");
+            var suffix=isDebug?"-debug":signing is { Enabled:true }?"-signed":"-unsigned";
+            var target=Path.Combine(destination,project.PackageName+"-"+project.VersionName+suffix+"."+extension);
+            File.Copy(artifact,target,overwrite:false);
+            return new BuildResult(target,isDebug || signing is { Enabled:true },
+                "Privremena mapa briše se po završetku izrade.",isDebug);
         }
         finally
         {

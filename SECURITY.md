@@ -1,13 +1,19 @@
 # Sigurnost — Brendigo Web2APK Builder
 
-- Windows i Android Builder spremaju projekte lokalno. Ručni prijenos konfiguracija koristi JSON, ne šalje privatne ključeve.
-- Nasumični Android keystore izrađuje lokalni JDK keytool s kriptografski sigurnom lozinkom. Korisnik mora izraditi sigurnosnu kopiju keystorea i lozinke radi budućih ažuriranja.
-- AdMob i Firebase ovisnosti uključuju se samo uz vlastite valjane konfiguracije; Google servisi koriste mrežu i mogu obrađivati korisničke podatke ovisno o postavkama.
-- AdMob zahtijeva odgovarajući UMP pristanak. Firebase FCM zahtijeva stvarni Firebase projekt i Android dozvole za obavijesti.
-- WebView ima HTTPS prema zadanim postavkama, isključen univerzalni pristup lokalnim datotekama, provjeru podrijetla i Android runtime odobrenja za osjetljive dozvole.
-- Lokalni HTML se kopira bez simboličkih poveznica i skrivenih/razvojnih datoteka; s ograničenjem veličine.
-- Gradle se na zahtjev preuzima iz službenog izvora i provjerava SHA-256. JDK i Android SDK ostaju zasebne lokalne ovisnosti.
-- Windows paket nema certifikat proizvođača, a mobilni CI APK je testni. Za produkcijsko potpisivanje postavite trajni keystore.
-- CI, generator testovi i kompilacija ne zamjenjuju sveobuhvatni security audit i testove na stvarnim uređajima.
+**Službeni kontakt za sigurnosne probleme: info@apk.com.hr.** Službeni web: apk.com.hr · razvoj: Brendigo / brendigo.com.
 
-Ne objavljujte keystore, lozinke, tokene, privatne certifikate i druge tajne u javnom repozitoriju.
+## Sigurnosna načela
+- Projekti, aktivacije i keystore pohranjuju se lokalno, bez korisničkog računa i ugrađene telemetrije. Offline licencni tokeni su potpisani, ali nisu enkriptirani niti vezani uz jedan uređaj.
+- Izdavatelj licenci koristi vlasnički privatni ključ koji se ne isporučuje korisnicima i ne nalazi se u repozitoriju. Zamjena ključevâ prvo verificira novopotpisani token.
+- Brendigo Demo zahtijeva vlastitu ikonu i splash. Paketna prava provjeravaju se pri izvozu i gradnji te u Android editoru.
+- Android WebView ograničava pristup datotekama, koristi HTTPS prema zadanim postavkama, provjerava podrijetlo i traži korisničko dopuštenje za kameru, mikrofon i lokaciju.
+- Lokalni HTML izvoz odbacuje simboličke poveznice, skrivene datoteke i pretjerano velike mape.
+- Potpisni ključ i zaporke ne pohranjuju se u projektne konfiguracije. Lokalni keytool koristi okolinsku varijablu za novu zaporku.
+- JDK 17, Gradle 9.6.1 i Android SDK 36 mogu se na zahtjev preuzeti iz Windows aplikacije. Arhive se provjeravaju SHA-256, a Android SDK zahtijeva prihvaćanje Googleovih uvjeta.
+- AdMob, Firebase, preuzeti alati i odabrana web-stranica mogu koristiti mrežu i obrađivati zasebne korisničke podatke; Windows studio nema vlastitu telemetriju.
+- Windows .exe možda nije potpisan certifikatom izdavača. Android CI APK služi za testiranje, a AAB se mora potpisati prije produkcijske objave.
+
+## Izvješće o pregledu
+[Sigurnosni pregled i dead-code nalazi v0.5.0](docs/SECURITY-DEADCODE-AUDIT-v0.5.0.md) sadrže potvrđene izmjene, preostale rizike i ograničenja obuhvata. CI kompilacija i funkcionalni testovi nisu zamjena za potpuni penetracijski test.
+
+Nikad ne šaljite privatan keystore, lozinke ili pune aktivacijske tokene javnim kanalima.

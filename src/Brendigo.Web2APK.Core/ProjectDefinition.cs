@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Brendigo.Web2APK.Core;
@@ -42,6 +40,8 @@ public sealed class ProjectDefinition
 
     public bool StatusBar { get; set; } = true;
     public bool Splash { get; set; } = true;
+    // All new Android apps start with Brendigo splash branding. Paid packages may disable it.
+    public bool BrendigoSplashBranding { get; set; } = true;
     public bool Fullscreen { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

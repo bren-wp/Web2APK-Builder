@@ -129,10 +129,18 @@ dependencies {
                 "<intent-filter><action android:name=\"com.google.firebase.MESSAGING_EVENT\" /></intent-filter>" +
                 "</service>\n    </application>");
         Put(path, "app/src/main/AndroidManifest.xml", manifest + "\n");
-        var fallbackVector = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:width=\"108dp\" android:height=\"108dp\" android:viewportWidth=\"108\" android:viewportHeight=\"108\">" +
-            "<path android:fillColor=\"#7253FF\" android:pathData=\"M0,0h108v108h-108z\"/>" +
-            "<path android:strokeColor=\"#FFFFFF\" android:strokeWidth=\"6\" android:fillColor=\"@android:color/transparent\" android:pathData=\"M30,26h26q24,0 10,20q17,14 -10,32h-26z\"/>" +
-            "</vector>\n";
+        var fallbackVector = """
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#7253FF" android:pathData="M0,0h108v108h-108z"/>
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="6"
+          android:fillColor="@android:color/transparent"
+          android:pathData="M30,26h26q24,0 10,20q17,14 -10,32h-26z"/>
+    <path android:strokeColor="#72E0FF" android:strokeWidth="3"
+          android:fillColor="@android:color/transparent"
+          android:pathData="M42,54h28 M42,70h25"/>
+</vector>
+"""+Environment.NewLine;
         Put(path, "app/src/main/res/mipmap-anydpi/ic_launcher.xml", fallbackVector);
         Put(path, "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
             "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">" +
@@ -153,11 +161,7 @@ dependencies {
             (project.Theme == "dark" ? "android:style/Theme.Material.NoActionBar" : "android:style/Theme.Material.Light.NoActionBar") +
             "\"><item name=\"android:fontFamily\">sans</item><item name=\"android:colorAccent\">" +
             XmlValue(project.Accent) + "</item></style>" + (project.Splash ? "<style name=\"LaunchTheme\" parent=\"Theme.SplashScreen\"><item name=\"windowSplashScreenBackground\">" + (project.Theme == "dark" ? "#121D39" : "#FFFFFF") + "</item><item name=\"windowSplashScreenAnimatedIcon\">" + iconResource + "</item><item name=\"postSplashScreenTheme\">@style/AppTheme</item></style>" : "") + "</resources>\n");
-        Put(path, "app/src/main/res/drawable/ic_launcher.xml",
-            "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\" android:width=\"108dp\" android:height=\"108dp\" android:viewportWidth=\"108\" android:viewportHeight=\"108\">" +
-            "<path android:fillColor=\"#7253FF\" android:pathData=\"M0,0h108v108h-108z\"/>" +
-            "<path android:strokeColor=\"#FFFFFF\" android:strokeWidth=\"6\" android:fillColor=\"@android:color/transparent\" android:pathData=\"M30,26h26q24,0 10,20q17,14 -10,32h-26z\"/>" +
-            "</vector>\n");
+        Put(path, "app/src/main/res/drawable/ic_launcher.xml",fallbackVector);
 
         if (!string.IsNullOrEmpty(project.IconPath))
         {
@@ -218,7 +222,7 @@ public final class MainActivity extends Activity {
     }
     private static final boolean HTTP = @@HTTP@@;
     private static final boolean SPLASH = @@SPLASH@@;
-    private static final boolean PULL = @@PULL@@;
+    private static final boolean BRAND_SPLASH = @@BRAND_SPLASH@@;
     private static final long SPLASH_MS = @@SPLASH_MS@@;
     private static final boolean CAMERA = @@CAMERA@@;
     private static final boolean MICROPHONE = @@MICROPHONE@@;
@@ -234,6 +238,39 @@ public final class MainActivity extends Activity {
     private GeolocationPermissions.Callback locationCallback;
     private String locationOrigin;
     private static final String[] EMPTY = new String[0];
+
+    private void showBrendigoSplashBrand() {
+        if(!SPLASH || !BRAND_SPLASH)return;
+        android.widget.FrameLayout container=findViewById(android.R.id.content);
+        if(container==null)return;
+        android.widget.LinearLayout branding=new android.widget.LinearLayout(this);
+        branding.setOrientation(android.widget.LinearLayout.VERTICAL);
+        branding.setGravity(android.view.Gravity.CENTER);
+        branding.setBackgroundColor(android.graphics.Color.rgb(12,20,45));
+        android.widget.ImageView icon=new android.widget.ImageView(this);
+        icon.setImageResource(R.mipmap.ic_launcher);
+        int unit=(int)(getResources().getDisplayMetrics().density*84);
+        branding.addView(icon,new android.widget.LinearLayout.LayoutParams(unit,unit));
+        android.widget.TextView title=new android.widget.TextView(this);
+        title.setText("BRENDIGO");
+        title.setTextColor(android.graphics.Color.WHITE);
+        title.setTextSize(23);
+        title.setTypeface(null,android.graphics.Typeface.BOLD);
+        title.setGravity(android.view.Gravity.CENTER);
+        android.widget.LinearLayout.LayoutParams titleLayout=new android.widget.LinearLayout.LayoutParams(-1,-2);
+        titleLayout.topMargin=(int)(getResources().getDisplayMetrics().density*20);
+        branding.addView(title,titleLayout);
+        android.widget.TextView site=new android.widget.TextView(this);
+        site.setText("apk.com.hr");
+        site.setGravity(android.view.Gravity.CENTER);
+        site.setTextColor(android.graphics.Color.rgb(166,190,231));
+        site.setTextSize(13);
+        branding.addView(site);
+        container.addView(branding,new android.widget.FrameLayout.LayoutParams(-1,-1));
+        branding.postDelayed(() -> {
+            if(branding.getParent()==container)container.removeView(branding);
+        }, Math.max(300L,SPLASH_MS));
+    }
 
     private android.view.View contentForWebView() {
         if(mainContent!=null)return mainContent;
@@ -277,6 +314,8 @@ public final class MainActivity extends Activity {
         WebSettings settings = browser.getSettings();
         settings.setJavaScriptEnabled(@@JS@@);
         settings.setDomStorageEnabled(@@DOM@@);
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setAllowFileAccessFromFileURLs(false);
@@ -375,6 +414,7 @@ public final class MainActivity extends Activity {
         });
         @@CONTENT_VIEW@@
         browser.loadUrl(HOME);
+        showBrendigoSplashBrand();
         @@PUSH_PROMPT@@
     }
     @Override protected void onActivityResult(int requestCode,int resultCode,Intent data) {
@@ -418,6 +458,7 @@ public final class MainActivity extends Activity {
     .Replace("@@JS@@", project.JavaScript.ToString().ToLowerInvariant())
     .Replace("@@PRIVACY_URL@@",JavaLiteral(project.PrivacyPolicyUrl))
     .Replace("@@SPLASH@@", project.Splash.ToString().ToLowerInvariant())
+    .Replace("@@BRAND_SPLASH@@", project.BrendigoSplashBranding.ToString().ToLowerInvariant())
     .Replace("@@SPLASH_MS@@", project.SplashDurationMs.ToString())
     .Replace("@@ADS_CLASS@@",project.AdMobEnabled ? GenerateAdsClass(project.AdMobBannerId) : "")
     .Replace("@@NON_AD_PRIVACY_MENU@@",project.AdMobEnabled ? "" : GeneratePrivacyMenu())
@@ -433,7 +474,6 @@ public final class MainActivity extends Activity {
         "mainContent=refreshLayout;" : "")
     .Replace("@@REFRESH_STOP@@",project.PullRefresh ?
         "if(refreshLayout!=null)refreshLayout.setRefreshing(false);" : "")
-    .Replace("@@PULL@@",project.PullRefresh.ToString().ToLowerInvariant())
     .Replace("@@ADS_DESTROY@@",project.AdMobEnabled ? "if (adView != null) { adView.destroy(); adView=null; }" : "")
     .Replace("@@PUSH_PROMPT@@",project.FirebasePushEnabled ?
         "if (android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) requestPermissions(new String[] { android.Manifest.permission.POST_NOTIFICATIONS },7100);" : "")

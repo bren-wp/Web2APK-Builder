@@ -72,7 +72,7 @@ public static class LicenseEntitlements
             reason="Kamera, mikrofon i lokacija dostupni su u Developer paketu.";
         else if(c.Tier==Demo && (project.Theme!="dark" ||
             !string.Equals(project.Accent,"#7253FF",StringComparison.OrdinalIgnoreCase) ||
-            project.SplashDurationMs!=700 || !project.Splash))
+            project.SplashDurationMs!=700 || !project.Splash || !project.BrendigoSplashBranding))
             reason="Demo koristi zadane boje i splash. Prilagođeni izgled dostupan je od paketa Osnovno.";
         if(reason.Length>0)return false;
         return true;

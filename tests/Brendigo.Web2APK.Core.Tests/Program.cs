@@ -81,6 +81,17 @@ Test(LicenseEntitlements.Allows(owner,"admob") && LicenseEntitlements.Allows(own
 var other=new ProjectDefinition { Name="Other package",PackageName="com.other.product" };
 Test(!LicenseEntitlements.Check(demo,other,"apk",out _),"Per-app license package binding");
 Test(LicenseEntitlements.Check(owner,other,"aab",out _),"Owner Developer unlimited package IDs");
+Test(new ProjectDefinition().BrendigoSplashBranding,"Default projects use Brendigo splash branding");
+var tamperedDemo=new ProjectDefinition{Name="Demo change",PackageName="com.example.one",
+    BrendigoSplashBranding=false};
+Test(!LicenseEntitlements.Check(demo,tamperedDemo,"apk",out _),
+    "Demo cannot remove mandatory Brendigo splash branding");
+tamperedDemo.BrendigoSplashBranding=true;
+Test(LicenseEntitlements.Check(demo,tamperedDemo,"apk",out _),
+    "Demo with default Brendigo icon and splash allowed");
+tamperedDemo.IconPath="not-a-real-file.png";
+Test(!LicenseEntitlements.Check(demo,tamperedDemo,"apk",out _),
+    "Demo cannot use custom launcher icon");
 var adsBlocked=new ProjectDefinition { Name="Ads",PackageName="com.example.one",AdMobEnabled=true };
 Test(!LicenseEntitlements.Check(pro,adsBlocked,"apk",out _),"Professional ad SDK prohibited");
 var pushAllowed=new ProjectDefinition { Name="Push",PackageName="com.example.one",FirebasePushEnabled=true };
@@ -89,6 +100,15 @@ Test(!BrendigoLicense.TryVerify("BL1.invalid.invalid","windows",out _),"Legacy u
 var project = new ProjectDefinition { Name="Primjer", PackageName="com.brendigo.primjer", Url="https://example.com" };
 project.Validate();
 Test(project.MinSdk==24 && project.TargetSdk==36,"SDK defaults");
+Test(!LicenseActivationStore.MaskToken("BL2.testPayload.testSignature").Equals("BL2.testPayload.testSignature"),
+    "License key displayed as masked only");
+Test(LicenseActivationStore.MaskToken("tiny")=="********","Short license never exposed");
+Test(ToolchainService.LocalJdkHome.Contains("Brendigo") &&
+    ToolchainService.LocalSdkRoot.Contains("android-sdk"),
+    "Integrated JDK and Android SDK locations are private to user profile");
+Test(typeof(BuildResult).GetProperty("Debug")!=null,"Build metadata distinguishes debug signing");
+Test(LicenseEntitlements.Allows(demo,"apk") && !LicenseEntitlements.Allows(demo,"aab"),
+    "Demo can use only APK variants");
 Test(Throws(()=>new ProjectDefinition{Name="Test",Url="http://example.com"}.Validate()),"HTTP denied");
 Test(Throws(()=>new ProjectDefinition{Name="Test",PackageName="../attack"}.Validate()),"Package validated");
 Test(Throws(()=>new ProjectDefinition{Name="Test",Url="javascript:alert(1)"}.Validate()),"Non-https denied");
@@ -106,6 +126,8 @@ try {
     var java=File.ReadAllText(Path.Combine(path,"app","src","main","java","com","brendigo","primjer","MainActivity.java"));
     var gradle=File.ReadAllText(Path.Combine(path,"app","build.gradle"));
     Test(manifest.Contains("usesCleartextTraffic=\"false\""),"HTTPS default");
+    Test(java.Contains("BRAND_SPLASH = true") && java.Contains("showBrendigoSplashBrand()"),
+        "Generated Android splash shows default Brendigo branding");
     Test(java.Contains("setAllowUniversalAccessFromFileURLs(false)"),"WebView isolation");
     Test(gradle.Contains("targetSdk 36") && gradle.Contains("minSdk 24"),"SDK config");
     var permissions=new ProjectDefinition { Name="All permissions", PackageName="com.brendigo.permissions",

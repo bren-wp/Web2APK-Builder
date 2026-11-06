@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace Brendigo.Web2APK.Core;
 
 /// <summary>Opt-in verified Gradle installation in the current Windows user's profile.</summary>
-public static class ToolchainService
+public static partial class ToolchainService
 {
     public const string GradleVersion = "9.6.1";
     private static readonly string Home = Path.Combine(

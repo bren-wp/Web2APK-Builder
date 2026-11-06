@@ -29,3 +29,24 @@ $theme=Get-Content 'src/Brendigo.Web2APK.Windows/App.xaml' -Raw
 if($theme -notmatch 'PART_Popup' -or $theme -notmatch 'CheckFrame' -or
    $theme -notmatch '#132242') {throw 'Dark native ComboBox/CheckBox template missing.'}
 Write-Host 'Dark WPF control templates verified.'
+
+$frontends=@(
+ 'src/Brendigo.Web2APK.Windows/MainWindow.Actions.cs',
+ 'src/Brendigo.Web2APK.Windows/MainWindow.Wizard.cs',
+ 'src/Brendigo.Web2APK.Windows/MainWindow.xaml.cs',
+ 'android/app/src/main/java/com/brendigo/web2apk/client/MainActivity.java')
+foreach($path in $frontends){
+ $body=Get-Content $path -Raw
+ if($body -match 'github\\.com' -or $body -match 'Verzija 0\\.3\\.2'){
+  throw "Obsolete/GitHub label in production UI: $path"
+ }
+}
+$actions=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Actions.cs' -Raw
+foreach($item in @('apk.com.hr','info@apk.com.hr','Zamijeni ovu licencu','Nepotpisani APK','Debug APK')){
+ if(-not($actions.Contains($item))){throw "Missing production feature: $item"}
+}
+$license=Get-Content 'src/Brendigo.Web2APK.Core/LicenseEntitlements.cs' -Raw
+if(-not($license.Contains('!project.BrendigoSplashBranding'))){
+ throw 'Demo splash-lock enforcement is missing'
+}
+Write-Host 'Public program URLs, masked licensing, demo splash and export modes verified.'

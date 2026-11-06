@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Cryptography;
 
@@ -16,7 +15,8 @@ public static class LocalSigningKeyService
             "-" + Guid.NewGuid().ToString("N")[..8] + ".p12");
         const string alias = "brendigo";
         var password = Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
-        var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+        var javaHome = ToolchainService.IsLocalJdkInstalled ?
+            ToolchainService.LocalJdkHome : Environment.GetEnvironmentVariable("JAVA_HOME");
         var executable = !string.IsNullOrWhiteSpace(javaHome) &&
             File.Exists(Path.Combine(javaHome, "bin", "keytool.exe")) ?
             Path.Combine(javaHome,"bin","keytool.exe") : "keytool.exe";
@@ -34,6 +34,7 @@ public static class LocalSigningKeyService
             "-dname","CN=Brendigo Web2APK, OU=Android Signing, O=Brendigo, C=HR",
             "-noprompt" })
             psi.ArgumentList.Add(argument);
+        ToolchainService.ApplyEnvironment(psi);
         psi.Environment["BRENDIGO_GENERATED_STOREPASS"] = password;
         try
         {

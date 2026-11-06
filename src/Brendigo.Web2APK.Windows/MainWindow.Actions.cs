@@ -38,11 +38,19 @@ public partial class MainWindow
         var apkBtn=Btn("▣  Izradi APK", () => _ = BuildAsync("apk"), true);
         apkBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"apk");
         actions.Children.Add(apkBtn);
+        var debugBtn=Btn("▷  Debug APK",()=>_ = BuildAsync("apk-debug"));
+        debugBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"apk");
+        actions.Children.Add(debugBtn);
+        var unsignedBtn=Btn("◇  Nepotpisani APK",()=>_ = BuildAsync("apk-unsigned"));
+        unsignedBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"apk");
+        actions.Children.Add(unsignedBtn);
         var aabBtn=Btn("▣  Izradi AAB", () => _ = BuildAsync("aab"), true);
         aabBtn.IsEnabled=authorized is not null && LicenseEntitlements.Allows(authorized,"aab");
         actions.Children.Add(aabBtn);
         actions.Children.Add(Btn("✕  Zaustavi", CancelBuild, false, true));
         panel.Children.Add(actions);
+        panel.Children.Add(Notice("Debug APK automatski koristi razvojni Android ključ i nije za Play. " +
+            "Nepotpisani APK/AAB nisu za izravnu objavu. Za produkciju zadržite isti keystore pri svakom ažuriranju."));
         panel.Children.Add(Divider());
         panel.Children.Add(Txt("Potpisivanje Android paketa (opcionalno)", 15, true, White, new Thickness(0,0,0,8)));
         panel.Children.Add(Txt("Certifikati ostaju na vašem računalu. Lozinke se ne spremaju u projekt.",
@@ -144,12 +152,13 @@ public partial class MainWindow
     {
         if (_busy) return;
         if (!SaveDraft()) return;
-        try { LicenseActivationStore.Require("windows",_draft,format); }
+        try { LicenseActivationStore.Require("windows",_draft,format=="aab"?"aab":"apk"); }
         catch (UnauthorizedAccessException e) { ShowError(e.Message); return; }
         var dialog = new OpenFolderDialog { Title = "Odaberite izlaznu mapu za Android paket", Multiselect = false };
         if (dialog.ShowDialog(this) != true) return;
         SigningOptions? signing = null;
-        if (_keyStoreBox is { Text.Length: > 0 })
+        if (format is not ("apk-debug" or "apk-unsigned") &&
+            _keyStoreBox is { Text.Length: > 0 })
         {
             signing = new SigningOptions(_keyStoreBox.Text, _keyAliasBox?.Text ?? "",
                 _storePassword?.Password ?? "", _keyPassword?.Password ?? "");
@@ -165,8 +174,9 @@ public partial class MainWindow
                 signing, line => Dispatcher.BeginInvoke(() => AddLog(line)), _buildCancellation.Token);
             AddLog("Izrada uspješno završena: " + result.File + Environment.NewLine);
             ShowInfo("Paket izrađen:\n" + result.File +
-                (result.Signed ? "\nAndroid paket je potpisan." :
-                "\nAndroid paket NIJE potpisan; nije spreman za produkcijsku distribuciju."));
+                (result.Debug ? "\nDebug APK: automatski razvojni potpis. Nije za Google Play." :
+                result.Signed ? "\nPotpisano odabranim produkcijskim ključem." :
+                "\nPaket NIJE potpisan; prije distribucije potreban je odgovarajući potpis."));
         }
         catch (OperationCanceledException) { AddLog("Izrada je otkazana." + Environment.NewLine); }
         catch (Exception ex) { AddLog("POGREŠKA: " + ex.Message + Environment.NewLine); ShowError(ex.Message); }
@@ -233,8 +243,37 @@ public partial class MainWindow
                 ShowInfo("Provjereni Gradle 9.6.1 uspješno je instaliran.");
             } catch(Exception ex) { ShowError("Gradle instalacija nije uspjela: "+ex.Message); }
         },true));
-        tools.Children.Add(Notice("JDK 17 i Android SDK 36/37 moraju biti instalirani. " +
-            "SDK se preuzima nakon prihvaćanja Googleovih uvjeta, stoga se ne uključuje automatski u instalaciju Studija."));
+        tools.Children.Add(Feature("Android alatni lanac unutar Brendigo Studija",
+            "JDK 17: "+(ToolchainService.IsLocalJdkInstalled?"spreman":"nije preuzet")+
+            " · Gradle: "+(ToolchainService.IsGradleInstalled?"spreman":"nije preuzet")+
+            " · Android SDK 36: "+(ToolchainService.IsLocalAndroidPlatformInstalled?"spreman":"nije preuzet")));
+        tools.Children.Add(Btn("Pripremi JDK + Gradle + Android SDK unutar Studija",async ()=>{
+            const string instructions="Studio može preuzeti JDK 17, Gradle 9.6.1 i Android SDK 36 " +
+                "iz službenih izvora, provjeriti SHA-256 i pohraniti ih u svoj korisnički profil.\\n\\n" +
+                "Preuzimanje zahtijeva internetsku vezu i više stotina MB prostora. " +
+                "Googleovi Android SDK uvjeti primjenjuju se na korištenje SDK-a. " +
+                "Nastavkom potvrđujete da ste pročitali i prihvatili Googleove SDK uvjete " +
+                "(developer.android.com/studio/terms). Niti jedna druga aplikacija neće se samostalno instalirati.\\n\\n" +
+                "Nastaviti?";
+            if(MessageBox.Show(instructions,"Priprema Android alata",
+                MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
+            using var cancellation=new CancellationTokenSource(TimeSpan.FromMinutes(90));
+            try {
+                results.Text="Pripremam provjerene razvojne alate..."+Environment.NewLine;
+                var logger=new Action<string>(message=>Dispatcher.BeginInvoke(()=>
+                    results.AppendText(message+Environment.NewLine)));
+                await ToolchainService.InstallJdkAsync(logger,cancellation.Token);
+                await ToolchainService.InstallGradleAsync(logger,cancellation.Token);
+                await ToolchainService.InstallAndroidSdkAsync(logger,cancellation.Token);
+                results.AppendText("JDK, Gradle i Android SDK spremni su za izradu aplikacija.");
+                UpdateToolStatus();
+                ShowInfo("Alati su uspješno pripremljeni unutar Brendigo Studija.");
+            } catch(OperationCanceledException) {ShowError("Priprema je prekinuta.");}
+            catch(Exception ex){ShowError("Priprema alata nije uspjela: "+ex.Message);}
+        },true));
+        tools.Children.Add(Notice("Za prvu izradu potrebno je preuzeti razvojni alatni lanac. " +
+            "Studio to može obaviti bez instalacije Android Studija. " +
+            "Android SDK koristi Googleove uvjete; za Google Play zasebno je potrebna objava putem vašeg računa."));
         PageHost.Children.Add(Card(tools));
     }
 
@@ -258,12 +297,24 @@ public partial class MainWindow
     {
         Heading("Postavke", "Prilagodite izgled, sigurnost i način rada aplikacije.");
         var settings = Stack();
-        var installed=LicenseActivationStore.Installed("windows");
+        var installed=LicenseActivationStore.InstalledMasked("windows");
         settings.Children.Add(Txt("Licence i paketi",17,true,White,new Thickness(0,0,0,10)));
-        foreach(var c in installed)
-            settings.Children.Add(Feature(LicenseEntitlements.DisplayName(c.Tier),
-                (c.Tier=="developer"?"Neograničeno aplikacija":c.PackageName)+
-                " · doživotno · "+(c.Audience=="both"?"Windows + Android":"Windows")));
+        if(installed.Count==0)settings.Children.Add(Notice("Nema aktivnih licenci."));
+        foreach(var entry in installed)
+        {
+            var c=entry.Claims;
+            var card=Stack();
+            card.Children.Add(Txt(LicenseEntitlements.DisplayName(c.Tier),15,true));
+            card.Children.Add(Txt((c.Tier=="developer"?"Neograničeno aplikacija":c.PackageName)+
+                " · doživotno · "+(c.Audience=="both"?"Windows + Android":"Windows"),
+                12,false,Muted,new Thickness(0,5,0,7)));
+            card.Children.Add(Txt("Licencni ključ: "+entry.MaskedToken,11,false,Muted));
+            card.Children.Add(Btn("Zamijeni ovu licencu",()=>{
+                var window=new LicenseActivationWindow {Owner=this,ReplacingSerial=c.Serial};
+                if(window.ShowDialog()==true)Navigate("settings");
+            }));
+            settings.Children.Add(Card(card,new Thickness(14)));
+        }
         settings.Children.Add(Btn("Dodaj novu licencu",()=>{
             var dialog=new LicenseActivationWindow { Owner=this };
             if(dialog.ShowDialog()==true) Navigate("settings");
@@ -281,32 +332,88 @@ public partial class MainWindow
 
     private void Docs()
     {
-        Heading("Dokumentacija", "Upute za izradu, uređivanje i potpisivanje aplikacija.");
-        var docs = Stack();
-        docs.Children.Add(Feature("1. Novi projekt", "Unesite naziv, Android applicationId, HTTPS URL ili odaberite lokalnu mapu s index.html."));
-        docs.Children.Add(Feature("2. Izgled i WebView", "Postavite boju, temu, orijentaciju, JavaScript, DOM Storage i vanjske poveznice."));
-        docs.Children.Add(Feature("3. Spremanje", "Projekt se čuva lokalno i možete ga kasnije otvoriti na popisu „Moji projekti”."));
-        docs.Children.Add(Feature("4. Izvoz izvornog projekta", "Koristite „Izvezi Android projekt” za izradu Gradle projekta koji možete otvoriti u Android Studiju."));
-        docs.Children.Add(Feature("5. APK/AAB", "Instalirajte JDK 17, Gradle 9.6+ i Android SDK 36. Za potpisivanje odaberite keystore i unesite lozinke."));
-        docs.Children.Add(Notice("Za Google Play potrebni su valjani certifikati, testiranje, metapodaci i aktualni zahtjevi trgovine."));
-        PageHost.Children.Add(Card(docs));
+        Heading("Dokumentacija","Cjelovite upute za Brendigo Web2APK Builder.");
+        var docs=Stack();
+        docs.Children.Add(Feature("01 · Prva upotreba i licence",
+            "U Postavkama otvorite Licence. Dodajte BL2 ključ, provjerite paket i maskirani identifikator. "+
+            "Za drugi package ID uzmite drugu licencu ili Developer. Zamjena licence provjerava novi ključ prije uklanjanja starog."));
+        docs.Children.Add(Feature("02 · Novo Android izdanje",
+            "Odaberite Novi projekt i unesite naziv (2–70 znakova), package ID, izvornu HTTPS web-adresu ili mapu s index.html. "+
+            "Package ID nije moguće olako mijenjati nakon objave na Google Playu. Povećajte versionCode za svako ažuriranje."));
+        docs.Children.Add(Feature("03 · Zadana ikonica, splash i izgled",
+            "Svaki projekt započinje s Brendigo ikonom i splash zaslonom. U Demo paketu oboje je zaključano. "+
+            "Osnovno, Profesionalac i Developer mogu odabrati vlastitu PNG ikonu od najmanje 192×192, "+
+            "prilagoditi boju i isključiti Brendigo splash. Pregledajte rezultat na stvarnom Android uređaju."));
+        docs.Children.Add(Feature("04 · WebView, offline HTML i kompatibilnost",
+            "HTTPS je zadano obvezan. JavaScript i DOM Storage uključujte samo za pouzdani sadržaj. "+
+            "Za offline HTML odaberite mapu s index.html. Vanjske poveznice mogu se otvoriti u pregledniku. "+
+            "WebView pregled na Windowsu ne zamjenjuje test na telefonu."));
+        docs.Children.Add(Feature("05 · Kamera, mikrofon, datoteke i lokacija",
+            "Osjetljive dozvole uključujte samo kada su potrebne. Android od korisnika zasebno traži odobrenje. "+
+            "Kamera, mikrofon i lokacija dostupni su vlasničkom Developer paketu. "+
+            "Izbjegavajte široke storage dozvole; za datoteke se koristi sistemski odabir."));
+        docs.Children.Add(Feature("06 · Push i oglasi",
+            "Profesionalac i Developer mogu uključiti povlačenje za osvježavanje i Firebase Push. "+
+            "Za Firebase odaberite odgovarajući google-services.json s istim package ID-jem. "+
+            "AdMob je Developer funkcija i traži vlastite oglasne identifikatore, UMP privolu i deklaracije."));
+        docs.Children.Add(Feature("07 · Android alati bez drugih programa",
+            "Otvorite Razvojni alati i odaberite Pripremi JDK + Gradle + Android SDK unutar Studija. "+
+            "Pročitajte i prihvatite uvjete, omogućite preuzimanje, a Studio provjerava kontrolne zbrojeve i "+
+            "instalira alatni lanac u vlastitu mapu. Preuzimanje zahtijeva internet i dovoljno prostora."));
+        docs.Children.Add(Feature("08 · APK, debug i nepotpisani paketi",
+            "U šestom koraku birajte Debug APK (razvojno potpisan), Nepotpisani APK ili APK s vlastitim ključem. "+
+            "Za AAB se koristi zaseban gumb; bez keystorea rezultat je nepotpisani AAB. "+
+            "Debug nije pogodan za Google Play. Nepotpisani paket zahtijeva naknadno potpisivanje."));
+        docs.Children.Add(Feature("09 · Sigurni ključ za potpis i ažuriranja",
+            "Odaberite postojeću JKS/P12 datoteku ili izradite novi lokalni slučajni ključ. "+
+            "Sačuvajte ključ, alias i zaporke u sigurnoj kopiji. Bez istog ključa buduće nadogradnje "+
+            "postojeće Android aplikacije možda neće biti moguće. Zaporke se ne pohranjuju u projekt."));
+        docs.Children.Add(Feature("10 · Google Play kontrolni popis",
+            "U Dozvolama navedite HTTPS politiku privatnosti i provjerite Data safety, vlasništvo nad webom, "+
+            "target SDK, sadržaj i oglase. Izrada AAB-a ne jamči odobrenje na Google Playu."));
+        docs.Children.Add(Feature("11 · Android Mobile klijent",
+            "Android klijent služi za pregled i uređivanje konfiguracija, licence, prava i prijenos JSON projekta. "+
+            "Izvozne APK/AAB pakete generira Windows Studio. Mobitel ne zahtijeva korisnički račun ni udaljenu bazu."));
+        docs.Children.Add(Feature("12 · Podrška i vlasništvo",
+            "Službeni web: apk.com.hr · Tehnička podrška: info@apk.com.hr · "+
+            "Razvojni autor: Brendigo (brendigo.com). U prijavi poteškoće navedite verziju i "+
+            "anonimizirani Gradle zapisnik, bez zaporki i licencnih ključeva."));
+        docs.Children.Add(Btn("Kontaktiraj podršku",()=>
+            Process.Start(new ProcessStartInfo{
+                FileName="mailto:info@apk.com.hr",UseShellExecute=true}),true));
+        PageHost.Children.Add(Card(docs,new Thickness(23)));
     }
 
     private void About()
     {
-        Heading("O programu", "Brendigo Web2APK Builder");
+        Heading("O programu","Brendigo Web2APK Builder");
         var body=Stack();
-        var logo = new Border { Background=Accent, CornerRadius=new CornerRadius(16),
-            Width=80, Height=80, HorizontalAlignment=HorizontalAlignment.Left,
-            Child=Txt("B",58,true) };
+        var logo=new Border {Background=Accent,CornerRadius=new CornerRadius(16),
+            Width=82,Height=82,HorizontalAlignment=HorizontalAlignment.Left,
+            Child=new Image {
+                Source=new System.Windows.Media.Imaging.BitmapImage(
+                    new Uri("pack://application:,,,/Assets/Brendigo.ico")),
+                Width=70,Height=70
+            }};
         body.Children.Add(logo);
-        body.Children.Add(Txt("Brendigo Web2APK Builder",25,true,White,new Thickness(0,20,0,8)));
-        body.Children.Add(Txt("Verzija 0.3.2 · Windows",13,false,Muted));
-        body.Children.Add(Txt("Autor: Brendigo\nbrendigo.com",14,false,White,new Thickness(0,12,0,12)));
-        body.Children.Add(Txt("Lokalna Windows aplikacija za projektiranje Android WebView aplikacija i generiranje APK/AAB paketa.",
-            13,false,Muted,new Thickness(0,0,0,15)));
-        body.Children.Add(Btn("Otvori brendigo.com", () =>
-            Process.Start(new ProcessStartInfo { FileName = "https://brendigo.com", UseShellExecute = true }),true));
-        PageHost.Children.Add(Card(body));
+        body.Children.Add(Txt("Brendigo Web2APK Builder",24,true,White,
+            new Thickness(0,19,0,8)));
+        var version=typeof(MainWindow).Assembly.GetName().Version?.ToString(3)??"0.5.0";
+        body.Children.Add(Txt("Verzija "+version+" · nativna Windows aplikacija",13,false,Muted));
+        body.Children.Add(Divider());
+        body.Children.Add(Feature("Razvojni autor","Brendigo · brendigo.com"));
+        body.Children.Add(Feature("Službena stranica programa","apk.com.hr"));
+        body.Children.Add(Feature("Korisnička i tehnička podrška","info@apk.com.hr"));
+        body.Children.Add(Feature("Privatnost i lokalni rad",
+            "Projekti i licence spremaju se na računalu. Nema korisničkih računa ni telemetrije. "+
+            "Android SDK preuzima se samo uz vašu potvrdu."));
+        body.Children.Add(Btn("Posjeti službenu stranicu",()=>
+            Process.Start(new ProcessStartInfo {
+                FileName="https://apk.com.hr",UseShellExecute=true }),true));
+        body.Children.Add(Btn("Piši podršci",()=>
+            Process.Start(new ProcessStartInfo {
+                FileName="mailto:info@apk.com.hr",UseShellExecute=true })));
+        PageHost.Children.Add(Card(body,new Thickness(23)));
     }
+
 }

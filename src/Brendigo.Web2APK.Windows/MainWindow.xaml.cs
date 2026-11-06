@@ -49,6 +49,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        UpdateToolStatus();
         Directory.CreateDirectory(_dataDir);
         _store = new ProjectStore(_dataDir);
         MakeNavigation();
@@ -57,6 +58,18 @@ public partial class MainWindow : Window
         if (Environment.GetCommandLineArgs().Contains("--capture-native"))
             Loaded += CaptureNativeScreensOnLoaded;
 #endif
+    }
+
+    private void UpdateToolStatus()
+    {
+        var sdkRoot=Environment.GetEnvironmentVariable("ANDROID_HOME") ??
+            Environment.GetEnvironmentVariable("ANDROID_SDK_ROOT") ?? "";
+        bool installed=ToolchainService.IsLocalAndroidPlatformInstalled ||
+            File.Exists(Path.Combine(sdkRoot,"platforms","android-36","android.jar"));
+        AndroidSdkState.Text=installed?"✓  Android SDK 36 spreman":"Android SDK · priprema alata";
+        AndroidSdkState.Foreground=installed?BrushOf("#7BE8D0"):BrushOf("#D9B8F7");
+        SdkStatusBadge.Background=installed?BrushOf("#0C3639"):BrushOf("#2D2540");
+        SdkStatusBadge.BorderBrush=installed?BrushOf("#176D65"):BrushOf("#69518A");
     }
 
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsive();

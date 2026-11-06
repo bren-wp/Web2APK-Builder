@@ -70,6 +70,22 @@ public final class LicenseVerifier {
         if(c==null)return false;
         return prefs(context).edit().putString("license_"+c.serial,token.trim()).commit();
     }
+    public static String masked(Context context,String serial){
+        String token=prefs(context).getString("license_"+serial,"");
+        if(token.length()<18)return "********";
+        return token.substring(0,Math.min(10,token.length()))+"***************"+
+            token.substring(token.length()-8);
+    }
+    public static boolean replace(Context context,String oldSerial,String token) {
+        Claims previous=null;
+        for(Claims c:available(context))if(c.serial.equals(oldSerial)){previous=c;break;}
+        Claims next=inspect(token);
+        if(previous==null || next==null)return false;
+        if(!activate(context,token))return false;
+        if(!oldSerial.equals(next.serial))
+            return prefs(context).edit().remove("license_"+oldSerial).commit();
+        return true;
+    }
     public static Claims forPackage(Context ctx,String packageId) {
         Claims result=null;
         for(Claims c:available(ctx)) {
@@ -96,6 +112,14 @@ public final class LicenseVerifier {
         String id=project.optString("PackageName");
         Claims c=forPackage(ctx,id);
         if(c==null)return "Nije dostupna licenca za package ID: "+id;
+        if(c.tier.equals("demo") &&
+            (!project.optBoolean("Splash",true) ||
+             !project.optBoolean("BrendigoSplashBranding",true) ||
+             project.optInt("SplashDurationMs",700)!=700 ||
+             !project.optString("Theme","dark").equals("dark") ||
+             !project.optString("Accent","#7253FF").equalsIgnoreCase("#7253FF") ||
+             !project.optString("IconPath","").isEmpty()))
+            return "Demo zahtijeva nepromjenjivu Brendigo ikonu i splash zaslon.";
         if(project.optBoolean("AdMobEnabled") && !allows(ctx,id,"admob"))
             return "AdMob je dostupan samo u paketu Developer.";
         if(project.optBoolean("FirebasePushRequested") && !allows(ctx,id,"firebase_push"))

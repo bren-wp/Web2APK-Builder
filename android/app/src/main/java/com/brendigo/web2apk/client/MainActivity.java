@@ -41,7 +41,7 @@ public final class MainActivity extends Activity {
     private JSONObject editing;
     private WebView preview;
     private EditText name,packageName,url,version,adApp,adBanner;
-    private CheckBox javascript,admob,allowHttp,camera,microphone,location,uploads,downloads,splash,firebase,dom,pullRefresh; 
+    private CheckBox javascript,admob,allowHttp,camera,microphone,location,uploads,downloads,splash,firebase,dom,pullRefresh,brendigoSplash; 
     private EditText splashDuration,privacyUrl;
     private CheckBox ownerConfirmed,dataSafetyChecked;
     private String exportedJson;
@@ -52,6 +52,7 @@ public final class MainActivity extends Activity {
     private TextView wizardHeading;
     private ScrollView pageScroll;
     private String currentPage = "";
+    private String replacingSerial = null;
     private static final String[] STEPS={"Osnovni podaci","Izgled aplikacije",
         "WebView postavke","Funkcije","Android dozvole","Izrada aplikacije"};
 
@@ -167,11 +168,16 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp(125));
         lp.bottomMargin=dp(14);c.addView(key,lp);
         final boolean previouslyActivated=LicenseVerifier.activated(this);
-        addButton(c,"Aktiviraj aplikaciju",()->{
-            if(!LicenseVerifier.activate(this,key.getText().toString().trim())) {
+        final String serialToReplace=replacingSerial;
+        addButton(c,serialToReplace==null?"Aktiviraj aplikaciju":"Zamijeni licencu",()->{
+            boolean successful=serialToReplace==null?
+                LicenseVerifier.activate(this,key.getText().toString().trim()):
+                LicenseVerifier.replace(this,serialToReplace,key.getText().toString().trim());
+            if(!successful) {
                 Toast.makeText(this,"Licenca nije valjana, istekla je ili nije namijenjena Androidu.",Toast.LENGTH_LONG).show();
                 return;
             }
+            replacingSerial=null;
             if(previouslyActivated) settings();
             else {
                 getPreferences(0).edit().putBoolean("welcome_completed",false).apply();
@@ -323,7 +329,7 @@ public final class MainActivity extends Activity {
              .put("DomStorage",true).put("AllowHttp",false).put("OpenExternal",true)
              .put("Theme","dark").put("Accent","#7253FF")
              .put("AdMobEnabled",false).put("FirebasePushEnabled",false)
-             .put("Splash",true).put("SplashDurationMs",700)
+             .put("Splash",true).put("SplashDurationMs",700).put("BrendigoSplashBranding",true)
              .put("FirebasePushRequested",false)
              .put("PrivacyPolicyUrl","").put("WebsitePublishingPermissionConfirmed",false)
              .put("DataSafetyReviewed",false)
@@ -365,6 +371,14 @@ public final class MainActivity extends Activity {
         LinearLayout style=card();
         info(style,"Splash i pokretanje","Prilagodite trajanje izvornog Android splash zaslona.");
         splash=check(style,"Dinamički splash",editing.optBoolean("Splash",true));
+        brendigoSplash=check(style,"Brendigo na splash ekranu",
+            editing.optBoolean("BrendigoSplashBranding",true));
+        String pkg=editing.optString("PackageName","");
+        boolean demo=LicenseVerifier.forPackage(this,pkg)!=null &&
+            LicenseVerifier.forPackage(this,pkg).tier.equals("demo");
+        if(demo) { splash.setChecked(true);splash.setEnabled(false);
+            brendigoSplash.setChecked(true);brendigoSplash.setEnabled(false); }
+        info(style,"Zadani brending","Demo: Brendigo splash se ne može promijeniti. Ostali paketi mogu mijenjati izgled.");
         splashDuration=field(style,"Splash trajanje u milisekundama (0–3000)",
             String.valueOf(editing.optInt("SplashDurationMs",700)));
         LinearLayout play=card();
@@ -488,6 +502,7 @@ public final class MainActivity extends Activity {
                 .put("Camera",camera.isChecked()).put("Microphone",microphone.isChecked())
                 .put("Location",location.isChecked()).put("FileUploads",uploads.isChecked())
                 .put("Downloads",downloads.isChecked()).put("Splash",splash.isChecked())
+                .put("BrendigoSplashBranding",brendigoSplash.isChecked())
                 .put("SplashDurationMs",ms).put("FirebasePushRequested",firebase.isChecked())
                 .put("PrivacyPolicyUrl",privacy)
                 .put("WebsitePublishingPermissionConfirmed",ownerConfirmed.isChecked())
@@ -645,6 +660,7 @@ public final class MainActivity extends Activity {
         info(c,"Prilagođen prikaz","Sadržaj se prilagođava mobitelu i tabletu.");
         info(c,"Izrada aplikacija","APK/AAB izrađuje se u povezanoj Windows aplikaciji.");
         addButton(c,"Uvezi JSON projekt",this::importProject,true);
+        addButton(c,"Dokumentacija i upute",this::documentation,false);
         LinearLayout plans=card();
         info(plans,"Vaše licence","Paketi i aplikacije koji su aktivirani na ovom uređaju.");
         for(LicenseVerifier.Claims license:LicenseVerifier.available(this)){
@@ -657,13 +673,45 @@ public final class MainActivity extends Activity {
             }
             info(plans,title,license.tier.equals("developer")?
                 "Neograničene aplikacije · sve funkcije":license.packageId+" · doživotno");
+            info(plans,"Licencni ključ",LicenseVerifier.masked(this,license.serial));
+            addButton(plans,"Zamijeni licencu · "+title,()->{
+                replacingSerial=license.serial;
+                showActivation();
+            },false);
         }
-        addButton(plans,"Dodaj licencu",this::showActivation,true);
+        addButton(plans,"Dodaj licencu",()->{replacingSerial=null;showActivation();},true);
         addButton(c,"Privatnost i obrada podataka",this::showPrivacyInformation,false);
-        LinearLayout about=card();info(about,"Autor · Brendigo","brendigo.com · Web2APK Builder");
-        addButton(about,"Otvori brendigo.com",()->{
-            startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://brendigo.com")));
+        LinearLayout about=card();
+        info(about,"Razvojni autor · Brendigo","brendigo.com");
+        info(about,"Službena stranica programa","apk.com.hr");
+        info(about,"Tehnička podrška","info@apk.com.hr");
+        addButton(about,"Posjeti apk.com.hr",()->{
+            startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://apk.com.hr")));
         },false);
+        addButton(about,"Piši podršci",()->{
+            startActivity(new Intent(Intent.ACTION_SENDTO,Uri.parse("mailto:info@apk.com.hr")));
+        },false);
+    }
+    private void documentation(){
+        page("Dokumentacija","Upute za Android Mobile i Windows Studio.");
+        LinearLayout intro=card();
+        info(intro,"Licence i paketi","Dodajte potpisani BL2 ključ u Postavkama. Za zamjenu "+
+            "odaberite licencu i unesite novi ključ. Ključevi su maskirani u pregledu.");
+        LinearLayout project=card();
+        info(project,"Novi Android projekt","Unesite naziv aplikacije, package ID, HTTPS URL i "+
+            "ostale postavke. Zadana ikona i splash imaju Brendigo oznake. "+
+            "Demo ne može promijeniti splash, ikonu ni paketne mogućnosti.");
+        LinearLayout safe=card();
+        info(safe,"Sigurnost","Kamera, mikrofon i lokacija traže korisnikovo dopuštenje na "+
+            "Androidu. Za pravu objavu provjerite politiku privatnosti i Google Play zahtjeve.");
+        LinearLayout build=card();
+        info(build,"APK i AAB","Na Windowsu otvorite isti projekt i odaberite izvoz. "+
+            "Debug APK se potpisuje razvojnim ključem; za objavu koristite vlastiti "+
+            "sigurni certifikat i sačuvajte ga za buduća ažuriranja.");
+        LinearLayout support=card();
+        info(support,"Podrška","Službena stranica apk.com.hr · info@apk.com.hr. "+
+            "Autor i razvoj: Brendigo · brendigo.com.");
+        addButton(support,"Postavke i licence",this::settings,true);
     }
     private void showPrivacyInformation() {
         new android.app.AlertDialog.Builder(this)
@@ -672,7 +720,7 @@ public final class MainActivity extends Activity {
                 "Kada otvorite pregled svoje web-stranice, WebView uspostavlja izravnu vezu s odabranom web-stranicom; " +
                 "ta stranica može zasebno obrađivati vaše podatke prema vlastitim pravilima. " +
                 "Ako izvezete JSON, sami određujete primatelja. Podatke možete ukloniti brisanjem pojedinačnih projekata ili podataka aplikacije. " +
-                "Za prijavu pitanja o privatnosti pogledajte službenu web-stranicu brendigo.com.")
+                "Za prijavu pitanja o privatnosti pogledajte službenu web-stranicu apk.com.hr ili pišite na info@apk.com.hr.")
             .setPositiveButton("U redu",null).show();
     }
     @Override public void onBackPressed(){

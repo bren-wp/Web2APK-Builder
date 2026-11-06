@@ -37,6 +37,46 @@ public static class LicenseActivationStore
         } catch(IOException) {return null;}
         catch(UnauthorizedAccessException) {return null;}
     }
+    public sealed record VisibleLicense(BrendigoLicense.Claims Claims,string MaskedToken);
+    public static string MaskToken(string token) {
+        if(string.IsNullOrWhiteSpace(token))return "********";
+        var cleaned=token.Trim();
+        return cleaned.Length<=18 ? "********" : cleaned[..Math.Min(10,cleaned.Length)]+
+            "***************"+cleaned[^Math.Min(8,cleaned.Length)..];
+    }
+    public static IReadOnlyList<VisibleLicense> InstalledMasked(string platform) {
+        var result=new List<VisibleLicense>();
+        foreach(var token in Tokens())
+            if(BrendigoLicense.TryVerify(token,platform,out var claim) && claim is not null)
+                result.Add(new VisibleLicense(claim,MaskToken(token)));
+        return result;
+    }
+    private static IEnumerable<string> LicensePaths() {
+        if(File.Exists(FilePath))yield return FilePath;
+        if(Directory.Exists(Folder))
+            foreach(var path in Directory.EnumerateFiles(Folder,"*.license"))
+                yield return path;
+    }
+    public static bool Remove(string serial,string platform) {
+        bool removed=false;
+        foreach(var path in LicensePaths()) {
+            var token=Read(path);
+            if(token is null || !BrendigoLicense.TryVerify(token,platform,out var c) ||
+                c?.Serial!=serial)continue;
+            File.Delete(path);
+            removed=true;
+        }
+        return removed;
+    }
+    public static bool Replace(string oldSerial,string newToken,string platform) {
+        if(!BrendigoLicense.TryVerify(newToken,platform,out var newClaim) || newClaim is null)
+            return false;
+        if(!Installed(platform).Any(c=>c.Serial==oldSerial))return false;
+        if(!Activate(newToken,platform))return false;
+        if(oldSerial!=newClaim.Serial)Remove(oldSerial,platform);
+        return true;
+    }
+
     public static bool IsActivated(string platform)
     {
         foreach(var token in Tokens())

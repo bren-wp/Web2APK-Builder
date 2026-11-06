@@ -89,7 +89,7 @@
     </ScrollViewer>
     <Border Grid.Row="2" Background="#111A33" BorderBrush="#303D68" BorderThickness="0,1,0,0" Padding="24,16">
       <DockPanel LastChildFill="False">
-        <TextBlock DockPanel.Dock="Left" Text="Brendigo · brendigo.com" VerticalAlignment="Center"
+        <TextBlock DockPanel.Dock="Left" Text="Brendigo · apk.com.hr · info@apk.com.hr" VerticalAlignment="Center"
           Foreground="#8EA3CC" FontSize="11"/>
         <Button x:Name="CancelButton" DockPanel.Dock="Right" Content="Prekini" IsEnabled="False"
           Click="Cancel_Click" Margin="12,0,0,0"/>

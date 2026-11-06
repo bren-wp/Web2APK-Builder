@@ -61,6 +61,31 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <!-- A local dark control template prevents native white ComboBox popups and fields. -->
+        <Style TargetType="PasswordBox">
+            <Setter Property="Background" Value="#0D1832"/>
+            <Setter Property="Foreground" Value="#F2F5FF"/>
+            <Setter Property="CaretBrush" Value="#B4A0FF"/>
+            <Setter Property="BorderBrush" Value="#34466C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="MinHeight" Value="43"/>
+        </Style>
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="#132242"/>
+            <Setter Property="Foreground" Value="#F2F5FF"/>
+            <Setter Property="BorderBrush" Value="#405383"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="MenuItem">
+            <Setter Property="Background" Value="#132242"/>
+            <Setter Property="Foreground" Value="#F2F5FF"/>
+        </Style>
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="#192744"/>
+            <Setter Property="Foreground" Value="#F2F5FF"/>
+            <Setter Property="BorderBrush" Value="#42537B"/>
+        </Style>
         <Style TargetType="ComboBox">
             <Setter Property="Foreground" Value="#EEF2FF"/>
             <Setter Property="Background" Value="#0F1A36"/>

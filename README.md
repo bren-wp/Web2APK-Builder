@@ -1,146 +1,111 @@
 <div align="center">
-<img src="assets/readme-banner.svg" width="100%" alt="Brendigo Web2APK Builder">
-<h1>Brendigo Web2APK Builder</h1>
-<strong>Nativni Windows Studio + Android Mobile klijent</strong>
-<p>🌐 Web → APK/AAB · 🎨 Napredni brending · 🔏 Lokalno potpisivanje · 🛡️ Kontrolirane dozvole</p>
-<p><a href="https://github.com/bren-wp/Web2APK-Builder/releases/latest">Preuzmi najnovije izdanje</a> · <a href="https://brendigo.com">brendigo.com</a> · <a href="SECURITY.md">Sigurnost</a></p>
+
+<img src="assets/readme-banner.svg" alt="Brendigo Web2APK Builder" width="100%"/>
+
+# Brendigo Web2APK Builder
+
+### Vaša web-stranica. Vaša Android aplikacija.
+
+**Nativni Windows Studio za stvaranje Android APK/AAB aplikacija s vlastitim identitetom, dozvolama i potpisivanjem.**
+
+<img src="assets/brand-icon.svg" alt="Originalna Brendigo ikona" width="90"/>
+
+[**Preuzmi Windows Studio**](https://github.com/bren-wp/Web2APK-Builder/releases/latest) · [**Službena stranica: apk.com.hr**](https://apk.com.hr) · **Podrška: info@apk.com.hr**
+
+Razvoj i autorstvo: **Brendigo** · [brendigo.com](https://brendigo.com)
+
 </div>
 
 ---
 
-## Licenciranje i Brendigo License Studio
+## Od weba do Android aplikacije
 
-Brendigo License Studio zasebna je **nativna Windows aplikacija** za izdavanje proizvoljnih serija licenci uz vlasnički šifrirani PEM i lokalnu RSA-3072 digitalnu potpisnu provjeru. Glavna Windows aplikacija i Android klijent prihvaćaju samo licence s točnim digitalnim potpisom. Nema internetske aktivacije, udaljenog računa ni popisa milijuna ključeva u binarnom programu.
+Pretvorite HTTPS web-stranicu ili lokalni HTML projekt u Android aplikaciju. Uređujte izgled u nativnom Windows sučelju, pregledajte ponašanje, konfigurirajte dozvole i izradite APK/AAB. Vaši projekti i potpisni ključevi ostaju na vašem računalu, a web-sadržaj se otvara izravno s njegove odabrane adrese.
 
-**Privatni vlasnički ključ nije u ovom javnom GitHub repozitoriju niti u instalacijskom paketu.** Mora se čuvati odvojeno. Upute: [License Studio](docs/LICENSE-STUDIO-HR.md).
-
-**Ograničenje:** offline licence moguće je kopirati; opoziv i ograničenje jednog uređaja zahtijevaju zasebnu online provjeru.
-
-## Usklađivanje zaslona v0.4.1
-
-Windows čarobnjak i pregled aplikacije uređeni su prema referencama u rasporedu, tipografiji, karticama, odabiru izvora, navigaciji, razmacima i ikonama. Tema koristi tamne native WPF kontrole, bez bijelih sistemskih obrazaca za padajuće izbornike i potvrdne okvire. Dodatne stvarne snimke pohranjuju se u `docs/screenshots/native/`.
-
-[Čarobnjak 1024×740](docs/screenshots/native/wizard-compact-1024.png) · [Pregled 1024×740](docs/screenshots/native/preview-compact-1024.png) · [Čarobnjak 900×650](docs/screenshots/native/wizard-small-900.png) · [Pregled 900×650](docs/screenshots/native/preview-small-900.png).
-
-Promjene ne mijenjaju izdane BL2 licence; Developer licenca i dalje otključava neograničen broj aplikacija i sve dostupne opcije.
-
-## Licencni paketi — po Android aplikaciji
-
-| Paket | Cijena | Podržane funkcije |
-|---|---:|---|
-| **Demo** | **0 €** | Trajna licenca, APK izvoz, bez oglasa, zadani izgled |
-| **Osnovno** | **49 €** | Sve iz Dema, APK/AAB, vlastita ikona, splash zaslon i brending |
-| **Profesionalac** | **69 €** | Sve iz Osnovnog, povlačenje za osvježavanje i Firebase Push |
-| **Developer · vlasnik** | **nije u prodaji** | **Neograničen broj aplikacija, sve funkcije, APK/AAB, AdMob, Push, napredne dozvole i sve postavke** |
-
-Demo, Osnovno i Profesionalac su **doživotne licence za jedan točno definiran Android package ID**. Licenca može dopustiti rad u Windows aplikaciji, Android klijentu ili na obje platforme. Developer je vlasnička licenca sa znakom `*` umjesto package ID-ja, koristi se na obje platforme i **nema ograničenje broja aplikacija**. Svi paketi koriste lokalnu provjeru RSA potpisa; privatni potpisni ključ ostaje isključivo kod vlasnika.
-
-**Napomena o Google Playu:** „kompatibilno” znači da program generira projekt s aktualnim API-jem i daje kontrolni popis. Odobrenje objave ovisi o pravilima, kvaliteti i stvarnim podacima aplikacije; nije zajamčeno kupnjom paketa. AdMob generiranje dopušteno je samo Developer paketu; ostali proizvode aplikacije bez ugrađenih oglasa iz Buildera.
-
-Dodatne upute: [Izdavanje licenci i vlasnički Developer paket](docs/LICENSE-STUDIO-HR.md).
-
-**Google Play i naplata:** Android klijent koji se distribuira preko Google Playa i otključava plaćene digitalne funkcije mora poštovati [Google Play Payments pravila](https://support.google.com/googleplay/android-developer/answer/9858738). Ovisno o modelu distribucije, kupnji i regiji, to može zahtijevati Play Billing ili odobrenu alternativu. **Ova offline aktivacija ne implementira sustav kupnje niti jamči odobrenje na Google Playu.** U aplikaciji nema poveznica za alternativnu kupnju.
-
-## Windows Studio (.NET 10 / WPF)
-
-Nativni Windows program za kreiranje i konfiguriranje Android WebView aplikacija i lokalnu izradu APK/AAB paketa uz Android SDK. Ne zahtijeva Electron ni Chromium. Prozor se ne pokreće maksimiziran i prilagođava se širini zaslona.
-
-**Ključne značajke:** lokalno upravljanje projektima, HTTPS i offline HTML, tema i prilagodljive ikone, dinamički splash, kamera, mikrofon, približna lokacija, Android odabir i preuzimanje datoteka, AdMob banner s UMP korisničkim pristankom, Firebase Cloud Messaging i lokalno potpisivanje s vlastitim ili slučajno generiranim trajnim ključem.
-
-### Stvarni nativni zasloni
-
-Za v0.3.2 uključeno je snimanje svih **16 Windows zaslona**, uključujući splash, dobrodošlicu, novi pregled aplikacije i sve korake čarobnjaka. Snimke proizvodi GitHub Actions iz stvarnog WPF sučelja, bez generiranja marketinških prikaza.
-
-| Splash | Dobrodošli |
+| U koracima | Što dobivate |
 |---|---|
-| ![Brendigo splash](docs/screenshots/native/splash.png) | ![Dobrodošli](docs/screenshots/native/welcome.png) |
+| **01 · Projekt** | Naziv, package ID, HTTPS URL ili vlastiti lokalni HTML |
+| **02 · Brending** | Zadana Brendigo ikona, početni splash, boje i vlastiti PNG |
+| **03 · WebView** | Sigurnosne postavke preglednika i vanjske poveznice |
+| **04 · Funkcionalnosti** | AAB, datoteke, preuzimanja, Firebase Push, AdMob i osvježavanje prema paketu |
+| **05 · Dozvole** | Kamera, mikrofon, lokacija, pristup datotekama i privatnost |
+| **06 · Izrada** | Debug APK, nepotpisani APK/AAB ili produkcijski potpis |
 
-| Pregled aplikacije | Postavke |
-|---|---|
-| ![Pregled aplikacije](docs/screenshots/native/preview.png) | ![Postavke](docs/screenshots/native/settings.png) |
+### Stvarni Windows zasloni
 
-### Stvarni nativni zasloni
+Snimke niže nastaju **automatskim renderiranjem stvarnog nativnog WPF sučelja** tijekom GitHub Actions provjera. Nisu umjetno generirane ilustracije.
 
-Snimke se automatski stvaraju iz WPF renderera tijekom CI-ja, a ne umjetnim generiranjem:
+| Početna ploča | Novi projekt |
+|:--:|:--:|
+| ![Stvarna početna ploča Brendigo Studija](docs/screenshots/native/dashboard.png) | ![Stvarni WPF obrazac za novi projekt](docs/screenshots/native/wizard-1-basics.png) |
+| **Brending i splash** | **Pregled Android aplikacije** |
+| ![Stvarni WPF zaslon brendinga](docs/screenshots/native/wizard-2-appearance.png) | ![Stvarni WPF zaslon pregleda](docs/screenshots/native/preview.png) |
+| **Dozvole i privatnost** | **APK/AAB izrada** |
+| ![Stvarni WPF zaslon dozvola](docs/screenshots/native/wizard-5-permissions.png) | ![Stvarni WPF zaslon za izradu](docs/screenshots/native/wizard-6-build.png) |
 
-| Početni zaslon | Novi projekt |
-|---|---|
-| ![Nativni Windows dashboard](docs/screenshots/native/dashboard.png) | ![Novi projekt](docs/screenshots/native/wizard-1-basics.png) |
-| Izgled i splash | AdMob i Firebase |
-| ![Windows appearance](docs/screenshots/native/wizard-2-appearance.png) | ![Windows features](docs/screenshots/native/wizard-4-features.png) |
-| Dozvole | Potpisivanje i izrada |
-| ![Windows permissions](docs/screenshots/native/wizard-5-permissions.png) | ![Windows build](docs/screenshots/native/wizard-6-build.png) |
+**Responzivni Windows raspored:** [1024 px – čarobnjak](docs/screenshots/native/wizard-compact-1024.png) · [900 px – čarobnjak](docs/screenshots/native/wizard-small-900.png) · [1024 px – pregled](docs/screenshots/native/preview-compact-1024.png) · [900 px – pregled](docs/screenshots/native/preview-small-900.png).
 
-Ako screenshotovi još nisu prisutni, postupak snimanja nije potvrđen. **Pixel-perfect 1:1 podudaranje sa svim referencama još nije verificirano.**
+## Vaš brending odmah pri prvom projektu
 
-## Android Mobile klijent
+Svaka nova aplikacija po zadanim postavkama dobiva originalnu **Brendigo launcher ikonu** i **Brendigo splash** sa službenom oznakom `apk.com.hr`. U paketu **Demo** to ostaje zaključano. U paketima **Osnovno**, **Profesionalac** i **Developer** možete prilagoditi ikonicu, splash, trajanje i boje.
 
-Android aplikacija sada uključuje **početno predstavljanje, nadzornu ploču, donju navigaciju, čarobnjak od šest koraka, detalje projekta, pregled, uređaje i postavke**. Vrijednosti konfiguracije ostaju u obrascu pri prelasku između koraka. Izgled se prilagođava širini telefona i tableta, a prikaz poštuje sistemske rubove na novijem Androidu.
+Android WebView koristi širinu zaslona, viewport i sigurne rubove; konačni izgled udaljene web-stranice ovisi i o responzivnom HTML/CSS-u samog izvora.
 
+## Doživotni licencni paketi
 
+| Funkcija | Demo · 0 € | Osnovno · 49 € | Profesionalac · 69 € | Developer · vlasnik |
+|---|:--:|:--:|:--:|:--:|
+| Neograničeno vrijeme korištenja | ✓ | ✓ | ✓ | ✓ |
+| APK | ✓ | ✓ | ✓ | ✓ |
+| AAB | — | ✓ | ✓ | ✓ |
+| Vlastita ikona i splash | — | ✓ | ✓ | ✓ |
+| Vlastiti brending | — | ✓ | ✓ | ✓ |
+| Povlačenje za osvježavanje | — | — | ✓ | ✓ |
+| Firebase Push | — | — | ✓ | ✓ |
+| AdMob i napredne dozvole | — | — | — | ✓ |
+| Broj različitih Android aplikacija | 1 | 1 | 1 | **Neograničeno** |
 
-Projekt **android/** sadrži nativnu Android aplikaciju s Brendigo brendingom, početnim zaslonom, projektima, editorom, pregledom HTTPS sadržaja i lokalnim JSON uvozom/izvozom. Konfiguracije se mogu ručno prenositi u Windows Studio i obratno. Privatni ključevi i lozinke se ne prenose.
+Licenca je potpisani **BL2** token vezan uz jedan Android package ID ili uz neograničena vlasnička prava. U **Postavke → Licence** možete vidjeti aktivni paket, **maskirani licencni ključ**, dodati novi ili **zamijeniti odabrani ključ**. Nema obvezne online aktivacije.
 
-**Android Mobile ne kompajlira APK/AAB na telefonu.** Izradu generiranih Android paketa izvodi Windows Studio. AdMob i FCM opcije odnose se na generirane aplikacije i nisu oglasi ili obavijesti ugrađeni u sam Builder klijent.
+Zaseban **Brendigo License Studio** za Windows omogućuje vlasniku generiranje proizvoljnog broja doživotnih licenci (Demo, Osnovno, Profesionalac i Developer) uz privatni šifrirani RSA ključ. Privatni ključ **nije** ugrađen u javni program. [Upute za License Studio](docs/LICENSE-STUDIO-HR.md).
 
-## Izdanje i preuzimanje
+*Nijedan paket ne dodaje Builderove vlastite oglase u generiranu aplikaciju. Ako sama web-stranica prikazuje oglase, Builder ih ne uklanja.*
 
-| Paket | Namjena |
-|---|---|
-| **Brendigo-Web2APK-portable.exe** | Nativni Windows x64 bez instalacije |
-| **Brendigo-Web2APK-Setup.exe** | Instalacijski program za Windows x64 |
-| **Brendigo-LicenseStudio-portable.exe** | Zaseban program za izdavanje licenci, bez privatnog ključa |
-| **Brendigo-LicenseStudio-Setup.exe** | Instalacijska verzija programa za licence |
-| **Brendigo-Web2APK-Android-test.apk** | Testni Android klijent s debug potpisom; za testiranje |
-| **Brendigo-Web2APK-Android-unsigned.aab** | Nepotpisani AAB; za produkciju potreban je vlastiti trajni ključ |
+## Jedan Windows Studio za cijeli tijek rada
 
-[GitHub izdanja](https://github.com/bren-wp/Web2APK-Builder/releases)
+Windows aplikacija može sama preuzeti **Eclipse Temurin JDK 17, Gradle 9.6.1 i Android SDK 36** iz službenih izvora u lokalni korisnički profil, uz potvrdu uvjeta i provjeru SHA-256. Ne morate zasebno instalirati Android Studio. **Za prvo preuzimanje potrebni su internet, slobodan prostor i prihvaćanje Googleovih SDK uvjeta.** Priprema novog alatnog lanca još zahtijeva provjeru na čistoj Windows instalaciji.
 
-Windows EXE nije digitalno potpisan izdavačkim certifikatom. Debug Android potpis ne jamči nadogradnju u budućim izdanjima, a nepotpisani AAB nije spreman za Google Play.
+Izaberite oblik izvoza prema svrsi:
+- **Debug APK:** potpisan Android razvojnim ključem, za lokalno testiranje.
+- **Nepotpisani APK:** release APK bez produkcijskog potpisa.
+- **APK s vlastitim potpisom:** odaberite trajni keystore ili generirajte novi lokalni ključ.
+- **AAB:** s vlastitim keystoreom ili nepotpisani AAB za naknadno potpisivanje.
 
-## Kako izraditi aplikaciju
+**Debug i nepotpisani paketi nisu spremni za javnu distribuciju na Google Playu.** Sačuvajte ključ za buduća ažuriranja.
 
-1. U Windows Studiju kliknite **Novi projekt** i unesite naziv, identifikator aplikacije i HTTPS URL ili HTML mapu.
-2. Podesite temu, PNG launcher ikonu, splash, WebView i potrebne Android dozvole.
-3. Za **AdMob** unesite stvarni App ID i Banner Unit ID; za **Firebase** odaberite vlastiti google-services.json sa zadanim Android package ID-jem.
-4. Za potpis odaberite postojeći keystore ili kliknite **Generiraj novi slučajni ključ**. **Istog ključa i lozinke morate se držati u svim budućim ažuriranjima!**
-5. Instalirajte JDK 17, Android SDK Platform 36 i Gradle 9.6+. Gradle je moguće instalirati kroz Studio uz privolu i SHA-256 provjeru.
-6. Izradite APK/AAB, provjerite dozvole i rad na stvarnom Android uređaju te ispunite aktualna Google Play pravila.
+## Android Mobile
 
-**Stvarna dostava FCM poruka i prikaz AdMob oglasa zahtijevaju valjan Firebase odnosno AdMob račun, odgovarajuće konfiguracije, korisnički pristanak i testiranje.** Ove ovisnosti dolaze iz Googleova repozitorija i ne obrađuju se potpuno offline.
+Android klijent služi za pregled i uređivanje konfiguracija, prijenos projekata preko lokalnog JSON-a, pregled maskiranih licenci, zamjenu licenci i čitanje uputa. APK/AAB proizvodi Windows aplikacija. Mobilni klijent koristi vlastito responzivno sučelje za telefon i tablet te ne zahtijeva korisnički račun.
 
-## Razvoj i testovi
+## Privatnost, sigurnost i objava
 
-Na Windowsu koristite .NET 10, a za Android JDK 17, SDK 36 i Gradle 9.6+.
+- Projektne datoteke pohranjuju se lokalno; nema ugrađene telemetrije.
+- Osjetljive Android dozvole zahtijevaju korisnikov pristanak.
+- HTTPS je zadana postavka, WebView ograničava pristup lokalnim datotekama, a izvor aplikacije validira se.
+- Android keystore i zaporke nisu u repozitoriju; zaporke se ne spremaju u projekt.
+- Službene ovisnosti i Google SDK-ovi preuzimaju se samo uz odobrenje. AdMob, Firebase i odabrani web-sadržaj mogu samostalno obrađivati mrežne podatke.
+- Napredne Google Play značajke ovise o pravilima, korisničkoj privoli, stvarnim vjerodajnicama i dodatnim uređajskim testovima; izrada AAB-a **ne jamči odobrenje** aplikacije.
 
-Windows: dotnet run --project src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj
+Pročitajte [sigurnosna pravila](SECURITY.md), [pregled sigurnosti i dead codea](docs/SECURITY-DEADCODE-AUDIT-v0.5.0.md) te [detaljne korisničke upute](docs/KORISNICKE-UPUTE-HR.md).
 
-Testovi: dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj
+## Preuzimanja
 
-Android: gradle -p android :app:assembleDebug :app:bundleRelease
+Najnoviji [GitHub Release](https://github.com/bren-wp/Web2APK-Builder/releases/latest) sadrži Windows **portable.exe** i **setup.exe** za glavni Builder i License Studio, kao i **Android APK/AAB** klijenta. Windows i Android paketi mogu biti nepotpisani/testno potpisani, što je izričito navedeno uz izdanje.
 
-Ikonica: powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File scripts/make-icon.ps1
+---
 
-Automatizacija: [Windows/Android Release](.github/workflows/windows-release.yml) · [Quality](.github/workflows/quality.yml).
+<div align="center">
+**Brendigo Web2APK Builder** · [apk.com.hr](https://apk.com.hr) · **info@apk.com.hr**
 
-## Provjere u izdanju v0.3.1
-
-Uz Android Mobile i osnovni WebView projekt, CI sada zasebno kompajlira generirani projekt s Google AdMob + UMP integracijom te primjer s Firebase Cloud Messagingom. Firebase konfiguracija u CI-ju sadrži samo testne identifikatore, **nije produkcijski Firebase račun**. Za korisničke projekte još su potrebni stvarni ID-jevi i test stvarne dostave oglasa/poruka.
-
-Nativne WPF snimke pokušavaju se snimiti izvršavanjem pravog Windows programa; nedostajuće ili neuspjele snimke više se ne smiju prikazivati kao uspješno verificirane.
-
-Na Android klijentu sada je moguće konfigurirati kameru, mikrofon, lokaciju, prijenos datoteka, splash i zatražiti Firebase postavljanje. Firebase konfiguracijsku datoteku i završno potpisivanje postavlja se u Windows Studiju.
-
-## Status i sigurnosni pregled
-
-U verziji 0.4.1 aktivacija je obvezna u produkcijskom Windows programu i Android klijentu. Interni UI capture način zaseban je CI build i **nije dostupan u prodajnoj verziji**. Sigurnosni i dead-code pregled (opseg i preostale provjere): [Izvještaj](docs/SECURITY-DEADCODE-AUDIT-v0.4.1.md).
-
-## Status
-
-U izdanju v0.3.2 proširen je UI/UX na Windowsu i Androidu. Uklonjeni su razvojni i privremeni tekstovi iz korisničkih stranica; tehničke informacije ostaju samo ondje gdje su potrebne za izradu i sigurnost. Reference su vizualni cilj, no potpuno 1:1 podudaranje pojedinačnih elemenata zahtijeva dodatnu usporedbu stvarnih snimki na istim DPI postavkama i uređajima.
-
-
-
-Poboljšanja UI/UX-a i funkcionalna testiranja napreduju zaslon po zaslon. CI kompilacija ne jamči besprijekoran rad svih integracija na svim uređajima, niti su sve vizualne reference provjerene pixel po pixel. Pogledajte [CHANGELOG.md](CHANGELOG.md) i [SECURITY.md](SECURITY.md).
-
-<div align="center"><img src="assets/brand-icon.svg" width="58" alt="Brendigo logo"><p><strong>Brendigo · brendigo.com</strong></p></div>
+Razvoj: **Brendigo** · [brendigo.com](https://brendigo.com)
+</div>

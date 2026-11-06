@@ -221,6 +221,13 @@ public partial class MainWindow
             duration.IsEnabled=HasLicenseFeature("splash");
             panel.Children.Add(duration);
         }
+        var defaultBrand=OptionCheck("Prikaži Brendigo na splash zaslonu",
+            "Zadano uključeno na svim paketima. Demo: Brendigo splash i ikona ne mogu se mijenjati.",
+            _draft.BrendigoSplashBranding,b=>_draft.BrendigoSplashBranding=b);
+        defaultBrand.IsEnabled=HasLicenseFeature("branding");
+        panel.Children.Add(defaultBrand);
+        panel.Children.Add(Txt("Zadana ikona i splash: Brendigo · apk.com.hr",
+            11,false,Muted,new Thickness(0,4,0,10)));
         panel.Children.Add(OptionCheck("Statusna traka", "Prikaži standardnu Android statusnu traku.", _draft.StatusBar,
             b=>_draft.StatusBar=b));
         panel.Children.Add(OptionCheck("Puni zaslon", "Ukloni statusnu traku u generiranoj aplikaciji.", _draft.Fullscreen,
