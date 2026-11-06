@@ -102,7 +102,8 @@ public static class AutomaticLicenseSeats
             return true;
         }
         catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or
-            CryptographicException or JsonException or PlatformNotSupportedException or ArgumentException)
+            CryptographicException or JsonException or InvalidDataException or
+            PlatformNotSupportedException or ArgumentException)
         {
             reason="Evidencija licencnih mjesta nije dostupna. Podaci se ne poništavaju automatski. "+
                 ex.Message;

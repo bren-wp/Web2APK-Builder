@@ -127,7 +127,8 @@ public partial class MainWindow
     {
         if(_busy)return;
         try {
-            LicenseActivationStore.Require("windows",project,"source");
+            // The source viewer itself enforces the signed entitlement before generating code.
+            // Saving an edit should not consume a previously unused application seat.
             if(!SaveForExport(project,out var saved))return;
             var viewer=new SourceViewerWindow(saved) { Owner=this };
             viewer.ShowDialog();
@@ -140,13 +141,16 @@ public partial class MainWindow
         if (_busy) return;
         try
         {
-            LicenseActivationStore.Require("windows",project,"source");
+            if(!LicenseActivationStore.TryAuthorize("windows",project,"source",out _,out var why))
+                throw new UnauthorizedAccessException(why);
             if (!SaveForExport(project, out var saved)) return;
             var dialog = new OpenFolderDialog { Title="Odaberite mapu za izvoz Android projekta", Multiselect=false };
             if (dialog.ShowDialog(this) != true) return;
             var output = Path.Combine(dialog.FolderName,
                 saved.PackageName.Replace('.', '-') + "-android-" + saved.VersionName);
             if (Directory.Exists(output)) { ShowError("Projekt već postoji na odredištu. Odaberite novu mapu ili promijenite verziju."); return; }
+            // Reserve only after a destination has been confirmed and validated.
+            LicenseActivationStore.Require("windows",saved,"source");
             AndroidProjectGenerator.Generate(saved, output);
             ShowInfo("Android projekt izvezen:\n" + output);
         }
@@ -205,8 +209,12 @@ public partial class MainWindow
     {
         if (_busy) return;
         if (!SaveDraft()) return;
-        try { LicenseActivationStore.Require("windows",_draft,format=="aab"?"aab":"apk"); }
-        catch (UnauthorizedAccessException e) { ShowError(e.Message); return; }
+        // Read-only entitlement check: cancelling the folder picker must not consume a seat.
+        if(!LicenseActivationStore.TryAuthorize("windows",_draft,
+            format=="aab"?"aab":"apk",out _,out var licenseReason))
+        { ShowError(licenseReason); return; }
+        // AndroidBuildService performs the binding under the same cross-process seat lock
+        // only when an actual build is started (after signing and toolchain preparation).
         var dialog = new OpenFolderDialog { Title = "Odaberite izlaznu mapu za Android paket", Multiselect = false };
         if (dialog.ShowDialog(this) != true) return;
         SigningOptions? signing = null;

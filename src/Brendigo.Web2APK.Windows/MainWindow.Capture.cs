@@ -123,6 +123,8 @@ public partial class MainWindow
                     CheckCard(_wizardMainCard,"wizard form at "+width);
                     CheckCard(_wizardSummaryCard,"wizard summary at "+width);
                 }
+                if(page is "welcome" or "dashboard" && _heroVisualColumn?.Width.Value > 0)
+                    throw new InvalidOperationException("Hidden welcome/dashboard artwork keeps an empty column.");
                 if(page=="preview")
                 {
                     CheckCard(_previewLeftCard,"preview devices at "+width);
@@ -141,6 +143,8 @@ public partial class MainWindow
             CaptureCompact("preview","preview-compact-1024",1024,740);
             CaptureCompact("new","wizard-small-900",900,650);
             CaptureCompact("preview","preview-small-900",900,650);
+            CaptureCompact("welcome","welcome-small-900",900,650);
+            CaptureCompact("dashboard","dashboard-small-900",900,650);
             Root.Width=double.NaN;Root.Height=double.NaN;
             captureSource.RootVisual=null;
             Console.WriteLine("Captured "+Directory.GetFiles(folder,"*.png").Length+" native WPF screenshots.");

@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     private string _previewDevice = "phone";
     private bool _previewSplash = true;
     private FrameworkElement? _heroPhone;
+    private ColumnDefinition? _heroVisualColumn;
 
     private static Brush BrushOf(string color) => new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
     private static readonly Brush Stroke = BrushOf("#2B3B60");
@@ -99,7 +100,14 @@ public partial class MainWindow : Window
         SidebarColumn.Width = new GridLength(compact ? 82 : 250);
         BrandWords.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         SidebarFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
-        if (_heroPhone is not null) _heroPhone.Visibility = logicalWidth < 1200 ? Visibility.Collapsed : Visibility.Visible;
+        if (_heroPhone is not null)
+        {
+            bool showArtwork = logicalWidth >= 1200;
+            _heroPhone.Visibility = showArtwork ? Visibility.Visible : Visibility.Collapsed;
+            if (_heroVisualColumn is not null)
+                _heroVisualColumn.Width = new GridLength(showArtwork
+                    ? (_page=="welcome" ? 230 : 206) : 0);
+        }
         foreach (var entry in _navButtons)
         {
             var item = entry.Value.Content as StackPanel;
@@ -217,6 +225,7 @@ public partial class MainWindow : Window
         _page = page;
         _previewLeftCard = null; _previewCenterCard = null; _previewRightCard = null; _previewSurface = null;
         _heroPhone = null;
+        _heroVisualColumn = null;
         _summaryTitle=null;_summaryPackageText=null;
         _wizardMainCard=null;_wizardSummaryCard=null;
         _wizardInlineNext=null;_wizardSummaryNext=null;
@@ -269,7 +278,8 @@ public partial class MainWindow : Window
         var projects=_store.List();
         var hero=new Grid { MinHeight=198 };
         hero.ColumnDefinitions.Add(new ColumnDefinition { Width=new GridLength(1,GridUnitType.Star) });
-        hero.ColumnDefinitions.Add(new ColumnDefinition { Width=new GridLength(206) });
+        _heroVisualColumn=new ColumnDefinition { Width=new GridLength(206) };
+        hero.ColumnDefinitions.Add(_heroVisualColumn);
         var info=Stack();
         info.Children.Add(new Border {
             Background=BrushOf("#302D70"),BorderBrush=BrushOf("#6756B7"),

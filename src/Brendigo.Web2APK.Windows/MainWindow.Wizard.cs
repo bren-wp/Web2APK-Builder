@@ -395,7 +395,15 @@ public partial class MainWindow
         var info=Stack();
         info.VerticalAlignment=VerticalAlignment.Center;
         _summaryTitle=Txt(_draft.Name,13,true,White,new Thickness(0,0,0,4));
+        _summaryTitle.MaxWidth=185;
+        _summaryTitle.TextTrimming=TextTrimming.CharacterEllipsis;
+        _summaryTitle.TextWrapping=TextWrapping.NoWrap;
+        _summaryTitle.ToolTip=_draft.Name;
         _summaryPackageText=Txt(_draft.PackageName,11,false,Muted);
+        _summaryPackageText.MaxWidth=185;
+        _summaryPackageText.TextTrimming=TextTrimming.CharacterEllipsis;
+        _summaryPackageText.TextWrapping=TextWrapping.NoWrap;
+        _summaryPackageText.ToolTip=_draft.PackageName;
         info.Children.Add(_summaryTitle);
         info.Children.Add(_summaryPackageText);
         identity.Children.Add(info);

@@ -13,7 +13,8 @@ public partial class MainWindow
             "Kreirajte Android aplikaciju iz web-stranice ili vlastitog HTML projekta.");
         var hero=new Grid { MinHeight=305 };
         hero.ColumnDefinitions.Add(new ColumnDefinition { Width=new GridLength(1,GridUnitType.Star) });
-        hero.ColumnDefinitions.Add(new ColumnDefinition { Width=new GridLength(230) });
+        _heroVisualColumn=new ColumnDefinition { Width=new GridLength(230) };
+        hero.ColumnDefinitions.Add(_heroVisualColumn);
         var details=Stack();
         details.Margin=new Thickness(0,15,0,0);
         details.Children.Add(new Border {

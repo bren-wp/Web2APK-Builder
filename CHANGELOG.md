@@ -1,5 +1,15 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.3 — licencna mjesta i responzivni Windows zasloni
+
+- Odabir izlazne mape i otkazivanje pripreme alata više ne zauzimaju automatsko licencno mjesto unaprijed; stvarni izvoz ili početak izrade i dalje provjeravaju potpisana prava i broj mjesta.
+- Ojačana obrada oštećene lokalne DPAPI evidencije te test koji provjerava izmijenjeni interni serijski broj i odbija nevaljane podatke.
+- Početni zaslon i Dashboard na uskom prozoru oslobađaju cijelu širinu skrivene ilustracije, umjesto ostavljanja praznog stupca.
+- U sažetku projekta dugi nazivi i package ID-jevi skraćuju se vizualno, a cjeloviti tekst dostupan je preko tooltipa.
+- Uvedeno stvarno automatizirano snimanje zaslona License Studija i dvije dodatne provjere rasporeda pri 900 px. Snimke se spremaju u repozitorij, ne generiraju se umjetno.
+- Poseban quality workflow pokreće se i na izravne promjene grane main, bez obveze otvaranja pull requesta.
+
+
 ## v0.6.2 — automatske licence bez ručnog package ID-ja
 
 - Brendigo License Studio generira nove BL2 licence s automatskim opsegom `@` za Demo, Osnovno i Profesionalac, bez unosa package ID-ja.

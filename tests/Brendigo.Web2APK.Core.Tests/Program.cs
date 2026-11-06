@@ -184,6 +184,14 @@ try {
         File.WriteAllText(encrypted,"tampered");
         Test(!AutomaticLicenseSeats.Usage(proAuto,out _,out _,seats),
             "Corrupted seat ledger fails closed");
+        var tamperedJson=System.Text.Encoding.UTF8.GetBytes(
+            "{\"Serial\":\"wrong\",\"Packages\":[\"com.demo.first\"]}");
+        var entropy=System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(proAuto.Serial));
+        File.WriteAllBytes(encrypted,System.Security.Cryptography.ProtectedData.Protect(
+            tamperedJson,entropy,System.Security.Cryptography.DataProtectionScope.CurrentUser));
+        Test(!AutomaticLicenseSeats.Usage(proAuto,out _,out _,seats),
+            "Valid DPAPI blob with altered internal serial fails closed");
     }
     var store=new ProjectStore(Path.Combine(root,"data"));
     var saved=store.Save(project);

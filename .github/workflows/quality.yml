@@ -1,5 +1,8 @@
 name: Native Windows WPF - Quality
 on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/screenshots/native/**']
   pull_request:
   workflow_dispatch:
 permissions:

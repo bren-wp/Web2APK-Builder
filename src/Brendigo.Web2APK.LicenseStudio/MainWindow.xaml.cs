@@ -14,7 +14,14 @@ public partial class MainWindow : Window
     private string _audience="both";
     private string _tier="demo";
     private CancellationTokenSource? _cancel;
-    public MainWindow(){ InitializeComponent(); }
+    public MainWindow()
+    {
+        InitializeComponent();
+#if UI_CAPTURE
+        if(Environment.GetCommandLineArgs().Contains("--capture-native"))
+            Loaded += CaptureNativeStudioOnLoaded;
+#endif
+    }
     private void BrowseKey_Click(object sender,RoutedEventArgs e)
     {
         var d=new OpenFileDialog {Title="Brendigo vlasnički šifrirani ključ",

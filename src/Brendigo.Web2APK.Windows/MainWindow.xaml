@@ -47,7 +47,7 @@
                 <Border x:Name="SidebarFooter" DockPanel.Dock="Bottom" CornerRadius="14" Background="#16223E" BorderBrush="#2A3C60"
                         BorderThickness="1" Padding="11,13" Margin="0,12,0,0">
                     <StackPanel>
-                        <TextBlock Foreground="#76E7CD" FontSize="11" FontWeight="Bold" Text="✓  Spremno za rad"/>
+                        <TextBlock Foreground="#76E7CD" FontSize="11" FontWeight="Bold" Text="●  Lokalni radni prostor"/>
                         <TextBlock Text="Brendigo Web2APK Builder" FontSize="11" FontWeight="SemiBold" Margin="0,8,0,2"/>
                         
                         <TextBlock Text="apk.com.hr" Foreground="#94A9D6" FontSize="11"/>
