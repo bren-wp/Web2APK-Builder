@@ -93,13 +93,20 @@ $studioProject=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.
 $gradleProject=Get-Content 'android/app/build.gradle' -Raw
 $releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
 foreach($project in @($winProject,$studioProject)){
- foreach($marker in @('<Version>0.6.4</Version>','<FileVersion>0.6.4.0</FileVersion>','<AssemblyVersion>0.6.4.0</AssemblyVersion>')){
+ foreach($marker in @('<Version>0.6.5</Version>','<FileVersion>0.6.5.0</FileVersion>','<AssemblyVersion>0.6.5.0</AssemblyVersion>')){
   if(-not $project.Contains($marker)){throw "Release version mismatch: $marker"}
  }
 }
-if(-not $gradleProject.Contains("versionCode 11") -or
-   -not $gradleProject.Contains("versionName '0.6.4'") -or
-   -not $releaseWorkflow.Contains("$('v0.6.4')")){
- throw 'Android metadata and release workflow version must match v0.6.4.'
+if(-not $gradleProject.Contains("versionCode 12") -or
+   -not $gradleProject.Contains("versionName '0.6.5'") -or
+   -not $releaseWorkflow.Contains("$('v0.6.5')")){
+ throw 'Android metadata and release workflow version must match v0.6.5.'
 }
-Write-Host 'Windows and Android release versions verified: 0.6.4 (Android code 11).'
+Write-Host 'Windows and Android release versions verified: 0.6.5 (Android code 12).'
+
+foreach($installer in @('installer/Brendigo-Web2APK.iss','installer/Brendigo-LicenseStudio.iss')) {
+ if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.5"')) {
+   throw "Installer version mismatch: $installer"
+ }
+}
+Write-Host 'Installer and Android package IDs verified.'

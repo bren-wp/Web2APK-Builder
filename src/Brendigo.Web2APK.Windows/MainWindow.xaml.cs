@@ -19,6 +19,8 @@ public partial class MainWindow : Window
     private string _page = "dashboard";
     private int _wizardStep;
     private ProjectDefinition _draft = new();
+    private bool _autoGeneratePackage;
+    private bool _settingAutomaticPackage;
     private readonly List<FrameworkElement> _fieldCells = [];
     private readonly List<Border> _stats = [];
     private readonly Dictionary<string, Button> _navButtons = [];
@@ -432,7 +434,8 @@ public partial class MainWindow : Window
 
     private void Edit(ProjectDefinition p)
     {
-        _draft = p.Copy(); _wizardStep = 0; Navigate("new");
+        _draft = p.Copy(); _autoGeneratePackage = false;
+        _wizardStep = 0; Navigate("new");
     }
     private void Delete(ProjectDefinition p)
     {
@@ -495,7 +498,26 @@ public partial class MainWindow : Window
     private void StartNew()
     {
         if (_busy) return;
-        _draft = new ProjectDefinition(); _wizardStep = 0; Navigate("new");
+        _draft = AndroidPackageIdGenerator.NewProject();
+        _autoGeneratePackage = true;
+        _wizardStep = 0; Navigate("new");
+    }
+
+    private bool ConfirmPackageIdentityChange(ProjectDefinition requested)
+    {
+        var existing=_store.List().FirstOrDefault(x=>x.Id==requested.Id);
+        if(existing is null || string.Equals(existing.PackageName,requested.PackageName,
+            StringComparison.Ordinal))return true;
+        return MessageBox.Show(this,
+            "Mijenjate Android package ID već spremljenog projekta.\n\n"+
+            "Prethodni: "+existing.PackageName+"\n"+
+            "Novi: "+requested.PackageName+"\n\n"+
+            "Android i Google Play smatraju ovo DRUGOM aplikacijom. "+
+            "Ne može zamijeniti već objavljenu aplikaciju kao ažuriranje; "+
+            "automatska licenca može zauzeti novo mjesto.\n\n"+
+            "Želite li svejedno nastaviti?",
+            "Promjena identiteta Android aplikacije",MessageBoxButton.YesNo,
+            MessageBoxImage.Warning)==MessageBoxResult.Yes;
     }
 
     private static void ShowError(string content) => MessageBox.Show(content, "Brendigo Web2APK Builder",

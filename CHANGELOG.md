@@ -1,5 +1,22 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.5 — automatski Android identitet, transparentno licenciranje i WPF DPI provjere
+
+- Novi projekti u Windows čarobnjaku automatski dobivaju jedinstven package ID iz naziva i internog GUID-a; hrvatski znakovi pretvaraju se u valjani ASCII, ručni unos nije obvezan.
+- Preimenovanje postojećeg projekta čuva package ID. Promjena ID-ja već spremljenog projekta zahtijeva potvrdu jer može značiti novu Play aplikaciju i novo licencno mjesto.
+- Postavke prikazuju točno vezane package ID-jeve automatskih BL2 licenci bez trošenja mjesta. Stari potpisani BL2 tokeni ostaju kompatibilni.
+- Za ZIP izvornog koda najprije se bira odredište, a zatim ponovno provjerava ovlaštenje prije spremanja.
+- Dodani testovi stabilnog identiteta, hrvatskih slova, kolizija između projekata i čitanja licencnih mjesta te stvarne WPF snimke čarobnjaka pri 125 %, 150 % i 200 % gustoće bitmapa.
+- Ispravljeni Inno Setup metapodaci oba Windows instalera. Windows i License Studio nose verziju 0.6.5; Android klijent 0.6.5, versionCode 12.
+- Ograničenja: offline DPAPI evidencija ne jamči sinkronizaciju mjesta na više računala; rasterizacijski DPI test nije ekvivalent ručnom testu na monitorima s različitim Windows skaliranjem.
+
+## v0.6.4 — sigurnija baza i usklađene binarne verzije
+
+- `projects.json.bak` čuva prethodno valjano stanje; više procesa serijalizira spremanje.
+- Ograničenje veličine baze, nevaljanih i dupliciranih projekata te test 24 paralelna upisa.
+- Stvarni WPF prikazi Projekata i Postavki na 900 px; Windows/Android assembly verzioniranje usklađeno.
+
+
 ## v0.6.3 — licencna mjesta i responzivni Windows zasloni
 
 - Odabir izlazne mape i otkazivanje pripreme alata više ne zauzimaju automatsko licencno mjesto unaprijed; stvarni izvoz ili početak izrade i dalje provjeravaju potpisana prava i broj mjesta.

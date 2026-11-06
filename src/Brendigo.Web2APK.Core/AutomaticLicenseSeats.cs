@@ -35,8 +35,18 @@ public static class AutomaticLicenseSeats
         string? directory=null) =>
         Inspect(claim,null,false,out used,out reason,directory);
 
+    /// <summary>Read-only view of exact bound package IDs, without consuming a seat.</summary>
+    public static bool ReadBindings(BrendigoLicense.Claims claim,
+        out IReadOnlyList<string> packageIds,out string reason,string? directory=null)
+    {
+        var result=new List<string>();
+        bool valid=Inspect(claim,null,false,out _,out reason,directory,result);
+        packageIds=valid?result.AsReadOnly():Array.Empty<string>();
+        return valid;
+    }
+
     private static bool Inspect(BrendigoLicense.Claims claim,string? packageId,bool reserve,
-        out int used,out string reason,string? directory)
+        out int used,out string reason,string? directory,List<string>? bindings=null)
     {
         used=0;reason="";
         if(claim.PackageName!=LicenseEntitlements.AutomaticScope ||
@@ -82,6 +92,7 @@ public static class AutomaticLicenseSeats
                     throw new InvalidDataException("Evidencija licencnih mjesta nije valjana.");
             }
             used=ledger.Packages.Count;
+            bindings?.AddRange(ledger.Packages);
             if(packageId is null || ledger.Packages.Contains(packageId,StringComparer.Ordinal))
                 return true;
             if(used>=LicenseEntitlements.ApplicationLimit(claim.Tier))

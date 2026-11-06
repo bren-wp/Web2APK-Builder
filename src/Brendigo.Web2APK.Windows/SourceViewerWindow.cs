@@ -131,7 +131,9 @@ public sealed class SourceViewerWindow : Window
     private void SaveZip()
     {
         try {
-            LicenseActivationStore.Require("windows",_project,"source");
+            // A cancelled destination dialog must not cause any additional license action.
+            if(!LicenseActivationStore.TryAuthorize("windows",_project,"source",out _,out var reason))
+                throw new UnauthorizedAccessException(reason);
             var dialog=new SaveFileDialog {
                 Title="Spremi izvorni Android projekt",Filter="ZIP arhiva (*.zip)|*.zip",
                 DefaultExt=".zip",FileName=_project.PackageName+"-android-source.zip"
@@ -142,6 +144,7 @@ public sealed class SourceViewerWindow : Window
                     "Izvoz",MessageBoxButton.OK,MessageBoxImage.Warning);
                 return;
             }
+            LicenseActivationStore.Require("windows",_project,"source");
             ZipFile.CreateFromDirectory(_root,dialog.FileName,CompressionLevel.Optimal,
                 includeBaseDirectory:false);
             MessageBox.Show(this,"ZIP izvornog koda je spremljen.","Izvoz",

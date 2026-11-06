@@ -177,6 +177,12 @@ try {
             "Professional max three unique packages");
         Test(AutomaticLicenseSeats.Usage(proAuto,out var three,out _,seats) && three==3,
             "Professional usage persisted");
+        Test(AutomaticLicenseSeats.ReadBindings(proAuto,out var bound,out _,seats) &&
+            bound.Count==3 && bound.Contains("com.demo.first") &&
+            bound.Contains("com.demo.second") && bound.Contains("com.demo.third"),
+            "License Studio can display all automatic package bindings without reserving seats");
+        Test(AutomaticLicenseSeats.Usage(proAuto,out var stillThree,out _,seats) &&
+            stillThree==three,"Reading bound IDs never allocates additional seats");
         var encrypted=Path.Combine(seats,
             Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(
                 System.Text.Encoding.UTF8.GetBytes(proAuto.Serial)))+".dpapi");

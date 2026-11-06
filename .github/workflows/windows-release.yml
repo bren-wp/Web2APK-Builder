@@ -64,7 +64,7 @@ jobs:
             throw 'Missing actual License Studio screenshot.'
           }
           $screens = @(Get-ChildItem './docs/screenshots/native' -Filter '*.png')
-          if ($screens.Count -lt 25) { throw "Expected 25 real UI captures, found $($screens.Count)" }
+          if ($screens.Count -lt 28) { throw "Expected 28 real UI captures, found $($screens.Count)" }
           foreach ($capture in @('wizard-compact-1024','preview-compact-1024','wizard-small-900','preview-small-900','welcome-small-900','dashboard-small-900','projects-small-900','settings-small-900')) {
             if (-not (Test-Path "./docs/screenshots/native/$capture.png")) {
               throw "Missing responsive layout capture: $capture"
@@ -81,6 +81,20 @@ jobs:
             }
           }
           finally { $licenseImage.Dispose() }
+          # Bitmap-density check: not a replacement for a real per-monitor DPI test.
+          foreach ($percent in @(125,150,200)) {
+            $captureFile="./docs/screenshots/native/wizard-density-$percent.png"
+            if (-not (Test-Path $captureFile)) { throw "Missing WPF density capture at $percent percent" }
+            $bitmap=[System.Drawing.Bitmap]::FromFile((Resolve-Path $captureFile).Path)
+            try {
+              $width=[int][Math]::Round(900*$percent/100.0)
+              $height=[int][Math]::Round(650*$percent/100.0)
+              if ($bitmap.Width -ne $width -or $bitmap.Height -ne $height) {
+                throw "Unexpected screenshot size at $percent percent"
+              }
+            }
+            finally { $bitmap.Dispose() }
+          }
           foreach ($name in @('wizard-1-basics','preview')) {
             $bitmap = [System.Drawing.Bitmap]::FromFile((Resolve-Path "./docs/screenshots/native/$name.png").Path)
             try {
@@ -176,11 +190,11 @@ jobs:
             if (-not (Test-Path $item)) { throw "Android package is missing: $item" }
             if ((Get-Item $item).Length -lt 30000) { throw "Android package is too small: $item" }
           }
-      - name: Publish native v0.6.4
+      - name: Publish native v0.6.5
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = 'v0.6.4'
+          $tag = 'v0.6.5'
           gh release view $tag --repo "$env:GITHUB_REPOSITORY" 2>$null | Out-Null
           if ($LASTEXITCODE -eq 0) { throw 'Increment version for each new release.' }
-          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.6.4" --notes-file CHANGELOG.md
+          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.6.5" --notes-file CHANGELOG.md

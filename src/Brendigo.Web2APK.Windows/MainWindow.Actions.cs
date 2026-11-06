@@ -378,6 +378,12 @@ public partial class MainWindow
                     DateTimeOffset.FromUnixTimeSeconds(c.ExpiresAt).ToLocalTime().ToString("dd.MM.yyyy"))+
                 " · "+(c.Audience=="both"?"Windows + Android":"Windows"),
                 12,false,Muted,new Thickness(0,5,0,7)));
+            if(c.PackageName==LicenseEntitlements.AutomaticScope &&
+                AutomaticLicenseSeats.ReadBindings(c,out var bound,out _))
+                card.Children.Add(Txt(bound.Count==0
+                    ? "Nijedna aplikacija još nije povezana."
+                    : "Povezani package ID-jevi: "+string.Join(", ",bound),
+                    11,false,Muted,new Thickness(0,4,0,7)));
             card.Children.Add(Txt("Licencni ključ: "+entry.MaskedToken,11,false,Muted));
             card.Children.Add(Btn("Zamijeni ovu licencu",()=>{
                 var window=new LicenseActivationWindow {Owner=this,ReplacingSerial=c.Serial};

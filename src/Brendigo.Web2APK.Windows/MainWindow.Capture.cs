@@ -147,6 +147,35 @@ public partial class MainWindow
             CaptureCompact("dashboard","dashboard-small-900",900,650);
             CaptureCompact("projects","projects-small-900",900,650);
             CaptureCompact("settings","settings-small-900",900,650);
+            // Render high-density raster captures at the same 900x650 logical viewport.
+            // This verifies WPF rendering at 125, 150 and 200 percent bitmap density,
+            // but is not a substitute for physical per-monitor DPI or font-scale tests.
+            foreach(var scale in new[]{125,150,200})
+            {
+                const int logicalWidth=900,logicalHeight=650;
+                var dpi=96d*scale/100d;
+                Reflow(logicalWidth,logicalHeight);
+                _wizardStep=0;
+                Navigate("new");
+                Reflow(logicalWidth,logicalHeight);
+                CheckCard(_wizardMainCard,"wizard form density "+scale);
+                CheckCard(_wizardSummaryCard,"wizard summary density "+scale);
+                var pixelsWide=(int)Math.Round(logicalWidth*scale/100d);
+                var pixelsHigh=(int)Math.Round(logicalHeight*scale/100d);
+                var bitmap=new RenderTargetBitmap(pixelsWide,pixelsHigh,dpi,dpi,
+                    PixelFormats.Pbgra32);
+                bitmap.Render(Root);
+                if(bitmap.PixelWidth!=pixelsWide || bitmap.PixelHeight!=pixelsHigh)
+                    throw new InvalidOperationException("Invalid DPI capture dimensions.");
+                var encoder=new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using var file=File.Create(Path.Combine(folder,
+                    "wizard-density-"+scale+".png"));
+                encoder.Save(file);
+                File.AppendAllText(diagnostics,
+                    "WPF density capture "+scale+"%: "+pixelsWide+" x "+pixelsHigh+
+                    " pixels at "+dpi+" DPI; logical viewport 900 x 650"+Environment.NewLine);
+            }
             Root.Width=double.NaN;Root.Height=double.NaN;
             captureSource.RootVisual=null;
             Console.WriteLine("Captured "+Directory.GetFiles(folder,"*.png").Length+" native WPF screenshots.");

@@ -79,17 +79,35 @@ public partial class MainWindow
         SectionHeader(panel, "Osnovne informacije", "Odredite izvor sadržaja i identitet Android aplikacije.");
         var names = Row();
         names.Margin = new Thickness(0,0,0,4);
-        names.Children.Add(InputField("Naziv aplikacije *", _draft.Name, s =>
+        var packageCell=InputField("Android package ID *",_draft.PackageName,s=>
+        {
+            if(_settingAutomaticPackage)return;
+            _autoGeneratePackage=false;
+            _draft.PackageName=s;
+            if(_summaryPackageText!=null)_summaryPackageText.Text=s;
+        });
+        var packageBox=(TextBox)packageCell.Children[1];
+        names.Children.Add(InputField("Naziv aplikacije *",_draft.Name,s=>
         {
             _draft.Name=s;
-            if(_summaryTitle!=null) _summaryTitle.Text=s;
+            if(_summaryTitle!=null)_summaryTitle.Text=s;
+            if(_autoGeneratePackage)
+            {
+                var generated=AndroidPackageIdGenerator.Suggest(s,_draft.Id);
+                _settingAutomaticPackage=true;
+                try{packageBox.Text=generated;}
+                finally{_settingAutomaticPackage=false;}
+                _draft.PackageName=generated;
+                if(_summaryPackageText!=null)_summaryPackageText.Text=generated;
+            }
         }));
-        names.Children.Add(InputField("Paket (applicationId) *", _draft.PackageName, s =>
-        {
-            _draft.PackageName=s;
-            if(_summaryPackageText!=null) _summaryPackageText.Text=s;
-        }));
+        names.Children.Add(packageCell);
         panel.Children.Add(names);
+        panel.Children.Add(Txt(
+            "Package ID automatski nastaje iz naziva i jedinstvenog ID-ja projekta. "+
+            "Nakon spremanja ostaje nepromijenjen pri preimenovanju. "+
+            "Možete ga ručno prilagoditi prije prvog izdanja.",11,false,Muted,
+            new Thickness(0,0,0,9)));
 
         if(_draft.SourceType=="url")
         {
@@ -472,7 +490,9 @@ public partial class MainWindow
     {
         try
         {
+            if(!ConfirmPackageIdentityChange(_draft))return false;
             _draft = _store.Save(_draft);
+            _autoGeneratePackage=false;
             return true;
         }
         catch (Exception e) { ShowError(e.Message); return false; }
