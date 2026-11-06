@@ -14,6 +14,11 @@ public partial class MainWindow
     private void BuildStep(StackPanel panel)
     {
         SectionHeader(panel, "Izrada Android aplikacije", "Izvoz Android projekta ili lokalna izrada APK/AAB paketa.");
+        var sdkChoice=Row();
+        sdkChoice.Margin=new Thickness(0,0,0,10);
+        sdkChoice.Children.Add(SelectField("Target Android SDK",_draft.TargetSdk.ToString(),
+            ["36","37"],s=>_draft.TargetSdk=int.Parse(s)));
+        panel.Children.Add(sdkChoice);
         panel.Children.Add(Btn("Google Play · provjeri spremnost",() =>
             ShowInfo(GooglePlayReadiness.AsText(_draft))));
         panel.Children.Add(Notice("Za APK/AAB moraju biti dostupni JDK 17, Gradle 9.6+ i Android SDK 36+. " +

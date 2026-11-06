@@ -16,6 +16,14 @@ Brendigo License Studio zasebna je **nativna Windows aplikacija** za izdavanje p
 
 **Ograničenje:** offline licence moguće je kopirati; opoziv i ograničenje jednog uređaja zahtijevaju zasebnu online provjeru.
 
+## Usklađivanje zaslona v0.4.1
+
+Windows čarobnjak i pregled aplikacije uređeni su prema referencama u rasporedu, tipografiji, karticama, odabiru izvora, navigaciji, razmacima i ikonama. Tema koristi tamne native WPF kontrole, bez bijelih sistemskih obrazaca za padajuće izbornike i potvrdne okvire. Dodatne stvarne snimke pohranjuju se u `docs/screenshots/native/`.
+
+[Čarobnjak 1024×740](docs/screenshots/native/wizard-compact-1024.png) · [Pregled 1024×740](docs/screenshots/native/preview-compact-1024.png) · [Čarobnjak 900×650](docs/screenshots/native/wizard-small-900.png) · [Pregled 900×650](docs/screenshots/native/preview-small-900.png).
+
+Promjene ne mijenjaju izdane BL2 licence; Developer licenca i dalje otključava neograničen broj aplikacija i sve dostupne opcije.
+
 ## Licencni paketi — po Android aplikaciji
 
 | Paket | Cijena | Podržane funkcije |
@@ -125,7 +133,7 @@ Na Android klijentu sada je moguće konfigurirati kameru, mikrofon, lokaciju, pr
 
 ## Status i sigurnosni pregled
 
-U verziji 0.4.0 aktivacija je obvezna u produkcijskom Windows programu i Android klijentu. Interni UI capture način zaseban je CI build i **nije dostupan u prodajnoj verziji**. Sigurnosni i dead-code pregled (opseg i preostale provjere): [Izvještaj](docs/SECURITY-DEADCODE-AUDIT-v0.4.0.md).
+U verziji 0.4.1 aktivacija je obvezna u produkcijskom Windows programu i Android klijentu. Interni UI capture način zaseban je CI build i **nije dostupan u prodajnoj verziji**. Sigurnosni i dead-code pregled (opseg i preostale provjere): [Izvještaj](docs/SECURITY-DEADCODE-AUDIT-v0.4.1.md).
 
 ## Status
 

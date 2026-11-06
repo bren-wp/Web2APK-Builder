@@ -92,7 +92,10 @@ public final class MainActivity extends Activity {
         }
         LinearLayout header=new LinearLayout(this);header.setPadding(dp(18),dp(15),dp(18),dp(14));
         header.setGravity(Gravity.CENTER_VERTICAL);header.setBackgroundColor(0xFF111B35);
-        TextView logo=text("B",23,Color.WHITE,true);logo.setGravity(Gravity.CENTER);
+        android.widget.ImageView logo=new android.widget.ImageView(this);
+        logo.setImageResource(R.drawable.brand_icon);
+        logo.setContentDescription("Brendigo");
+        logo.setPadding(dp(3),dp(3),dp(3),dp(3));
         logo.setBackground(background(PRIMARY,11));
         header.addView(logo,new LinearLayout.LayoutParams(dp(42),dp(42)));
         LinearLayout identity=new LinearLayout(this);identity.setOrientation(LinearLayout.VERTICAL);
@@ -519,12 +522,22 @@ public final class MainActivity extends Activity {
         preview.getSettings().setAllowFileAccess(false);
         preview.getSettings().setAllowContentAccess(false);
         preview.getSettings().setAllowUniversalAccessFromFileURLs(false);
+        preview.getSettings().setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        WebView.setWebContentsDebuggingEnabled(false);
         preview.setWebViewClient(new WebViewClient(){
             @Override public boolean shouldOverrideUrlLoading(WebView v, android.webkit.WebResourceRequest request) {
                 Uri u=request.getUrl();
                 Uri original=Uri.parse(address);
-                return !validUrl(u.toString(),p.optBoolean("AllowHttp")) ||
-                    !original.getHost().equalsIgnoreCase(u.getHost());
+                if(!validUrl(u.toString(),p.optBoolean("AllowHttp")))return true;
+                boolean sameOrigin=original.getHost().equalsIgnoreCase(u.getHost()) &&
+                    String.valueOf(original.getScheme()).equalsIgnoreCase(u.getScheme()) &&
+                    original.getPort()==u.getPort();
+                if(!sameOrigin && p.optBoolean("OpenExternal",true) && request.isForMainFrame()){
+                    try { startActivity(new Intent(Intent.ACTION_VIEW,u)); }
+                    catch(Exception ignored){Toast.makeText(MainActivity.this,
+                        "Nije dostupna aplikacija za otvaranje poveznice.",Toast.LENGTH_SHORT).show();}
+                }
+                return !sameOrigin;
             }
         });
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp(450));

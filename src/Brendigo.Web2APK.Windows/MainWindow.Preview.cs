@@ -31,8 +31,9 @@ public partial class MainWindow
             var folder = Path.Combine(_dataDir, "webview2-preview");
             Directory.CreateDirectory(folder);
             var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: folder);
-            if (_previewBrowser != browser || _page != "preview") return;
+            if (_previewBrowser != browser || _page != "preview") { browser.Dispose();return; }
             await browser.EnsureCoreWebView2Async(environment);
+            if (_previewBrowser != browser || _page != "preview") { browser.Dispose();return; }
             browser.CoreWebView2.Settings.IsScriptEnabled = _draft.JavaScript;
             browser.CoreWebView2.Settings.AreDevToolsEnabled = false;
             browser.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
@@ -60,9 +61,10 @@ public partial class MainWindow
             browser.CoreWebView2.NavigationStarting += (_, e) =>
             {
                 if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var to) ||
-                    (to.Scheme != Uri.UriSchemeHttps && !(_draft.AllowHttp && to.Scheme == Uri.UriSchemeHttp)) ||
-                    !string.Equals(to.Host,origin.Host,StringComparison.OrdinalIgnoreCase))
-                    e.Cancel = true;
+                    !string.Equals(to.Scheme,origin.Scheme,StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(to.Host,origin.Host,StringComparison.OrdinalIgnoreCase) ||
+                    to.Port!=origin.Port)
+                    e.Cancel=true;
             };
             browser.CoreWebView2.Navigate(url);
         }
@@ -82,18 +84,33 @@ public partial class MainWindow
 
     private void Preview()
     {
-        Heading("Pregled aplikacije", "Provjerite izgled i navigaciju prije generiranja Android paketa.");
-        var actions = Row();
-        actions.Margin = new Thickness(0,0,0,9);
-        actions.Children.Add(Btn("▷  Pokreni pregled", StartLivePreview, true));
-        actions.Children.Add(Btn("↗  Otvori u pregledniku", () => {
-            if (_draft.SourceType != "url") { ShowInfo("Lokalni HTML otvorite preko gumba Pokreni test."); return; }
-            if (!Uri.TryCreate(_draft.Url, UriKind.Absolute, out var uri) ||
-                (uri.Scheme != Uri.UriSchemeHttps && !(_draft.AllowHttp && uri.Scheme == Uri.UriSchemeHttp)))
-                { ShowError("Neispravan HTTPS URL."); return; }
-            Process.Start(new ProcessStartInfo { FileName=uri.AbsoluteUri,UseShellExecute=true });
+        var headline=new StackPanel { Margin=new Thickness(0,0,0,18) };
+        headline.Children.Add(Txt("Pregled aplikacije",29,true,White,new Thickness(0,0,0,5)));
+        headline.Children.Add(Txt("Provjerite izgled i navigaciju prije generiranja Android paketa.",
+            13,false,Muted));
+        var buttons=Row();
+        buttons.Margin=new Thickness(0,1,0,10);
+        buttons.Children.Add(Btn("▷  Pokreni test", StartLivePreview, true));
+        buttons.Children.Add(Btn("↗  Otvori u pregledniku",()=>{
+            if(_draft.SourceType!="url") { ShowInfo("Lokalni HTML provjerite pomoću gumba Pokreni test.");return; }
+            if(!Uri.TryCreate(_draft.Url,UriKind.Absolute,out var uri) ||
+                (uri.Scheme!=Uri.UriSchemeHttps && !(_draft.AllowHttp && uri.Scheme==Uri.UriSchemeHttp)))
+            {ShowError("Neispravan web URL.");return;}
+            Process.Start(new ProcessStartInfo{FileName=uri.AbsoluteUri,UseShellExecute=true});
         }));
-        PageHost.Children.Add(actions);
+        if(PageScroll.ActualWidth>1010)
+        {
+            var top=new DockPanel{LastChildFill=true,Margin=new Thickness(0,0,0,16)};
+            DockPanel.SetDock(buttons,Dock.Right);
+            top.Children.Add(buttons);
+            top.Children.Add(headline);
+            PageHost.Children.Add(top);
+        }
+        else
+        {
+            PageHost.Children.Add(headline);
+            PageHost.Children.Add(buttons);
+        }
         var columns = Row();
         columns.Margin = new Thickness(0);
         var chooser=Stack();
@@ -156,9 +173,9 @@ public partial class MainWindow
         {
             if (_previewSplash && _draft.Splash)
             {
-                var logo = new Border { Width=69,Height=69,CornerRadius=new CornerRadius(15),
-                    Background=Accent,HorizontalAlignment=HorizontalAlignment.Center };
-                logo.Child=Txt("B",42,true,White,new Thickness(20,7,0,0));
+                var logo = new Border { Width=70,Height=70,CornerRadius=new CornerRadius(15),
+                    Background=Accent,HorizontalAlignment=HorizontalAlignment.Center,
+                    Child=new Image { Source=PreviewIcon(),Width=59,Height=59,Stretch=Stretch.Uniform } };
                 splash.Children.Add(logo);
             }
             splash.Children.Add(Txt(_draft.Name,17,true,White,new Thickness(0,17,0,22)));
@@ -188,6 +205,27 @@ public partial class MainWindow
         properties.Children.Add(Btn("⚙  Uredi projekt",()=>Navigate("new")));
         properties.Children.Add(Btn("✓  Spremi svojstva",()=>{ if(SaveDraft())ShowInfo("Postavke pregleda su spremljene."); },true));
         UpdateResponsive();
+    }
+
+    private ImageSource PreviewIcon()
+    {
+        try
+        {
+            if(!string.IsNullOrWhiteSpace(_draft.IconPath) && File.Exists(_draft.IconPath))
+            {
+                var icon=new BitmapImage();
+                icon.BeginInit();
+                icon.UriSource=new Uri(Path.GetFullPath(_draft.IconPath));
+                icon.CacheOption=BitmapCacheOption.OnLoad;
+                icon.DecodePixelWidth=72;
+                icon.EndInit();
+                icon.Freeze();
+                return icon;
+            }
+        }
+        catch(IOException) { }
+        catch(NotSupportedException) { }
+        return new BitmapImage(new Uri("pack://application:,,,/Assets/Brendigo.ico"));
     }
 
     private Border DevicePreviewButton(string id,string symbol,string name,string subtitle)

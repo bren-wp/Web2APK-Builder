@@ -1,6 +1,18 @@
 # Brendigo Web2APK Builder — promjene
 
-## v0.4.0 — Brendigo License Studio, četiri paketa i potpisane licence
+## v0.4.1 — vizualna preciznost, responzivnost i sigurni WebView pregledi
+
+- **Ekran 03 / Novi Android projekt:** korigiran redoslijed polja prema referenci, jedinstveni horizontalni prikaz šest koraka, novi panel sažetka s logotipom, SDK i stvarno dopuštenim formatima prema licenci.
+- **Ekran 12 / Pregled aplikacije:** tri panela s izračunom širine bez horizontalnog prelijevanja, vlastita PNG launcher ikona ili zadana Brendigo ikona, osvježeni gumbi i naslov.
+- **Tamna tema:** vlastiti tamni WPF ComboBox s tamnim popisom, tamne potvrdne kućice i gradijentni primarni gumbi; nema zadanog bijelog prikaza formi.
+- **Responzivnost:** u CI-u se izrađuju i provjeravaju dodatne stvarne WPF snimke pri 1024×740 i 900×650, uz provjeru širine kartica.
+- **Privatnost i sigurnost:** WebView2 pregled strogo ograničen na isti protokol, host i port; preglednik se čisti pri ponovnom otvaranju iste stranice. Android pregled također provjerava podrijetlo, blokira miješani HTTP i isključuje debugiranje.
+- **Android launcher:** zaglavlje mobilnog klijenta prikazuje stvarnu Brendigo ikonu umjesto tekstualnog slova.
+- **Paketi:** zadržane sve četiri prethodno izdane licence (Demo, Osnovno, Profesionalac i Developer) i neograničena Developer prava.
+- **Kvaliteta:** kompilacija i snimanje stvarnih zaslona provjeravaju se u CI-u, ali 1:1 podudarnost svih uređaja zahtijeva dodatnu vizualnu usporedbu.
+
+
+## v0.4.1 — Brendigo License Studio, četiri paketa i potpisane licence
 
 - Demo (0 €), Osnovno (49 €), Profesionalac (69 €) i **Developer · vlasnik**.
 - Developer koristi trajnu BL2 licencu za neograničen broj Android aplikacija na Windowsu i Androidu te otključava sve opcije.

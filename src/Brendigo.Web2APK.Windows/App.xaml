@@ -60,33 +60,126 @@
             <Setter Property="MinHeight" Value="43"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
+        <!-- A local dark control template prevents native white ComboBox popups and fields. -->
         <Style TargetType="ComboBox">
-            <Setter Property="Foreground" Value="#F1F4FF"/>
-            <Setter Property="Background" Value="#142344"/>
+            <Setter Property="Foreground" Value="#EEF2FF"/>
+            <Setter Property="Background" Value="#0F1A36"/>
+            <Setter Property="BorderBrush" Value="#33466E"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="MinHeight" Value="43"/>
-            <Setter Property="Padding" Value="8,7"/>
+            <Setter Property="Padding" Value="11,9"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border x:Name="SelectionBorder" CornerRadius="9"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <Grid>
+                                    <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
+                                        ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                                        IsHitTestVisible="False" Margin="13,2,35,2"/>
+                                    <TextBlock Text="⌄" Foreground="#AFA5F3" FontSize="19"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                                        Margin="0,0,12,3"/>
+                                </Grid>
+                            </Border>
+                            <ToggleButton Background="Transparent" BorderThickness="0" Opacity="0.01"
+                                Focusable="False" ClickMode="Press"
+                                IsChecked="{Binding IsDropDownOpen,RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}"/>
+                            <Popup x:Name="PART_Popup"
+                                PlacementTarget="{Binding ElementName=SelectionBorder}"
+                                Placement="Bottom" AllowsTransparency="True" Focusable="False"
+                                StaysOpen="False" PopupAnimation="Fade"
+                                IsOpen="{TemplateBinding IsDropDownOpen}">
+                                <Border Background="#132242" BorderBrush="#405383"
+                                    BorderThickness="1" CornerRadius="9"
+                                    MinWidth="{Binding ActualWidth,ElementName=SelectionBorder}"
+                                    MaxHeight="300">
+                                    <ScrollViewer CanContentScroll="True"
+                                        VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="#826DFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="SelectionBorder" Property="Opacity" Value=".52"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style TargetType="ComboBoxItem">
-            <Setter Property="Foreground" Value="#EEF3FF"/>
-            <Setter Property="Background" Value="#172444"/>
-            <Setter Property="Padding" Value="11,9"/>
-            <Style.Triggers>
-                <Trigger Property="IsHighlighted" Value="True">
-                    <Setter Property="Background" Value="#3A317F"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#5545AB"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="Foreground" Value="#EDF2FF"/>
+            <Setter Property="Background" Value="#142345"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="OptionBorder" Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="OptionBorder" Property="Background" Value="#352C78"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="OptionBorder" Property="Background" Value="#4D3C9F"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="OptionBorder" Property="Opacity" Value=".5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0,7,0,7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="CheckFrame" Width="20" Height="20"
+                                CornerRadius="6" BorderThickness="1" BorderBrush="#50618A"
+                                Background="#121F3F" VerticalAlignment="Top" Margin="0,2,12,0">
+                                <TextBlock x:Name="CheckMark" Text="✓" FontSize="13" FontWeight="Bold"
+                                    Foreground="White" HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter Grid.Column="1" ContentSource="Content"
+                                VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckFrame" Property="Background" Value="#7554F6"/>
+                                <Setter TargetName="CheckFrame" Property="BorderBrush" Value="#A59AFF"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value=".42"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Application.Resources>
 </Application>

@@ -122,7 +122,12 @@ jobs:
             throw "WPF capture returned $($process.ExitCode)."
           }
           $screens = @(Get-ChildItem './docs/screenshots/native' -Filter '*.png')
-          if ($screens.Count -lt 16) { throw "Expected 16 real UI captures, found $($screens.Count)" }
+          if ($screens.Count -lt 20) { throw "Expected 20 real UI captures, found $($screens.Count)" }
+          foreach ($capture in @('wizard-compact-1024','preview-compact-1024','wizard-small-900','preview-small-900')) {
+            if (-not (Test-Path "./docs/screenshots/native/$capture.png")) {
+              throw "Missing responsive layout capture: $capture"
+            }
+          }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add docs/screenshots/native/*.png
@@ -131,11 +136,11 @@ jobs:
             git commit -m 'docs: capture real Windows WPF screens [skip ci]'
             git push origin HEAD:main
           }
-      - name: Publish native v0.4.0
+      - name: Publish native v0.4.1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = 'v0.4.0'
+          $tag = 'v0.4.1'
           gh release view $tag --repo "$env:GITHUB_REPOSITORY" 2>$null | Out-Null
           if ($LASTEXITCODE -eq 0) { throw 'Increment version for each new release.' }
-          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.4.0" --notes-file CHANGELOG.md
+          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.4.1" --notes-file CHANGELOG.md

@@ -24,3 +24,8 @@ if($android -notmatch 'bottomNavigation\(title\)' -or $android -notmatch 'showWi
  throw 'Android navigation or six-step wizard missing.'
 }
 Write-Host 'Production UI labels and responsive navigation verified.'
+
+$theme=Get-Content 'src/Brendigo.Web2APK.Windows/App.xaml' -Raw
+if($theme -notmatch 'PART_Popup' -or $theme -notmatch 'CheckFrame' -or
+   $theme -notmatch '#132242') {throw 'Dark native ComboBox/CheckBox template missing.'}
+Write-Host 'Dark WPF control templates verified.'

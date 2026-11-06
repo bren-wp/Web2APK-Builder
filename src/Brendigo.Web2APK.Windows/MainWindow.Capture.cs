@@ -56,6 +56,51 @@ public partial class MainWindow
                 Navigate(page);
                 Capture(page);
             }
+
+            // True layout smoke-test at additional window widths; no illustrative/generated artwork.
+            void CheckCard(Border? card,string label)
+            {
+                if(card==null || card.ActualWidth<1 || PageHost.ActualWidth<1)
+                    throw new InvalidOperationException("Missing responsive card: "+label);
+                var location=card.TranslatePoint(new Point(0,0),PageHost);
+                if(location.X < -2 || location.X+card.ActualWidth > PageHost.ActualWidth+2)
+                    throw new InvalidOperationException("Horizontal UI clipping: "+label+
+                        " x="+location.X+" width="+card.ActualWidth+
+                        " available="+PageHost.ActualWidth);
+            }
+            void CaptureCompact(string page,string filename,int width,int height)
+            {
+                Navigate(page);
+                Root.Width=width;Root.Height=height;
+                Root.Measure(new Size(width,height));
+                Root.Arrange(new Rect(0,0,width,height));
+                Root.UpdateLayout();
+                UpdateResponsive();
+                Root.UpdateLayout();
+                if(page=="new")
+                {
+                    CheckCard(_wizardMainCard,"wizard form at "+width);
+                    CheckCard(_wizardSummaryCard,"wizard summary at "+width);
+                }
+                if(page=="preview")
+                {
+                    CheckCard(_previewLeftCard,"preview devices at "+width);
+                    CheckCard(_previewCenterCard,"preview phone at "+width);
+                    CheckCard(_previewRightCard,"preview properties at "+width);
+                }
+                var image=new RenderTargetBitmap(width,height,96,96,PixelFormats.Pbgra32);
+                image.Render(Root);
+                var encoder=new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(image));
+                using var output=File.Create(Path.Combine(folder,filename+".png"));
+                encoder.Save(output);
+            }
+            _wizardStep=0;
+            CaptureCompact("new","wizard-compact-1024",1024,740);
+            CaptureCompact("preview","preview-compact-1024",1024,740);
+            CaptureCompact("new","wizard-small-900",900,650);
+            CaptureCompact("preview","preview-small-900",900,650);
+            Root.Width=double.NaN;Root.Height=double.NaN;
             Console.WriteLine("Captured "+Directory.GetFiles(folder,"*.png").Length+" native WPF screenshots.");
             Application.Current.Shutdown(0);
         }

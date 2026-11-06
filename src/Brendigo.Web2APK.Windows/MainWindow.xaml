@@ -47,7 +47,7 @@
                     <GradientStop Color="#191B43" Offset="1"/>
                 </LinearGradientBrush>
             </Grid.Background>
-            <Grid.RowDefinitions><RowDefinition Height="55"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="85"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <Border Grid.Row="0" Background="#10182F" BorderBrush="#263350" BorderThickness="0,0,0,1">
                 <Grid Margin="32,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -63,7 +63,7 @@
                 </Grid>
             </Border>
             <ScrollViewer Grid.Row="1" x:Name="PageScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel x:Name="PageHost" Margin="32,26,32,42"/>
+                <StackPanel x:Name="PageHost" Margin="32,9,32,42"/>
             </ScrollViewer>
         </Grid>
     </Grid>

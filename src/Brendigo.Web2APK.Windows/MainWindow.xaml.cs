@@ -21,6 +21,8 @@ public partial class MainWindow : Window
     private readonly List<Border> _stats = [];
     private readonly Dictionary<string, Button> _navButtons = [];
     private TextBlock? _summaryTitle;
+    private TextBlock? _summaryPackageText;
+    private Button? _wizardInlineNext, _wizardSummaryNext;
     private Border? _wizardMainCard;
     private Border? _wizardSummaryCard;
     private CancellationTokenSource? _buildCancellation;
@@ -78,23 +80,44 @@ public partial class MainWindow : Window
         foreach (var card in _stats) card.Width = statWidth;
         if (_wizardMainCard is not null && _wizardSummaryCard is not null)
         {
-            var two = viewport > 1040;
-            _wizardMainCard.Width = two ? viewport - 420 : viewport - 72;
-            _wizardSummaryCard.Width = two ? 300 : viewport - 72;
-            var contentWidth = Math.Max(280,_wizardMainCard.Width-64);
-            var paired = contentWidth >= 575;
-            var normal = paired ? (contentWidth-30)/2 : contentWidth-14;
-            foreach (var field in _fieldCells)
-                field.Width = field.Tag is string role && role == "wide"
-                    ? contentWidth-14 : normal;
+            var available=Math.Max(400,viewport-64);
+            var sideBySide=available >= 1040;
+            var summaryWidth=Math.Min(370,available*.34);
+            _wizardMainCard.Width=sideBySide?available-summaryWidth-28:available-14;
+            _wizardSummaryCard.Width=sideBySide?summaryWidth:available-14;
+            if(_wizardInlineNext!=null)
+                _wizardInlineNext.Visibility=sideBySide?Visibility.Collapsed:Visibility.Visible;
+            if(_wizardSummaryNext!=null)
+                _wizardSummaryNext.Visibility=sideBySide?Visibility.Visible:Visibility.Collapsed;
+            var contentWidth=Math.Max(260,_wizardMainCard.Width-48);
+            var paired=contentWidth>=565;
+            var normal=paired?(contentWidth-30)/2:contentWidth-14;
+            foreach(var field in _fieldCells)
+                field.Width=field.Tag is string role && role=="wide"?contentWidth-14:normal;
         }
         if (_previewLeftCard is not null && _previewCenterCard is not null && _previewRightCard is not null)
         {
-            var wide = viewport > 1130;
-            var medium = viewport > 770;
-            _previewLeftCard.Width = wide ? 270 : medium ? 270 : viewport - 65;
-            _previewCenterCard.Width = wide ? viewport - 665 : medium ? viewport - 320 : viewport - 65;
-            _previewRightCard.Width = wide ? 300 : viewport - 65;
+            var available=Math.Max(400,viewport-64);
+            var wide=available>=1050;
+            var medium=available>=740;
+            if(wide)
+            {
+                _previewLeftCard.Width=280;
+                _previewRightCard.Width=315;
+                _previewCenterCard.Width=available-280-315-48;
+            }
+            else if(medium)
+            {
+                _previewLeftCard.Width=265;
+                _previewCenterCard.Width=available-265-32;
+                _previewRightCard.Width=available-14;
+            }
+            else
+            {
+                _previewLeftCard.Width=available-14;
+                _previewCenterCard.Width=available-14;
+                _previewRightCard.Width=available-14;
+            }
         }
     }
 
@@ -145,7 +168,10 @@ public partial class MainWindow : Window
     private static Button Btn(string title, Action click, bool primary = false, bool danger = false)
     {
         var b = new Button { Content = title, Style = (Style)Application.Current.FindResource("StudioButton"),
-            Background = primary ? Accent : danger ? BrushOf("#573047") : BrushOf("#1C2A4C"),
+            Background=primary?new LinearGradientBrush(
+                (Color)ColorConverter.ConvertFromString("#547FFA"),
+                (Color)ColorConverter.ConvertFromString("#8350F2"),0)
+                :danger?BrushOf("#573047"):BrushOf("#1C2A4C"),
             Margin = new Thickness(0,0,10,8), MinHeight = 42 };
         b.Click += (_, _) => click();
         return b;
@@ -155,11 +181,13 @@ public partial class MainWindow : Window
 
     private void Navigate(string page)
     {
-        if (_page == "preview" && page != "preview") { _previewBrowser?.Dispose(); _previewBrowser = null; }
+        if (_page == "preview") { _previewBrowser?.Dispose(); _previewBrowser = null; }
         _page = page;
         _previewLeftCard = null; _previewCenterCard = null; _previewRightCard = null; _previewSurface = null;
         _heroPhone = null;
-        _summaryTitle = null; _wizardMainCard = null; _wizardSummaryCard = null;
+        _summaryTitle=null;_summaryPackageText=null;
+        _wizardMainCard=null;_wizardSummaryCard=null;
+        _wizardInlineNext=null;_wizardSummaryNext=null;
         _stats.Clear(); _fieldCells.Clear();
         PageHost.Children.Clear();
         Breadcrumb.Text = "Radni prostor   ›   " + (page switch {

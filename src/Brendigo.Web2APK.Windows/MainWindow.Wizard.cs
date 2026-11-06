@@ -11,8 +11,8 @@ public partial class MainWindow
     private void Wizard()
     {
         Heading("Novi Android projekt", "Korak " + (_wizardStep + 1) + " od 6 · " + StepNames[_wizardStep]);
-        var steps = Row();
-        steps.Margin = new Thickness(0,0,0,18);
+        // A single horizontal stepper matches the reference and stays scrollable on narrow windows.
+        var steps = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0,0,0,12) };
         for (int i = 0; i < StepNames.Length; i++)
         {
             int chosen = i;
@@ -39,7 +39,10 @@ public partial class MainWindow
                 steps.Children.Add(new Border { Width=27,Height=1,Background=Stroke,
                     Margin=new Thickness(0,0,14,0),VerticalAlignment=VerticalAlignment.Center });
         }
-        PageHost.Children.Add(steps);
+        PageHost.Children.Add(new ScrollViewer { Content=steps,
+            HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility=ScrollBarVisibility.Disabled,
+            Margin=new Thickness(0,0,0,18) });
         var columns = Row();
         columns.Margin = new Thickness(0,0,0,0);
         var editor = Stack();
@@ -74,42 +77,59 @@ public partial class MainWindow
     private void BasicStep(StackPanel panel)
     {
         SectionHeader(panel, "Osnovne informacije", "Odredite izvor sadržaja i identitet Android aplikacije.");
-        var two = Row();
-        two.Children.Add(InputField("Naziv aplikacije *", _draft.Name, s => {
-            _draft.Name = s; if (_summaryTitle != null) _summaryTitle.Text = s; }));
-        two.Children.Add(InputField("Paket (applicationId) *", _draft.PackageName, s => _draft.PackageName = s));
-        panel.Children.Add(two);
-        var source = Row();
-        source.Children.Add(Btn("🌐  Web-stranica · URL", () => { _draft.SourceType="url"; Navigate("new"); }, _draft.SourceType == "url"));
-        source.Children.Add(Btn("◇  Lokalni HTML projekt", () => { _draft.SourceType="local"; Navigate("new"); }, _draft.SourceType == "local"));
-        panel.Children.Add(source);
-        if (_draft.SourceType == "url")
+        var names = Row();
+        names.Margin = new Thickness(0,0,0,4);
+        names.Children.Add(InputField("Naziv aplikacije *", _draft.Name, s =>
         {
-            panel.Children.Add(InputField("URL web-stranice *", _draft.Url, s => _draft.Url = s, true));
-            panel.Children.Add(Txt("Preporučeno: HTTPS i provjerena domena.", 11, false, Muted, new Thickness(0,0,0,15)));
+            _draft.Name=s;
+            if(_summaryTitle!=null) _summaryTitle.Text=s;
+        }));
+        names.Children.Add(InputField("Paket (applicationId) *", _draft.PackageName, s =>
+        {
+            _draft.PackageName=s;
+            if(_summaryPackageText!=null) _summaryPackageText.Text=s;
+        }));
+        panel.Children.Add(names);
+
+        if(_draft.SourceType=="url")
+        {
+            panel.Children.Add(InputField("URL web-stranice *", _draft.Url, s => _draft.Url=s, true));
+            panel.Children.Add(Txt("Koristite HTTPS i provjerite domenu prije objave.",
+                11,false,Muted,new Thickness(0,0,0,10)));
         }
         else
         {
-            panel.Children.Add(Txt("Lokalna mapa s index.html *", 12, true, White, new Thickness(0,0,0,7)));
-            panel.Children.Add(Txt(string.IsNullOrEmpty(_draft.LocalPath) ? "Mapa nije odabrana." : _draft.LocalPath, 12,
-                false, Muted, new Thickness(0,0,0,8)));
-            panel.Children.Add(Btn("Odaberi HTML mapu", () => {
-                var dialog = new OpenFolderDialog { Title = "Odaberi lokalni HTML projekt", Multiselect = false };
-                if (dialog.ShowDialog(this) == true) { _draft.LocalPath=dialog.FolderName; Navigate("new"); }
-            }, true));
+            panel.Children.Add(Txt("Lokalna mapa s index.html *",12,true,White,new Thickness(0,0,0,7)));
+            panel.Children.Add(Txt(string.IsNullOrEmpty(_draft.LocalPath) ?
+                "Mapa još nije odabrana." : _draft.LocalPath,12,false,Muted,new Thickness(0,0,0,8)));
+            panel.Children.Add(Btn("Odaberi HTML mapu",()=>{
+                var dialog=new OpenFolderDialog {Title="Odaberite mapu s index.html",Multiselect=false};
+                if(dialog.ShowDialog(this)==true) { _draft.LocalPath=dialog.FolderName;Navigate("new"); }
+            },true));
         }
-        var versions = Row();
-        versions.Children.Add(InputField("Verzija aplikacije", _draft.VersionName, s => _draft.VersionName = s));
-        versions.Children.Add(InputField("Version code", _draft.VersionCode.ToString(), s =>
-            _draft.VersionCode = int.TryParse(s, out int n) ? n : 0));
+
+        var source = Row();
+        source.Margin = new Thickness(0,0,0,9);
+        source.Children.Add(Btn("◉  Web-stranica · URL",()=>{
+            if(_draft.SourceType=="url")return;
+            _draft.SourceType="url";Navigate("new");
+        },_draft.SourceType=="url"));
+        source.Children.Add(Btn("◇  Lokalni HTML projekt",()=>{
+            if(_draft.SourceType=="local")return;
+            _draft.SourceType="local";Navigate("new");
+        },_draft.SourceType=="local"));
+        panel.Children.Add(source);
+        var versions=Row();
+        versions.Margin=new Thickness(0,0,0,3);
+        versions.Children.Add(InputField("Verzija aplikacije",_draft.VersionName,
+            s=>_draft.VersionName=s));
+        versions.Children.Add(InputField("Version code",_draft.VersionCode.ToString(),s=>
+            _draft.VersionCode=int.TryParse(s,out var n)?n:0));
         panel.Children.Add(versions);
-        var sdk = Row();
-        sdk.Children.Add(SelectField("Minimalni Android SDK", _draft.MinSdk.ToString(),
-            ["24", "26", "28", "30", "33", "34", "35", "36"],
-            s => _draft.MinSdk = int.Parse(s)));
-        sdk.Children.Add(SelectField("Target SDK", _draft.TargetSdk.ToString(), ["36","37"],
-            s => _draft.TargetSdk = int.Parse(s)));
-        panel.Children.Add(sdk);
+        panel.Children.Add(SelectField("Minimalni Android SDK",_draft.MinSdk.ToString(),
+            ["24","26","28","30","33","34","35","36"],s=>_draft.MinSdk=int.Parse(s)));
+        panel.Children.Add(Txt("Minimalna verzija određuje podržane Android uređaje.",
+            11,false,Muted,new Thickness(0,0,0,5)));
     }
 
     private StackPanel InputField(string label, string value, Action<string> set, bool wide = false)
@@ -343,28 +363,82 @@ public partial class MainWindow
         footer.Children.Add(Btn("Spremi projekt", () => { if (SaveDraft()) ShowInfo("Projekt je lokalno spremljen."); }));
         footer.Children.Add(Btn("▷  Pregled", () => { if(SaveDraft()) Navigate("preview"); }));
         if (_wizardStep < StepNames.Length - 1)
-            footer.Children.Add(Btn("Nastavi na " + StepNames[_wizardStep+1] + "  →", () => ChangeStep(_wizardStep+1), true));
+        {
+            _wizardInlineNext=Btn("Nastavi na "+StepNames[_wizardStep+1]+"  →",()=>ChangeStep(_wizardStep+1),true);
+            footer.Children.Add(_wizardInlineNext);
+        }
         panel.Children.Add(footer);
     }
 
     private void Summary(StackPanel panel)
     {
-        SectionHeader(panel, "Pregled projekta", "Trenutačne postavke.");
-        var logo = new Border { Width=44, Height=44, CornerRadius=new CornerRadius(12),
-            Background=Accent, Child=Txt("B", 27, true), HorizontalAlignment=HorizontalAlignment.Left };
-        panel.Children.Add(logo);
-        _summaryTitle = Txt(_draft.Name, 15, true, White, new Thickness(0,12,0,4));
-        panel.Children.Add(_summaryTitle);
-        panel.Children.Add(Txt(_draft.PackageName, 11, false, Muted));
+        SectionHeader(panel,"Pregled projekta","Pregled osnovnih postavki prije nastavka.");
+        var identity=new StackPanel { Orientation=Orientation.Horizontal,
+            Margin=new Thickness(0,0,0,13),VerticalAlignment=VerticalAlignment.Center };
+        var logo=new Border { Width=45,Height=45,CornerRadius=new CornerRadius(11),
+            Background=Accent,Margin=new Thickness(0,0,12,0) };
+        logo.Child=new Image {Source=new System.Windows.Media.Imaging.BitmapImage(
+            new Uri("pack://application:,,,/Assets/Brendigo.ico")),Width=34,Height=34};
+        identity.Children.Add(logo);
+        var info=Stack();
+        info.VerticalAlignment=VerticalAlignment.Center;
+        _summaryTitle=Txt(_draft.Name,13,true,White,new Thickness(0,0,0,4));
+        _summaryPackageText=Txt(_draft.PackageName,11,false,Muted);
+        info.Children.Add(_summaryTitle);
+        info.Children.Add(_summaryPackageText);
+        identity.Children.Add(info);
+        panel.Children.Add(new Border { Background=BrushOf("#1B2745"),
+            CornerRadius=new CornerRadius(12),BorderBrush=Stroke,BorderThickness=new Thickness(1),
+            Padding=new Thickness(13),Child=identity,Margin=new Thickness(0,0,0,3) });
+
+        var origin=Stack();
+        origin.Children.Add(Txt("Izvor",12,true));
+        origin.Children.Add(Txt(_draft.SourceType=="local"?"Lokalni HTML projekt":"URL web-stranice",11,false,Muted,
+            new Thickness(0,5,0,0)));
+        panel.Children.Add(SummaryRow(origin,_draft.SourceType=="local"?"HTML":"HTTPS","#116052"));
         panel.Children.Add(Divider());
-        panel.Children.Add(Txt("Izvor", 12, true));
-        panel.Children.Add(Txt(_draft.SourceType == "local" ? "Lokalni HTML" : "HTTPS/URL",12,false,Muted));
+
+        var sdk=Stack();
+        sdk.Children.Add(Txt("Target SDK",12,true));
+        sdk.Children.Add(Txt("Android prema aktualnim zahtjevima",11,false,Muted,new Thickness(0,5,0,0)));
+        panel.Children.Add(SummaryRow(sdk,_draft.TargetSdk.ToString(),"#413273"));
         panel.Children.Add(Divider());
-        panel.Children.Add(Txt("Target Android SDK",12,true));
-        panel.Children.Add(Txt(_draft.TargetSdk.ToString(),12,false,Muted));
+
+        var supported=LicenseActivationStore.Installed("windows")
+            .Where(c=>c.Tier==LicenseEntitlements.Developer || c.PackageName==_draft.PackageName)
+            .OrderByDescending(c=>c.Tier switch {"developer"=>4,"pro"=>3,"basic"=>2,_=>1})
+            .FirstOrDefault();
+        var export=Stack();
+        export.Children.Add(Txt("Izvoz",12,true));
+        var output=supported is null?"Unesite licencu za projekt":
+            LicenseEntitlements.Allows(supported,"aab")?"APK i AAB":"Samo APK";
+        export.Children.Add(Txt(output,11,false,Muted,new Thickness(0,5,0,0)));
+        panel.Children.Add(export);
         panel.Children.Add(Divider());
-        panel.Children.Add(Txt("Izvoz",12,true));
-        panel.Children.Add(Txt("Gradle projekt, APK, AAB",12,false,Muted));
+        if(supported!=null)
+            panel.Children.Add(Txt("Paket: "+LicenseEntitlements.DisplayName(supported.Tier),11,false,
+                BrushOf("#AEBEED"),new Thickness(0,6,0,16)));
+
+        if(_wizardStep<StepNames.Length-1)
+        {
+            _wizardSummaryNext=Btn("→  Nastavi na "+StepNames[_wizardStep+1],
+                ()=>ChangeStep(_wizardStep+1),true);
+            _wizardSummaryNext.Margin=new Thickness(0,9,0,0);
+            _wizardSummaryNext.HorizontalAlignment=HorizontalAlignment.Left;
+            panel.Children.Add(_wizardSummaryNext);
+        }
+    }
+
+    private static DockPanel SummaryRow(UIElement value,string badge,string background)
+    {
+        var row=new DockPanel { LastChildFill=true,Margin=new Thickness(0,7,0,8) };
+        var flag=new Border {Background=BrushOf(background),BorderThickness=new Thickness(1),
+            BorderBrush=BrushOf("#54659B"),CornerRadius=new CornerRadius(13),
+            Padding=new Thickness(10,5),Margin=new Thickness(8,0,0,0),
+            VerticalAlignment=VerticalAlignment.Center,
+            Child=Txt(badge,11,true,BrushOf("#C6F8E9"))};
+        DockPanel.SetDock(flag,Dock.Right);row.Children.Add(flag);row.Children.Add(value);
+        return row;
     }
 
     private void ChangeStep(int step)
