@@ -238,7 +238,7 @@ public final class MainActivity extends Activity {
     private android.view.View contentForWebView() {
         if(mainContent!=null)return mainContent;
         @@REFRESH_INIT@@
-        mainContent=browser;
+        if(mainContent==null)mainContent=browser;
         return mainContent;
     }
     private void applySafeAreaInsets(android.view.View content) {
@@ -430,7 +430,7 @@ public final class MainActivity extends Activity {
         "refreshLayout.addView(browser); "+
         "refreshLayout.setOnChildScrollUpCallback((parent,child)->browser.canScrollVertically(-1)); "+
         "refreshLayout.setOnRefreshListener(() -> browser.reload()); "+
-        "mainContent=refreshLayout;return mainContent;" : "")
+        "mainContent=refreshLayout;" : "")
     .Replace("@@REFRESH_STOP@@",project.PullRefresh ?
         "if(refreshLayout!=null)refreshLayout.setRefreshing(false);" : "")
     .Replace("@@PULL@@",project.PullRefresh.ToString().ToLowerInvariant())
