@@ -20,6 +20,17 @@ public partial class MainWindow
             if(!ReferenceEquals(Content,Root))
                 throw new InvalidOperationException("Unexpected WPF root.");
             Content=null;
+            // Attach the visual tree to its own real composition target. A detached
+            // UIElement cannot reliably update ActualWidth/ActualHeight on Windows CI.
+            var captureWindow = new Window {
+                Content=Root, Width=1440, Height=900,
+                WindowStartupLocation=WindowStartupLocation.Manual,
+                Left=-3000, Top=-3000,
+                WindowStyle=WindowStyle.None,
+                ResizeMode=ResizeMode.NoResize,
+                ShowInTaskbar=false, ShowActivated=false
+            };
+            captureWindow.Show();
             var folder = Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native");
             Directory.CreateDirectory(folder);
             var diagnostics=Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native-progress.log");
@@ -28,12 +39,16 @@ public partial class MainWindow
             void Reflow(int width,int height)
             {
                 var bounds=new Size(width,height);
+                captureWindow.Width=width;captureWindow.Height=height;
                 Root.Width=width;Root.Height=height;
+                captureWindow.InvalidateMeasure();
+                captureWindow.UpdateLayout();
                 Root.InvalidateMeasure();
                 Root.Measure(bounds);
                 Root.Arrange(new Rect(bounds));
                 Root.UpdateLayout();
                 UpdateResponsive();
+                captureWindow.UpdateLayout();
                 Root.InvalidateMeasure();
                 Root.Measure(bounds);
                 Root.Arrange(new Rect(bounds));
@@ -123,6 +138,8 @@ public partial class MainWindow
             CaptureCompact("new","wizard-small-900",900,650);
             CaptureCompact("preview","preview-small-900",900,650);
             Root.Width=double.NaN;Root.Height=double.NaN;
+            captureWindow.Content=null;
+            captureWindow.Close();
             Console.WriteLine("Captured "+Directory.GetFiles(folder,"*.png").Length+" native WPF screenshots.");
             Application.Current.Shutdown(0);
         }
