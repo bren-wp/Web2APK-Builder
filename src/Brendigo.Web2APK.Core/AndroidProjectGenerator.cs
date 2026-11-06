@@ -78,7 +78,7 @@ dependencies {
     @@ADS_DEPENDENCIES@@
     @@FIREBASE_DEPENDENCIES@@
 }
-""".Replace("@@GOOGLE_PLUGIN@@", project.FirebasePushEnabled ? "id 'com.google.gms.google-services'" : "")
+""".Replace("@@GOOGLE_PLUGIN@@", project.FirebasePushEnabled ? "; id 'com.google.gms.google-services'" : "")
     .Replace("@@ADS_DEPENDENCIES@@", project.AdMobEnabled ? "implementation 'com.google.android.gms:play-services-ads:25.5.0'\\n    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'".Replace("\\n","\n") : "")
     .Replace("@@FIREBASE_DEPENDENCIES@@", project.FirebasePushEnabled ? "implementation platform('com.google.firebase:firebase-bom:35.1.0')\\n    implementation 'com.google.firebase:firebase-messaging'".Replace("\\n","\n") : "")
     .Replace("@@PACKAGE@@", project.PackageName)
