@@ -1,5 +1,16 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.8 — emulator, navigacijski UI testovi i mjerljiva vizualna regresija
+
+- Novi zasebni GitHub Actions workflow izrađuje i pokreće stvarni Android klijent i generiranu offline WebView aplikaciju na API 35 emulatoru.
+- Testira se aktivacijski ekran mobilnog klijenta na tri rezolucijska/gustoćna profila i učitavanje stvarnog lokalnog HTML-a; PNG snimke i XML hijerarhije pohranjuju se u CI artefakt.
+- WPF testovi sada stvarno aktiviraju navigacijske gumbe Welcome → Novi projekt, Dashboard → Projekti i Projekti → Novi projekt.
+- U Release postupak dodana je usporedba uzorkovanih RGB piksela 20 stvarnih Windows zaslona s prethodno spremljenim snimkama te izvozni JSON izvještaj; velika neplanirana vizualna regresija zaustavlja izdanje.
+- Generator Android resursa obrađuje apostrofe, navodnike i početne znakove `@`/`?`, uz dodatni C# regresijski test i build-fixture s nazivom koji sadrži posebne znakove.
+- Metapodaci: Windows i License Studio 0.6.8, oba instalera 0.6.8, Android klijent 0.6.8 (`versionCode 15`).
+- Postojeće BL2 licence, paketi, cijene i prava ostaju nepromijenjeni. Emulator nije fizički uređaj i WPF regresijska kontrola ne potvrđuje potpunu pixel-perfect podudarnost.
+
+
 ## v0.6.7 — WebView origin sigurnost, potpisivanje i detaljniji pregled Windows zaslona
 
 - Generirane Android aplikacije prije dodjele WebView dozvola sada provjeravaju **HTTPS/HTTP shemu, host i stvarni/default port**, a ne samo domenu; ista domena na drugom portu ili preko HTTP-a više ne dijeli automatsko povjerenje.

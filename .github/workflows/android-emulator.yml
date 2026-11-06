@@ -1,0 +1,54 @@
+name: Android emulator - UI and responsive smoke
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/screenshots/native/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  emulator-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.1'
+      - name: Enable KVM hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Build Android client and offline generated app
+        run: |
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+          gradle -p android :app:assembleDebug --no-daemon
+          dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj -- --offline-emulator-fixture emulator-fixture
+          gradle -p emulator-fixture/project :app:assembleDebug --no-daemon
+      - name: Launch and test actual Android UI on API 35 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: '-no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim'
+          script: bash scripts/test-android-emulator.sh
+      - name: Upload real emulator screenshots and hierarchy logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brendigo-android-emulator-ui
+          path: emulator-artifacts/
+          if-no-files-found: warn
+          retention-days: 14

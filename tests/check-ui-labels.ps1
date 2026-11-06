@@ -93,19 +93,19 @@ $studioProject=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.
 $gradleProject=Get-Content 'android/app/build.gradle' -Raw
 $releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
 foreach($project in @($winProject,$studioProject)){
- foreach($marker in @('<Version>0.6.7</Version>','<FileVersion>0.6.7.0</FileVersion>','<AssemblyVersion>0.6.7.0</AssemblyVersion>')){
+ foreach($marker in @('<Version>0.6.8</Version>','<FileVersion>0.6.8.0</FileVersion>','<AssemblyVersion>0.6.8.0</AssemblyVersion>')){
   if(-not $project.Contains($marker)){throw "Release version mismatch: $marker"}
  }
 }
-if(-not $gradleProject.Contains("versionCode 14") -or
-   -not $gradleProject.Contains("versionName '0.6.7'") -or
-   -not $releaseWorkflow.Contains("$('v0.6.7')")){
- throw 'Android metadata and release workflow version must match v0.6.7.'
+if(-not $gradleProject.Contains("versionCode 15") -or
+   -not $gradleProject.Contains("versionName '0.6.8'") -or
+   -not $releaseWorkflow.Contains("$('v0.6.8')")){
+ throw 'Android metadata and release workflow version must match v0.6.8.'
 }
-Write-Host 'Windows and Android release versions verified: 0.6.7 (Android code 14).'
+Write-Host 'Windows and Android release versions verified: 0.6.8 (Android code 15).'
 
 foreach($installer in @('installer/Brendigo-Web2APK.iss','installer/Brendigo-LicenseStudio.iss')) {
- if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.7"')) {
+ if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.8"')) {
    throw "Installer version mismatch: $installer"
  }
 }
@@ -141,3 +141,16 @@ if(-not ($androidGenerator.Contains('effectivePort(uri) == effectivePort(home)')
     throw 'WebView origin, Gradle signing or responsive project-row regression.'
 }
 Write-Host 'Security boundaries and compact project-row layout verified.'
+
+# The additional UI and emulator tests must remain part of CI.
+$androidFlow=Get-Content '.github/workflows/android-emulator.yml' -Raw
+$androidSmoke=Get-Content 'scripts/test-android-emulator.sh' -Raw
+$visualDiff=Get-Content 'scripts/compare-wpf-screens.ps1' -Raw
+if(-not ($androidFlow.Contains('reactivecircus/android-emulator-runner@v2') -and
+         $androidFlow.Contains('assembleDebug') -and
+         $androidSmoke.Contains('tablet-wide') -and
+         $androidSmoke.Contains('BRENDIGO_OFFLINE_EMULATOR_READY') -and
+         $visualDiff.Contains('changedSampleFraction'))) {
+  throw 'Android emulator and WPF visual regression CI checks missing.'
+}
+Write-Host 'Android emulator and native WPF visual regression configured.'

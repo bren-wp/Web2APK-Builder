@@ -37,6 +37,10 @@ jobs:
       - name: Build isolated UI capture executable (NOT included in release)
         run: |
           dotnet publish src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release -r win-x64 --self-contained true -p:DefineConstants=UI_CAPTURE -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o ui-capture
+      - name: Preserve tracked WPF screenshots as visual regression baseline
+        run: |
+          New-Item -ItemType Directory -Force -Path wpf-baseline | Out-Null
+          Copy-Item docs/screenshots/native/*.png wpf-baseline/ -Force
       - name: Capture and verify actual native WPF screens
         run: |
           $exe = (Resolve-Path './ui-capture/Brendigo.Web2APK.exe').Path
@@ -114,6 +118,7 @@ jobs:
             }
             finally { $bitmap.Dispose() }
           }
+          pwsh -NoProfile -File scripts/compare-wpf-screens.ps1
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add docs/screenshots/native/*.png
@@ -122,6 +127,14 @@ jobs:
             git commit -m 'docs: capture real Windows WPF screens [skip ci]'
             git push origin HEAD:main
           }
+      - name: Upload WPF visual regression measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brendigo-wpf-visual-audit
+          path: visual-audit/wpf-visual-regression.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Publish self-contained portable.exe
         run: |
           dotnet publish src/Brendigo.Web2APK.Windows/Brendigo.Web2APK.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -p:EnableCompressionInSingleFile=true -o publish
@@ -192,11 +205,11 @@ jobs:
             if (-not (Test-Path $item)) { throw "Android package is missing: $item" }
             if ((Get-Item $item).Length -lt 30000) { throw "Android package is too small: $item" }
           }
-      - name: Publish native v0.6.7
+      - name: Publish native v0.6.8
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = 'v0.6.7'
+          $tag = 'v0.6.8'
           gh release view $tag --repo "$env:GITHUB_REPOSITORY" 2>$null | Out-Null
           if ($LASTEXITCODE -eq 0) { throw 'Increment version for each new release.' }
-          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.6.7" --notes-file CHANGELOG.md
+          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.6.8" --notes-file CHANGELOG.md

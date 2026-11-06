@@ -178,6 +178,37 @@ public partial class MainWindow
             if(end.X>PageHost.ActualWidth+2)
                 throw new InvalidOperationException("Project action buttons exceed viewport.");
             PageHost.Children.Remove(testRow);
+            // Exercise actual navigation buttons, not only directly invoked page methods.
+            // No activation dialogs or external tools are opened during this smoke test.
+            Button? FindAction(DependencyObject root,string label)
+            {
+                if(root is Button b && b.Content is string title &&
+                    title.Contains(label,StringComparison.Ordinal))return b;
+                for(int i=0;i<VisualTreeHelper.GetChildrenCount(root);i++)
+                {
+                    var match=FindAction(VisualTreeHelper.GetChild(root,i),label);
+                    if(match!=null)return match;
+                }
+                return null;
+            }
+            void ClickAndAssert(string from,string label,string destination)
+            {
+                Navigate(from);
+                Reflow(900,650);
+                var button=FindAction(PageHost,label);
+                if(button is null || !button.IsEnabled)
+                    throw new InvalidOperationException("Navigation action missing: "+from+"/"+label);
+                button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Reflow(900,650);
+                if(_page!=destination)
+                    throw new InvalidOperationException(
+                        "Navigation action failed: "+from+"/"+label+" → "+_page);
+                File.AppendAllText(diagnostics,
+                    "Real button click passed: "+from+" → "+destination+Environment.NewLine);
+            }
+            ClickAndAssert("welcome","Novi projekt","new");
+            ClickAndAssert("dashboard","Moji projekti","projects");
+            ClickAndAssert("projects","Novi projekt","new");
             // Render high-density raster captures at the same 900x650 logical viewport.
             // This verifies WPF rendering at 125, 150 and 200 percent bitmap density,
             // but is not a substitute for physical per-monitor DPI or font-scale tests.

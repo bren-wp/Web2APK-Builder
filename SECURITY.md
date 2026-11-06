@@ -15,7 +15,7 @@
 
 ## Izvješće o pregledu
 
-[Pregled sigurnosti, ovisnosti i mrtvog koda v0.6.7](docs/SECURITY-DEADCODE-AUDIT-v0.6.7.md) sadrži evidenciju pregledanih modula, promjene, testove, poznata ograničenja i daljnje provjere.
+[Prošireni pregled sigurnosti i otvorenih rizika v0.6.8](docs/SECURITY-DEADCODE-AUDIT-v0.6.8.md) opisuje testni opseg, izmjene i ograničenja. Detaljni nalazi iz v0.6.7 ostaju dio dokumentacije.
 
 Kompilacija, NuGet upit za poznate ranjivosti, Roslyn statička analiza i WPF screenshot testovi nisu zamjena za potpuno neovisno penetracijsko testiranje ili provjeru na stvarnim Windows/Android uređajima.
 

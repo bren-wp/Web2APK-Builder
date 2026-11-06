@@ -40,6 +40,9 @@ Možete učitati postojeći keystore ili lokalno generirati novi. Sačuvajte `.p
 Firebase zahtijeva odgovarajući `google-services.json` za točan package ID. AdMob zahtijeva vlastite App ID i banner ID te stvarnu suglasnost. Ovi SDK-ovi ostvaruju mrežne pozive i podliježu odgovarajućim Google pravilima.
 
 ## 12. Android Mobile klijent
+
+Od v0.6.8 dostupan je zaseban Android emulator smoke test. Provjerava se aktivacijski ekran na tri veličine te pokretanje generiranog offline HTML WebView projekta. Stvarne snimke dostupne su u GitHub Actions artefaktu `brendigo-android-emulator-ui` nakon uspješne izgradnje. Fizičke kamere, mikrofon, GPS, Google Play i produkcijsko potpisivanje i dalje zahtijevaju zasebno testiranje.
+
 Android klijent služi za planiranje i prijenos konfiguracija putem lokalnih JSON datoteka, prikaz licenci i dokumentacije. Sam Android telefon u ovom projektu ne kompajlira Gradle APK/AAB; takva izrada obavlja se u Windows Studiju. Na mobilnom uređaju izgled je prilagodljiv telefonu i tabletu.
 
 ## 13. Google Play

@@ -98,7 +98,7 @@ Generirane Android aplikacije provjeravaju **cijelo podrijetlo** prije odobravan
 
 **Popis projekata na manjim prozorima:** akcijski gumbi prelaze u zaseban red, a dugi nazivi i package ID-jevi ne guraju ostali sadržaj izvan dostupne širine. Puni podaci dostupni su kroz tooltip.
 
-[Pregled sigurnosti, ovisnosti i potencijalno mrtvog koda v0.6.7](docs/SECURITY-DEADCODE-AUDIT-v0.6.7.md) dokumentira stvarno pregledane dijelove, ispravke i preostale rizike.
+[Pregled sigurnosti i otvorenih zadataka v0.6.8](docs/SECURITY-DEADCODE-AUDIT-v0.6.8.md) dokumentira provjere i granice njihovih rezultata.
 
 ## Jedan Windows Studio za cijeli tijek rada
 
@@ -115,6 +115,14 @@ Izaberite oblik izvoza prema svrsi:
 - **AAB:** s vlastitim keystoreom ili nepotpisani AAB za naknadno potpisivanje.
 
 **Debug i nepotpisani paketi nisu spremni za javnu distribuciju na Google Playu.** Sačuvajte ključ za buduća ažuriranja.
+
+### Stvarna UI automatizacija i vizualne regresije
+
+Windows WPF sučelje automatski se snima tijekom izgradnje, a navigacijski gumbi na ekranima Welcome, Dashboard i Projects stvarno se klikaju. Za 20 važnih zaslona uspoređuju se uzorkovani RGB pikseli s prethodno spremljenim stvarnim WPF snimkama; velike nenajavljene regresije zaustavljaju Release, a detaljan JSON izvještaj objavljuje se kao GitHub Actions artefakt `brendigo-wpf-visual-audit`. Ovo je provjera **regresije**, ne dokaz 1:1 s dizajnerskim referencama.
+
+Zaseban [Android emulator workflow](.github/workflows/android-emulator.yml) izgrađuje i pokreće mobilni klijent na API 35 emulatoru (standardni, kompaktni i široki profil) te generiranu lokalnu WebView aplikaciju s HTML sadržajem koji ne treba internet. Stvarne screenshotove i Android UI hijerarhije pohranjuje u artefakt `brendigo-android-emulator-ui`. To nije zamjena za fizički uređaj niti za testove licenciranja i potpisivanja s produkcijskim ključem.
+
+**Nazivi Android aplikacija:** `strings.xml` sada pravilno obrađuje apostrofe, navodnike i znakove `@`/`?`; regresijski test i stvarna Android kompilacija provjeravaju naziv poput `Brendigo's @Offline? Test`.
 
 ## Android Mobile
 

@@ -13,6 +13,18 @@ public static class AndroidProjectGenerator
     }
 
     private static string XmlValue(string text) => System.Security.SecurityElement.Escape(text) ?? "";
+
+    // Android resource strings use aapt escape rules in addition to XML escaping.
+    // Ordinary names such as "Brendigo's App" would otherwise fail at resource linking.
+    private static string AndroidStringValue(string text) => XmlValue(text
+        .Replace("\\", "\\\\", StringComparison.Ordinal)
+        .Replace("'", "\\'", StringComparison.Ordinal)
+        .Replace("\"", "\\\"", StringComparison.Ordinal)
+        .Replace("@", "\\@", StringComparison.Ordinal)
+        .Replace("?", "\\?", StringComparison.Ordinal)
+        .Replace("\r", "", StringComparison.Ordinal)
+        .Replace("\n", "\\n", StringComparison.Ordinal));
+
     private static string JavaLiteral(string text) =>
         "\"" + text.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r") + "\"";
 
@@ -155,7 +167,7 @@ dependencies {
             "<path android:fillColor=\"#FFFFFF\" android:pathData=\"M28,16h29c33,0 39,32 15,41 22,12 16,39 -15,39H28z\"/></vector>\n");
         Put(path, "app/src/main/res/values/strings.xml",
             "<?xml version=\"1.0\" encoding=\"utf-8\"?><resources><string name=\"app_name\">" +
-            XmlValue(project.Name) + "</string></resources>\n");
+            AndroidStringValue(project.Name) + "</string></resources>\n");
         Put(path, "app/src/main/res/values/styles.xml",
             "<resources><style name=\"AppTheme\" parent=\"" +
             (project.Theme == "dark" ? "android:style/Theme.Material.NoActionBar" : "android:style/Theme.Material.Light.NoActionBar") +

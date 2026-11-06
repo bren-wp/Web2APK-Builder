@@ -7,9 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Brendigo.Web2APK</AssemblyName>
     <RootNamespace>Brendigo.Web2APK.Windows</RootNamespace>
-    <Version>0.6.7</Version>
-    <FileVersion>0.6.7.0</FileVersion>
-    <AssemblyVersion>0.6.7.0</AssemblyVersion>
+    <Version>0.6.8</Version>
+    <FileVersion>0.6.8.0</FileVersion>
+    <AssemblyVersion>0.6.8.0</AssemblyVersion>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ApplicationIcon>Assets/Brendigo.ico</ApplicationIcon>
   </PropertyGroup>

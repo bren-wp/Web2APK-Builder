@@ -10,6 +10,25 @@ static bool ThrowsInvalidData(Action action) {
 static bool Throws(Action action) {
     try { action(); return false; } catch (ArgumentException) { return true; }
 }
+if (args.Length == 2 && args[0]=="--offline-emulator-fixture") {
+    var root=Path.GetFullPath(args[1]);
+    var html=Path.Combine(root,"input-html");
+    Directory.CreateDirectory(html);
+    File.WriteAllText(Path.Combine(html,"index.html"),
+        "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head>" +
+        "<body style='background:#131B37;color:white;text-align:center;font-family:sans-serif'>" +
+        "<h1>BRENDIGO_OFFLINE_EMULATOR_READY</h1><p>Responsive local HTML test</p></body></html>");
+    var config=new ProjectDefinition {
+        Name="Brendigo's @Offline? Test",
+        PackageName="com.brendigo.offlinefixture",
+        SourceType="local",
+        LocalPath=html,
+        JavaScript=false
+    };
+    AndroidProjectGenerator.Generate(config,Path.Combine(root,"project"));
+    Console.WriteLine("Offline Android emulator fixture generated");
+    return;
+}
 if (args.Length == 2 && args[0]=="--fixture") {
     var fixture = new ProjectDefinition { Name="Build Smoke", PackageName="com.brendigo.smoketest",
         Url="https://example.com", Camera=true, Microphone=true, Location=true,
@@ -227,6 +246,19 @@ try {
     Test(store.List().Count==1 && store.List()[0].Id==saved.Id,"Save/load");
     var next=saved.Copy();next.Name="Nova verzija";store.Save(next);
     Test(store.List().Count==1 && store.List()[0].Name=="Nova verzija","Update");
+    var quotedApp=new ProjectDefinition {
+        Name="Brendigo's @Offline? Test",
+        PackageName="com.brendigo.specialcharacters",
+        Url="https://example.com"
+    };
+    var quotedDir=AndroidProjectGenerator.Generate(quotedApp,
+        Path.Combine(root,"special-android-name"));
+    var quotedStrings=File.ReadAllText(Path.Combine(quotedDir,
+        "app","src","main","res","values","strings.xml"));
+    Test(quotedStrings.Contains("\\&apos;",StringComparison.Ordinal) &&
+         quotedStrings.Contains("\\@",StringComparison.Ordinal) &&
+         quotedStrings.Contains("\\?",StringComparison.Ordinal),
+        "Android resource string escaping handles apostrophes and special prefix symbols");
     var path=AndroidProjectGenerator.Generate(project,Path.Combine(root,"android"));
     var manifest=File.ReadAllText(Path.Combine(path,"app","src","main","AndroidManifest.xml"));
     var java=File.ReadAllText(Path.Combine(path,"app","src","main","java","com","brendigo","primjer","MainActivity.java"));
