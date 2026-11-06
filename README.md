@@ -72,6 +72,14 @@ Ikonica: powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File scripts/ma
 
 Automatizacija: [Windows/Android Release](.github/workflows/windows-release.yml) · [Quality](.github/workflows/quality.yml).
 
+## Provjere u izdanju v0.3.1
+
+Uz Android Mobile i osnovni WebView projekt, CI sada zasebno kompajlira generirani projekt s Google AdMob + UMP integracijom te primjer s Firebase Cloud Messagingom. Firebase konfiguracija u CI-ju sadrži samo testne identifikatore, **nije produkcijski Firebase račun**. Za korisničke projekte još su potrebni stvarni ID-jevi i test stvarne dostave oglasa/poruka.
+
+Nativne WPF snimke pokušavaju se snimiti izvršavanjem pravog Windows programa; nedostajuće ili neuspjele snimke više se ne smiju prikazivati kao uspješno verificirane.
+
+Na Android klijentu sada je moguće konfigurirati kameru, mikrofon, lokaciju, prijenos datoteka, splash i zatražiti Firebase postavljanje. Firebase konfiguracijsku datoteku i završno potpisivanje postavlja se u Windows Studiju.
+
 ## Status
 
 Poboljšanja UI/UX-a i funkcionalna testiranja napreduju zaslon po zaslon. CI kompilacija ne jamči besprijekoran rad svih integracija na svim uređajima, niti su sve vizualne reference provjerene pixel po pixel. Pogledajte [CHANGELOG.md](CHANGELOG.md) i [SECURITY.md](SECURITY.md).

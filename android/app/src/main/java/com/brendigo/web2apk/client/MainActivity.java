@@ -147,7 +147,7 @@ public final class MainActivity extends Activity {
         info(tools,"Brzi alati","Bez vanjske pohrane, bez registracije. Projekti su spremljeni lokalno.");
         addButton(tools,"↥  Uvezi projekt iz Windowsa",this::importProject,false);
         addButton(tools,"⚙  Postavke i mogućnosti",this::settings,false);
-        label("Brendigo · brendigo.com · Android Mobile v0.3.0",11,MUTED,15,0);
+        label("Brendigo · brendigo.com · Android Mobile v0.3.1",11,MUTED,15,0);
     }
     private void list(){
         page("Moji projekti","Spremljeni Android projekti · samo na ovom uređaju");
@@ -324,7 +324,7 @@ public final class MainActivity extends Activity {
         info(c,"Android 7.0+ (SDK 24)","Aplikacija se prilagođava širini zaslona i koristi izvorne Android kontrole.");
         info(c,"Android gradnja","Stvarni APK/AAB paket izrađuje Windows Studio pomoću Gradlea.");
         addButton(c,"Uvezi JSON projekt",this::importProject,true);
-        LinearLayout about=card();info(about,"Autor · Brendigo","brendigo.com · Brendigo Web2APK Builder Mobile v0.3.0");
+        LinearLayout about=card();info(about,"Autor · Brendigo","brendigo.com · Brendigo Web2APK Builder Mobile v0.3.1");
         addButton(about,"Otvori brendigo.com",()->{
             startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://brendigo.com")));
         },false);

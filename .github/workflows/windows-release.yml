@@ -65,6 +65,16 @@ jobs:
           dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj -- --fixture build-smoke
           gradle -p build-smoke :app:assembleDebug --no-daemon
           if ($LASTEXITCODE -ne 0) { throw 'Generated Android project failed to compile' }
+      - name: Compile AdMob integration with test ad units
+        run: |
+          dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj -- --ads-fixture ads-smoke
+          gradle -p ads-smoke :app:assembleDebug --no-daemon
+          if ($LASTEXITCODE -ne 0) { throw 'AdMob + UMP integration does not compile.' }
+      - name: Compile Firebase Messaging integration with test configuration
+        run: |
+          dotnet run -c Release --project tests/Brendigo.Web2APK.Core.Tests/Brendigo.Web2APK.Core.Tests.csproj -- --firebase-fixture fcm-smoke
+          gradle -p fcm-smoke/project :app:assembleDebug --no-daemon
+          if ($LASTEXITCODE -ne 0) { throw 'Firebase Messaging integration does not compile.' }
       - name: Compile Android Mobile client (APK + AAB)
         run: |
           gradle -p android :app:assembleDebug :app:bundleRelease --no-daemon
@@ -75,24 +85,35 @@ jobs:
             if (-not (Test-Path $item)) { throw "Android package is missing: $item" }
             if ((Get-Item $item).Length -lt 30000) { throw "Android package is too small: $item" }
           }
-      - name: Capture real native WPF screens for README
-        continue-on-error: true
+      - name: Capture and verify actual native WPF screens
         run: |
-          & ./publish/Brendigo.Web2APK.exe --capture-native
-          if ($LASTEXITCODE -ne 0) { throw 'Native screenshot capture failed.' }
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/screenshots/native
+          $exe = (Resolve-Path './publish/Brendigo.Web2APK.exe').Path
+          $process = Start-Process -FilePath $exe -ArgumentList '--capture-native' -WorkingDirectory $PWD -PassThru
+          if (-not $process.WaitForExit(90000)) {
+            $process.Kill()
+            throw 'WPF capture timed out.'
+          }
+          if ($process.ExitCode -ne 0) {
+            if (Test-Path './docs/screenshots/native-error.log') {
+              Get-Content './docs/screenshots/native-error.log' | Write-Host
+            }
+            throw "WPF capture returned $($process.ExitCode)."
+          }
+          $screens = @(Get-ChildItem './docs/screenshots/native' -Filter '*.png')
+          if ($screens.Count -lt 13) { throw "Expected 13 real UI captures, found $($screens.Count)" }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/screenshots/native/*.png
           git diff --cached --quiet
           if ($LASTEXITCODE -ne 0) {
-            git commit -m "docs: capture native WPF screens [skip ci]"
+            git commit -m 'docs: capture real Windows WPF screens [skip ci]'
             git push origin HEAD:main
           }
-      - name: Publish native v0.3.0
+      - name: Publish native v0.3.1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = 'v0.3.0'
+          $tag = 'v0.3.1'
           gh release view $tag --repo "$env:GITHUB_REPOSITORY" 2>$null | Out-Null
           if ($LASTEXITCODE -eq 0) { throw 'Increment version for each new release.' }
-          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder v0.3.0 - Native Windows" --notes-file CHANGELOG.md
+          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder v0.3.1 - Native Windows" --notes-file CHANGELOG.md

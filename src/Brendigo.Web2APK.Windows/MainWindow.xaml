@@ -15,12 +15,12 @@
         </Grid.ColumnDefinitions>
         <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" BorderBrush="#1D2B49" BorderThickness="0,0,1,0">
             <DockPanel Margin="16,21,13,20">
-                <Border DockPanel.Dock="Bottom" CornerRadius="14" Background="#16223E" BorderBrush="#2A3C60"
+                <Border x:Name="SidebarFooter" DockPanel.Dock="Bottom" CornerRadius="14" Background="#16223E" BorderBrush="#2A3C60"
                         BorderThickness="1" Padding="11,13" Margin="0,12,0,0">
                     <StackPanel>
                         <TextBlock Foreground="#76E7CD" FontSize="11" FontWeight="Bold" Text="●  Lokalno · spremno za rad"/>
                         <TextBlock Text="Brendigo Web2APK Builder" FontSize="11" FontWeight="SemiBold" Margin="0,8,0,2"/>
-                        <TextBlock Text="Windows Studio · 0.2.0" Foreground="{StaticResource MutedBrush}" FontSize="11"/>
+                        <TextBlock Text="Windows Studio · 0.3.1" Foreground="{StaticResource MutedBrush}" FontSize="11"/>
                         <TextBlock Text="brendigo.com" Foreground="#94A9D6" FontSize="11"/>
                     </StackPanel>
                 </Border>

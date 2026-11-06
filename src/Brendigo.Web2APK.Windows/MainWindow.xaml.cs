@@ -287,7 +287,11 @@ public partial class MainWindow : Window
         {
             if (new FileInfo(dialog.FileName).Length>256*1024)
                 throw new InvalidDataException("JSON projekt je prevelik.");
-            var input=JsonSerializer.Deserialize<ProjectDefinition>(File.ReadAllText(dialog.FileName),
+            var jsonText=File.ReadAllText(dialog.FileName);
+            using var raw=JsonDocument.Parse(jsonText);
+            bool requestedPush=raw.RootElement.TryGetProperty("FirebasePushRequested",out var pushRequest) &&
+                pushRequest.ValueKind==JsonValueKind.True;
+            var input=JsonSerializer.Deserialize<ProjectDefinition>(jsonText,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive=true })
                 ?? throw new InvalidDataException("JSON projekt je prazan.");
             if (input.SourceType!="url")
@@ -297,7 +301,8 @@ public partial class MainWindow : Window
             input.FirebasePushEnabled=false;
             input.IconPath="";
             var saved=_store.Save(input);
-            ShowInfo("Projekt uspješno uvezen. Pregledajte AdMob podatke i dozvole prije izrade:\n"+saved.Name);
+            ShowInfo("Projekt uspješno uvezen: "+saved.Name+"\nPregledajte AdMob podatke i dozvole prije izrade." +
+                (requestedPush ? "\n\nAndroid klijent zatražio je Firebase Push. U koraku Funkcije uključite Firebase i odaberite google-services.json." : ""));
             Navigate("projects");
         }
         catch(Exception e) { ShowError("Uvoz projekta nije uspio: "+e.Message); }

@@ -250,7 +250,7 @@ public partial class MainWindow
             Child=Txt("B",58,true) };
         body.Children.Add(logo);
         body.Children.Add(Txt("Brendigo Web2APK Builder",25,true,White,new Thickness(0,20,0,8)));
-        body.Children.Add(Txt("Verzija 0.2.0 · Nativni Windows WPF · .NET 10",13,false,Muted));
+        body.Children.Add(Txt("Verzija 0.3.1 · Nativni Windows WPF · .NET 10",13,false,Muted));
         body.Children.Add(Txt("Autor: Brendigo\nbrendigo.com",14,false,White,new Thickness(0,12,0,12)));
         body.Children.Add(Txt("Lokalna Windows aplikacija za projektiranje Android WebView aplikacija i generiranje APK/AAB paketa.",
             13,false,Muted,new Thickness(0,0,0,15)));

@@ -1,5 +1,17 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.3.1 — provjere integracija i prilagodba Windows/Android zaslona
+
+- CI stvarno kompajlira generirane Android projekte s AdMob+UMP i FCM (testni, neprodukcijski identifikatori).
+- Ispravljeno pokretanje WPF snimanja iz GitHub Actions; omogućena lokalna dijagnostika pogrešaka pri startupu.
+- Početna Windows nadzorna ploča bliža referenci: gradijentni hero, ilustrirani telefon iz stvarne aplikacijske ikone i tablični popis projekata.
+- Dodan zaseban WPF resource za Brendigo ikonice, kako bi slike bile dostupne u self-contained EXE.
+- Android Mobile editor podržava konfiguraciju kamere, mikrofona, lokacije, datoteka, dinamičkog splasha i zahtjev za Firebase.
+- Zamijenjena upotreba java.time.Instant radi kompatibilnosti s Android API 24.
+- Svi paketni brojevi povećani na 0.3.1; Windows+Android release zahtijeva uspješan CI.
+
+
+
 ## v0.3.0 — Windows + Android, dozvole, AdMob, FCM i ključevi
 
 - Nativni Windows WPF Studio zadržava lokalni Android Gradle generator i APK/AAB izradu.

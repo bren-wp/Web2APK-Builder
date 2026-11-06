@@ -15,6 +15,24 @@ if (args.Length == 2 && args[0]=="--fixture") {
     Console.WriteLine("Fixture generated: "+args[1]);
     return;
 }
+if (args.Length == 2 && args[0]=="--firebase-fixture") {
+    Directory.CreateDirectory(args[1]);
+    var cfg=Path.Combine(args[1],"google-services-ci.json");
+    // Test-only identifiers: this file has no real Firebase credentials and must never be used in production.
+    File.WriteAllText(cfg, """
+{
+  "project_info":{"project_number":"123456789012","project_id":"brendigo-ci-placeholder","storage_bucket":"brendigo-ci-placeholder.appspot.com"},
+  "client":[{"client_info":{"mobilesdk_app_id":"1:123456789012:android:1a2b3c4d5e6f7890","android_client_info":{"package_name":"com.brendigo.firebasefixture"}},"oauth_client":[],"api_key":[{"current_key":"AIzaSyDUMMYTESTKEY012345678901234567890"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],
+  "configuration_version":"1"
+}
+""");
+    var app=new ProjectDefinition { Name="FCM Build Smoke",PackageName="com.brendigo.firebasefixture",
+        FirebasePushEnabled=true,FirebaseConfigPath=cfg,Url="https://example.com" };
+    AndroidProjectGenerator.Generate(app,Path.Combine(args[1],"project"));
+    File.Delete(cfg);
+    Console.WriteLine("FCM test fixture generated");
+    return;
+}
 if (args.Length == 2 && args[0]=="--ads-fixture") {
     var fixture = new ProjectDefinition {
         Name="AdMob Build Smoke", PackageName="com.brendigo.adsfixture",
