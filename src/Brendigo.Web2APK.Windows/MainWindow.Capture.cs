@@ -192,8 +192,26 @@ public partial class MainWindow
                             visual.ActualWidth>1 &&
                             (visual is Button or TextBox or ComboBox or CheckBox))
                         {
+                            bool insideScrollableStepper=false;
+                            // Stepper overflow is intentional and accessible via its
+                            // horizontal ScrollViewer; do not treat offscreen steps as
+                            // broken controls. All other forms remain strictly checked.
+                            for(DependencyObject? ancestor=child;
+                                ancestor!=null && !ReferenceEquals(ancestor,PageHost);
+                                ancestor=VisualTreeHelper.GetParent(ancestor))
+                            {
+                                if(ancestor is ScrollViewer scroll &&
+                                    scroll.HorizontalScrollBarVisibility is
+                                        ScrollBarVisibility.Auto or ScrollBarVisibility.Visible &&
+                                    scroll.ExtentWidth>scroll.ViewportWidth+1)
+                                {
+                                    insideScrollableStepper=true;
+                                    break;
+                                }
+                            }
                             var pos=visual.TranslatePoint(new Point(0,0),PageHost);
-                            if(pos.X< -3 || pos.X+visual.ActualWidth>PageHost.ActualWidth+4)
+                            if(!insideScrollableStepper &&
+                                (pos.X< -3 || pos.X+visual.ActualWidth>PageHost.ActualWidth+4))
                                 throw new InvalidOperationException(
                                     "Horizontal clipping on "+label+": "+visual.GetType().Name+
                                     " left="+pos.X+" width="+visual.ActualWidth+
