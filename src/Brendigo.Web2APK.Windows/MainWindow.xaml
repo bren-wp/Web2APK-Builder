@@ -53,8 +53,8 @@
                         <TextBlock Text="apk.com.hr" Foreground="#94A9D6" FontSize="11"/>
                     </StackPanel>
                 </Border>
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,3,0,27">
-                    <Border Width="47" Height="47" CornerRadius="13" Background="#7451ED">
+                <StackPanel x:Name="SidebarBrandArea" DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,3,0,27">
+                    <Border x:Name="SidebarLogoTile" Width="47" Height="47" CornerRadius="13" Background="#7451ED">
                         <Image Source="Assets/Brendigo.ico" Width="36" Height="36" Stretch="Uniform"/>
                     </Border>
                     <StackPanel x:Name="BrandWords" Margin="11,0,0,0" VerticalAlignment="Center">
@@ -78,9 +78,9 @@
             </Grid.Background>
             <Grid.RowDefinitions><RowDefinition Height="70"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <Border Grid.Row="0" Background="#10182F" BorderBrush="#263350" BorderThickness="0,0,0,1">
-                <Grid Margin="32,0">
+                <Grid x:Name="HeaderContent" Margin="32,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock x:Name="Breadcrumb" Grid.Column="0" VerticalAlignment="Center" Foreground="#A3B5DB" Text="Radni prostor   ›   Početna" FontSize="12"/>
+                    <TextBlock x:Name="Breadcrumb" Grid.Column="0" VerticalAlignment="Center" Foreground="#A3B5DB" Text="Radni prostor   ›   Početna" FontSize="12" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Border x:Name="SdkStatusBadge" Background="#242943" BorderBrush="#515C83" BorderThickness="1" CornerRadius="14" Padding="10,5">
                             <TextBlock x:Name="AndroidSdkState" Foreground="#B7BFDB" Text="Android SDK · provjera" FontSize="11" FontWeight="SemiBold"/>

@@ -35,6 +35,55 @@ public partial class MainWindow
             Directory.CreateDirectory(folder);
             var diagnostics=Path.Combine(Environment.CurrentDirectory,"docs","screenshots","native-progress.log");
             File.WriteAllText(diagnostics,"WPF capture started"+Environment.NewLine);
+            // Exhaustive per-pixel comparison against the previous real WPF captures.
+            // Design concept art is NOT used as a false pixel-exact baseline.
+            var pixelAudit=new List<object>();
+            void CompareToPreviousCapture(string name,BitmapSource current)
+            {
+                var previousPath=Path.Combine(folder,name+".png");
+                if(!File.Exists(previousPath))return; // New viewport, no baseline yet.
+                using var stream=File.OpenRead(previousPath);
+                var decoder=new PngBitmapDecoder(stream,BitmapCreateOptions.PreservePixelFormat,
+                    BitmapCacheOption.OnLoad);
+                var before=decoder.Frames[0];
+                if(before.PixelWidth!=current.PixelWidth || before.PixelHeight!=current.PixelHeight)
+                    throw new InvalidOperationException(
+                        "Pixel audit: differing viewport for "+name);
+                var oldBitmap=new FormatConvertedBitmap(before,PixelFormats.Bgra32,null,0);
+                var newBitmap=new FormatConvertedBitmap(current,PixelFormats.Bgra32,null,0);
+                var width=current.PixelWidth;
+                var height=current.PixelHeight;
+                var stride=checked(width*4);
+                var bytes=checked(stride*height);
+                var oldPixels=new byte[bytes];
+                var newPixels=new byte[bytes];
+                oldBitmap.CopyPixels(oldPixels,stride,0);
+                newBitmap.CopyPixels(newPixels,stride,0);
+                long changed=0;
+                for(int i=0;i<bytes;i+=4)
+                {
+                    var delta=Math.Abs((int)oldPixels[i]-newPixels[i])+
+                        Math.Abs((int)oldPixels[i+1]-newPixels[i+1])+
+                        Math.Abs((int)oldPixels[i+2]-newPixels[i+2]);
+                    if(delta>54)changed++;
+                }
+                var total=(long)width*height;
+                var ratio=(double)changed/total;
+                pixelAudit.Add(new {
+                    screen=name, width, height, changedPixels=changed, comparedPixels=total,
+                    changedFraction=Math.Round(ratio,6), thresholdRgbDelta=54,
+                    baseline="previous actual WPF screenshot",
+                    pixelPerfectAgainstExternalDesignReference=false
+                });
+                File.AppendAllText(diagnostics,
+                    "Full pixel diff "+name+": "+changed+"/"+total+" ("+
+                    ratio.ToString("P2",System.Globalization.CultureInfo.InvariantCulture)+
+                    ")"+Environment.NewLine);
+                if(ratio>0.55)
+                    throw new InvalidOperationException(
+                        "Major unexpected full-pixel UI regression on "+name+
+                        " ("+ratio.ToString("P2",System.Globalization.CultureInfo.InvariantCulture)+")");
+            }
             // Render real WPF controls, never illustrative/mock-generated screenshots.
             void Reflow(int width,int height)
             {
@@ -59,6 +108,7 @@ public partial class MainWindow
                 Reflow(1440,900);
                 var img=new RenderTargetBitmap(1440,900,96,96,PixelFormats.Pbgra32);
                 img.Render(Root);
+                CompareToPreviousCapture(name,img);
                 var png=new PngBitmapEncoder();
                 png.Frames.Add(BitmapFrame.Create(img));
                 using var output=File.Create(Path.Combine(folder,name+".png"));
@@ -78,6 +128,7 @@ public partial class MainWindow
             splashBitmap.Render(splash.SplashRoot);
             var splashEncoder = new PngBitmapEncoder();
             splashEncoder.Frames.Add(BitmapFrame.Create(splashBitmap));
+            CompareToPreviousCapture("splash",splashBitmap);
             using (var splashOut=File.Create(Path.Combine(folder,"splash.png"))) splashEncoder.Save(splashOut);
             splash.Close();
             Navigate("welcome"); Capture("welcome");
@@ -109,6 +160,50 @@ public partial class MainWindow
                         " x="+location.X+" width="+card.ActualWidth+
                         " available="+PageHost.ActualWidth);
             }
+            void AssertCompactChrome(string label,int width)
+            {
+                bool narrow=width<1020;
+                if(Math.Abs(Root.ActualWidth-width)>2)
+                    throw new InvalidOperationException("Wrong viewport width: "+label);
+                if(narrow && (SidebarColumn.Width.Value!=82 ||
+                    BrandWords.Visibility!=Visibility.Collapsed ||
+                    SidebarFooter.Visibility!=Visibility.Collapsed ||
+                    SidebarBrandArea.ActualWidth>SidebarColumn.ActualWidth+2 ||
+                    NavigationHost.Children.OfType<TextBlock>()
+                        .Any(c=>c.Visibility!=Visibility.Collapsed)))
+                    throw new InvalidOperationException(
+                        "Clipped compact sidebar or visible labels: "+label);
+                if(narrow && HeaderContent.Margin.Left!=20)
+                    throw new InvalidOperationException(
+                        "Unresponsive compact header padding: "+label);
+                if(width<1060 && SdkStatusBadge.Visibility!=Visibility.Collapsed)
+                    throw new InvalidOperationException(
+                        "SDK badge conflicts with compact header: "+label);
+            }
+
+            void AssertVisibleControlsInsidePage(string label)
+            {
+                void Visit(DependencyObject parent)
+                {
+                    for(int index=0;index<VisualTreeHelper.GetChildrenCount(parent);index++)
+                    {
+                        var child=VisualTreeHelper.GetChild(parent,index);
+                        if(child is FrameworkElement visual && visual.IsVisible &&
+                            visual.ActualWidth>1 &&
+                            (visual is Button or TextBox or ComboBox or CheckBox))
+                        {
+                            var pos=visual.TranslatePoint(new Point(0,0),PageHost);
+                            if(pos.X< -3 || pos.X+visual.ActualWidth>PageHost.ActualWidth+4)
+                                throw new InvalidOperationException(
+                                    "Horizontal clipping on "+label+": "+visual.GetType().Name+
+                                    " left="+pos.X+" width="+visual.ActualWidth+
+                                    " page="+PageHost.ActualWidth);
+                        }
+                        Visit(child);
+                    }
+                }
+                Visit(PageHost);
+            }
             void CaptureCompact(string page,string filename,int width,int height)
             {
                 File.AppendAllText(diagnostics,"Rendering "+filename+Environment.NewLine);
@@ -118,6 +213,8 @@ public partial class MainWindow
                 Reflow(width,height);
                 Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
                 Reflow(width,height);
+                AssertCompactChrome(filename,width);
+                AssertVisibleControlsInsidePage(filename);
                 if(page=="new")
                 {
                     CheckCard(_wizardMainCard,"wizard form at "+width);
@@ -133,6 +230,7 @@ public partial class MainWindow
                 }
                 var image=new RenderTargetBitmap(width,height,96,96,PixelFormats.Pbgra32);
                 image.Render(Root);
+                CompareToPreviousCapture(filename,image);
                 var encoder=new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(image));
                 using var output=File.Create(Path.Combine(folder,filename+".png"));
@@ -156,6 +254,17 @@ public partial class MainWindow
             {
                 _wizardStep=step;
                 CaptureCompact("new","wizard-"+(step+1)+"-small-900",900,650);
+            }
+            // Verify every primary screen at the minimum supported window size,
+            // rather than only checking wizard and preview at 900 px.
+            foreach(var page in new[]{"welcome","dashboard","projects","preview",
+                "tools","devices","settings","docs","about"})
+                CaptureCompact(page,page+"-minimum-840",840,570);
+            for(int step=0;step<6;step++)
+            {
+                _wizardStep=step;
+                CaptureCompact("new","wizard-"+(step+1)+"-minimum-840",840,570);
+                CaptureCompact("new","wizard-"+(step+1)+"-compact-1024",1024,740);
             }
             // A synthetic row is used ONLY as an offscreen layout assertion:
             // it is never published as a screenshot or product/project data.
@@ -238,6 +347,17 @@ public partial class MainWindow
                     "WPF density capture "+scale+"%: "+pixelsWide+" x "+pixelsHigh+
                     " pixels at "+dpi+" DPI; logical viewport 900 x 650"+Environment.NewLine);
             }
+            var pixelReport=Path.Combine(Environment.CurrentDirectory,
+                "visual-audit","native-full-pixel-audit.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(pixelReport)!);
+            File.WriteAllText(pixelReport,
+                System.Text.Json.JsonSerializer.Serialize(new {
+                    generatedUtc=DateTimeOffset.UtcNow,
+                    baselineKind="previous real WPF captures",
+                    comparison="every pixel at native raster resolution",
+                    expectedDesignReferenceMatchNotVerified=true,
+                    screens=pixelAudit
+                },new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
             Root.Width=double.NaN;Root.Height=double.NaN;
             captureSource.RootVisual=null;
             Console.WriteLine("Captured "+Directory.GetFiles(folder,"*.png").Length+" native WPF screenshots.");

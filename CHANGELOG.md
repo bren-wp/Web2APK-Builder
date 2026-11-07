@@ -1,5 +1,18 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.9 — responzivni 1:1 rad po zaslonima i puna usporedba piksela
+
+- Ispravljena kompaktna bočna navigacija u Windows Builderu: logotip i ikone imaju prilagođene razmake, tekstualne oznake odjeljaka nestaju samo kada suženi izbornik nema dovoljno prostora, a svaki gumb zadržava vlastiti tooltip.
+- Zaglavlje prilagođeno malim prozorima: smanjene unutarnje margine, skrivene nebitne statusne oznake pri užem prikazu i breadcrumb tekst se skraćuje uz dostupni puni tekst.
+- Dodani vidljivi fokus pri upravljanju tipkovnicom za glavne WPF gumbe i License Studio; boje u čarobnjaku imaju jednoznačne pristupačne nazive i tooltipe.
+- **Stvarna kontrola svakog piksela:** WPF CI uspoređuje sve piksele prethodnih i novih PNG snimki, računa broj promijenjenih piksela i udjel razlika te odbija velike neplanirane vizualne regresije. Strojno čitljiv JSON izvještaj objavljuje se u GitHub Actions artefaktu.
+- Prošireno snimanje **svih devet glavnih ekrana i šest koraka čarobnjaka na 840 × 570** te dodatno svih šest koraka na 1024 × 740; u CI-u se provjeravaju uski sidebar, zaglavlje, kartice i vodoravno odrezane kontrole.
+- License Studio dodatno snima stvarne WPF prikaze na 900 × 650 i minimalnom prozoru 760 × 605; screenshotovi su spremljeni u repozitorij.
+- Sve oznake verzije usklađene na Windows/License Studio 0.6.9 te Android 0.6.9 (`versionCode 16`); šest standardnih Release artefakata ostaje nepromijenjeno.
+- **Windows Builder Portable i Setup ostaju potpuno bez licenci, aktivacije i ograničenja funkcionalnosti**, prema prethodnom zahtjevu.
+- Ograničenja: ovo nije potvrda apsolutne 1:1 podudarnosti sa svim dizajnerskim referencama ni potvrda fizičkog DPI skaliranja i svih stanja aplikacije.
+
+
 ## v0.6.8 — Windows Portable/Setup bez licenci, emulator i vizualne regresije
 
 - **Po zahtjevu vlasnika**, Windows Builder Portable.exe i Setup.exe pokreću se bez BL2 licence, aktivacijskog prozora, registracije ili prijave. Sve mogućnosti APK/AAB/izvornog koda/brandinga/AdMob/Firebase dostupne su bez rezerviranja mjesta.

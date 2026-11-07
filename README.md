@@ -51,6 +51,12 @@ Snimke niže nastaju **automatskim renderiranjem stvarnog nativnog WPF sučelja*
 
 **Svih šest koraka na užem prozoru:** [1 · Osnovno](docs/screenshots/native/wizard-1-small-900.png) · [2 · Izgled](docs/screenshots/native/wizard-2-small-900.png) · [3 · WebView](docs/screenshots/native/wizard-3-small-900.png) · [4 · Funkcije](docs/screenshots/native/wizard-4-small-900.png) · [5 · Dozvole](docs/screenshots/native/wizard-5-small-900.png) · [6 · Izrada](docs/screenshots/native/wizard-6-small-900.png). Ostali stvarni prikazi: [Uređaji 900 px](docs/screenshots/native/devices-small-900.png) · [O programu 900 px](docs/screenshots/native/about-small-900.png).
 
+**Novo u v0.6.9 — svaki zaslon na minimumu 840 × 570:** [Početna](docs/screenshots/native/welcome-minimum-840.png) · [Nadzorna ploča](docs/screenshots/native/dashboard-minimum-840.png) · [Moji projekti](docs/screenshots/native/projects-minimum-840.png) · [Pregled](docs/screenshots/native/preview-minimum-840.png) · [Alati](docs/screenshots/native/tools-minimum-840.png) · [Uređaji](docs/screenshots/native/devices-minimum-840.png) · [Postavke](docs/screenshots/native/settings-minimum-840.png) · [Dokumentacija](docs/screenshots/native/docs-minimum-840.png) · [O programu](docs/screenshots/native/about-minimum-840.png). Svih šest koraka čarobnjaka dodatno se snima na **840 × 570 i 1024 × 740**.
+
+**License Studio — kompaktni zasloni:** [900 px](docs/screenshots/native/license-studio-compact-900.png) · [minimalni prozor 760 px](docs/screenshots/native/license-studio-minimum-760.png).
+
+**Pixel-by-pixel analiza:** Release CI uspoređuje **svaki piksel** stvarnih WPF snimki s prethodno spremljenim stvarnim WPF slikama i objavljuje izvještaj `native-full-pixel-audit.json`. Postojeći uzorkovani test ostaje kao druga kontrola. Oba testiraju regresije između izdanja; **ne potvrđuju sami po sebi 1:1 podudarnost s konceptnim referencama**. [Metodologija i granice provjere](docs/UI-PIXEL-AUDIT-v0.6.9.md).
+
 **Responzivni Windows raspored:** [1024 px – čarobnjak](docs/screenshots/native/wizard-compact-1024.png) · [900 px – čarobnjak](docs/screenshots/native/wizard-small-900.png) · [1024 px – pregled](docs/screenshots/native/preview-compact-1024.png) · [900 px – pregled](docs/screenshots/native/preview-small-900.png).
 
 ## Vaš brending odmah pri prvom projektu

@@ -2,6 +2,12 @@
 
 **Službeni web:** https://apk.com.hr · **Podrška:** info@apk.com.hr · **Autor:** Brendigo / https://brendigo.com
 
+## Vizualna dosljednost zaslona (v0.6.9)
+
+CI snima stvarne Windows WPF zaslone na 1440 × 900 i dodatno sve glavne stranice i svih šest koraka čarobnjaka na najmanjoj podržanoj veličini prozora 840 × 570. Čarobnjak se dodatno testira na 900 × 650 i 1024 × 740. Provjeravaju se širine kartica, kompaktnog izbornika i dostupnost interaktivnih kontrola bez vodoravnog rezanja. Cijele PNG slike uspoređuju se piksel po piksel s prethodnim snimkama; izvještaj `native-full-pixel-audit.json` nalazi se u GitHub Actions artefaktima. Ako je prozor previsokim sadržajem ispunjen, upotrijebite okomito pomicanje. Uvijek se može vratiti puna širina izbornika povećavanjem prozora.
+
+Stvarne snimke i CI testovi ne potvrđuju automatski potpuno podudaranje s izvornim konceptnim referencama, stvarnim povećanjem Windows fonta ili fizičkim DPI postavkama. Windows Portable i Setup i dalje **ne zahtijevaju licencu ni aktivacijski ključ**.
+
 ## 1. Instalacija Windows programa
 Preuzmite `Brendigo-Web2APK-Setup.exe` za instalaciju ili `Brendigo-Web2APK-portable.exe` za pokretanje bez instalacije. Prozor se otvara u standardnoj veličini i može se smanjivati. Datoteke aplikacije i projekata spremaju se lokalno. Windows izvršne datoteke mogu biti nepotpisane; prije pokretanja provjerite izvor izdanja.
 

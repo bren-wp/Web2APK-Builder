@@ -212,6 +212,9 @@ public partial class MainWindow
             b.Background = BrushOf(color);
             b.Foreground = color == "#31D4FF" ? BrushOf("#10213F") : White;
             b.Width = 50;
+            b.ToolTip = "Primarna boja " + color + (_draft.Accent==color ? " (odabrana)" : "");
+            System.Windows.Automation.AutomationProperties.SetName(b,
+                "Odaberi primarnu boju " + color);
             colors.Children.Add(b);
         }
         colors.IsEnabled=HasLicenseFeature("branding");

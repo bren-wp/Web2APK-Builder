@@ -93,19 +93,19 @@ $studioProject=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.
 $gradleProject=Get-Content 'android/app/build.gradle' -Raw
 $releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
 foreach($project in @($winProject,$studioProject)){
- foreach($marker in @('<Version>0.6.8</Version>','<FileVersion>0.6.8.0</FileVersion>','<AssemblyVersion>0.6.8.0</AssemblyVersion>')){
+ foreach($marker in @('<Version>0.6.9</Version>','<FileVersion>0.6.9.0</FileVersion>','<AssemblyVersion>0.6.9.0</AssemblyVersion>')){
   if(-not $project.Contains($marker)){throw "Release version mismatch: $marker"}
  }
 }
-if(-not $gradleProject.Contains("versionCode 15") -or
-   -not $gradleProject.Contains("versionName '0.6.8'") -or
-   -not $releaseWorkflow.Contains("$('v0.6.8')")){
- throw 'Android metadata and release workflow version must match v0.6.8.'
+if(-not $gradleProject.Contains("versionCode 16") -or
+   -not $gradleProject.Contains("versionName '0.6.9'") -or
+   -not $releaseWorkflow.Contains("$('v0.6.9')")){
+ throw 'Android metadata and release workflow version must match v0.6.9.'
 }
-Write-Host 'Windows and Android release versions verified: 0.6.8 (Android code 15).'
+Write-Host 'Windows and Android release versions verified: 0.6.9 (Android code 16).'
 
 foreach($installer in @('installer/Brendigo-Web2APK.iss','installer/Brendigo-LicenseStudio.iss')) {
- if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.8"')) {
+ if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.9"')) {
    throw "Installer version mismatch: $installer"
  }
 }
@@ -167,3 +167,31 @@ if($winStartup.Contains('new LicenseActivationWindow()') -or
  throw 'Windows Portable/Setup must start fully unlocked, without license or key dialogs.'
 }
 Write-Host 'Windows Setup and Portable activation-free contract verified.'
+
+# The smallest supported viewport must have validated navigation, forms,
+# cards, controls, real screenshots and a full exact-pixel audit.
+$mainXaml=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml' -Raw
+$mainCode=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml.cs' -Raw
+$mainTheme=Get-Content 'src/Brendigo.Web2APK.Windows/App.xaml' -Raw
+$captureCode=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Capture.cs' -Raw
+$studioTheme=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/App.xaml' -Raw
+$studioCapture=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/MainWindow.Capture.cs' -Raw
+$releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
+foreach($part in @('SidebarBrandArea','SidebarLogoTile','HeaderContent')) {
+  if(-not $mainXaml.Contains($part)) { throw "Responsive chrome component missing: $part" }
+}
+foreach($part in @('SidebarBrandArea.Margin = compact','SdkStatusBadge.Visibility = logicalWidth < 1060','caption.Visibility = compact')) {
+  if(-not $mainCode.Contains($part)) {throw "Compact desktop navigation missing: $part"}
+}
+if(-not ($mainTheme.Contains('IsKeyboardFocusWithin') -and
+         $studioTheme.Contains('IsKeyboardFocusWithin') -and
+         $captureCode.Contains('CompareToPreviousCapture') -and
+         $captureCode.Contains('AssertVisibleControlsInsidePage') -and
+         $captureCode.Contains('minimum-840') -and
+         $captureCode.Contains('compact-1024') -and
+         $releaseWorkflow.Contains('native-full-pixel-audit.json') -and
+         $studioCapture.Contains('license-studio-compact-900') -and
+         $studioCapture.Contains('license-studio-minimum-760'))) {
+  throw 'Full-pixel WPF, accessible focus or minimum-size screen QA missing.'
+}
+Write-Host 'All-screen compact WPF and pixel-by-pixel regression checks configured.'
