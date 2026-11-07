@@ -63,6 +63,12 @@
             <Setter Property="Padding" Value="12,8"/>
             <Setter Property="MinHeight" Value="43"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="#A996FF"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         <!-- A local dark control template prevents native white ComboBox popups and fields. -->
         <Style TargetType="PasswordBox">

@@ -96,6 +96,16 @@ public partial class MainWindow : Window
     }
 
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsive();
+    private void Window_StateChanged(object sender,EventArgs e)
+    {
+        if(WindowMaximizeButton is null)return;
+        var expanded=WindowState==WindowState.Maximized;
+        WindowMaximizeButton.Content=expanded?"\uE923":"\uE922";
+        WindowMaximizeButton.ToolTip=expanded?"Vrati prethodnu veličinu prozora":
+            "Povećaj prozor";
+        System.Windows.Automation.AutomationProperties.SetName(WindowMaximizeButton,
+            expanded?"Vrati prethodnu veličinu prozora":"Povećaj prozor");
+    }
     private void TitleBar_Drag(object sender,MouseButtonEventArgs e)
     {
         if(e.ClickCount==2)

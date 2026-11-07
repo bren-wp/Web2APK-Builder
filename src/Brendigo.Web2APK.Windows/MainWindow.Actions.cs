@@ -382,13 +382,13 @@ public partial class MainWindow
                 settings.Children.Add(Feature("Dostupna prethodna verzija",
                     "Sigurnosna kopija sadrži "+backupCount+
                     " projekata. Vraćanje zamjenjuje trenutačni popis prethodnom verzijom, "+
-                    "bez promjene podataka o licencnim mjestima."));
+                    "bez promjene ostalih lokalnih korisničkih datoteka."));
                 settings.Children.Add(Btn("Vrati projekte iz sigurnosne kopije",() =>
                 {
                     if(MessageBox.Show(this,
                         "Vratiti "+backupCount+" projekata iz prethodne sigurnosne kopije?\n\n"+
                         "Trenutačni projects.json ostat će sačuvan u zasebnoj datoteci. "+
-                        "Oporavak ne vraća niti oslobađa licencna mjesta.\n\n"+
+                        "Oporavak ne mijenja Android projekte koji su već izvezeni.\n\n"+
                         "Preporuka: najprije kopirajte cijelu lokalnu mapu podataka na sigurno mjesto.",
                         "Potvrda oporavka projekata",MessageBoxButton.YesNo,
                         MessageBoxImage.Warning)!=MessageBoxResult.Yes)return;
@@ -491,7 +491,7 @@ public partial class MainWindow
         body.Children.Add(logo);
         body.Children.Add(Txt("Brendigo Web2APK Builder",24,true,White,
             new Thickness(0,19,0,8)));
-        var version=typeof(MainWindow).Assembly.GetName().Version?.ToString(3)??"0.5.0";
+        var version=typeof(MainWindow).Assembly.GetName().Version?.ToString(3)??"nije dostupna";
         body.Children.Add(Txt("Verzija "+version+" · nativna Windows aplikacija",13,false,Muted));
         body.Children.Add(Divider());
         body.Children.Add(Feature("Razvojni autor","Brendigo · brendigo.com"));

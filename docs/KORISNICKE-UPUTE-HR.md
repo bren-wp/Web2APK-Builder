@@ -16,6 +16,14 @@ Pregled izvornog koda i ZIP izvoz dostupni su **bez licence** u Windows Portable
 
 Stvarne snimke zaslona i CI kontrole opisane su u `docs/UI-PIXEL-AUDIT-v0.6.10.md`. Ova provjera nije potvrda fizičkog DPI skaliranja i podudarnosti sa svim dizajnerskim referencama.
 
+## Vizualni prikaz i README (v0.6.11)
+
+Službeni GitHub README prikazuje originalne Brendigo SVG logotipe i isključivo stvarne Windows WPF snimke. Obuhvaća početni zaslon, nadzornu ploču, projekte, šest koraka, Preview na različitim uređajima, izvorni kod, License Studio, Splash i prilagodbu manjem prozoru. Slike se ažuriraju automatskom CI provjerom nakon uspješnog pokretanja aplikacije.
+
+U ovoj inačici ikone početnih značajki usklađene su s Windows sustavnim simbolima, istaknut je fokus polja i ispravljeno ponašanje gumba za povećanje i vraćanje prozora. U sigurnosnom oporavku projekata ne spominju se nepostojeća Windows licencna mjesta.
+
+Automatizirani testovi snimaju svih devet glavnih ekrana i pri širini 1024 px, uz prethodne prikaze pri 1440, 900 i 840 px. To je provjera responzivnosti i vizualnih regresija, a ne dokaz 1:1 s izvornim dizajnerskim referencama. Windows Builder Portable i Setup ostaju bez licenci.
+
 ## 1. Instalacija Windows programa
 Preuzmite `Brendigo-Web2APK-Setup.exe` za instalaciju ili `Brendigo-Web2APK-portable.exe` za pokretanje bez instalacije. Prozor se otvara u standardnoj veličini i može se smanjivati. Datoteke aplikacije i projekata spremaju se lokalno. Windows izvršne datoteke mogu biti nepotpisane; prije pokretanja provjerite izvor izdanja.
 

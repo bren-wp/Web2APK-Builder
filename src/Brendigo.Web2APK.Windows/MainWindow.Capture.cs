@@ -357,6 +357,13 @@ public partial class MainWindow
             }
             finally { sourceWindow.Close(); }
 
+            // Verify every primary screen at the intermediate 1024px window width.
+            // This catches two-column/expanded-sidebar collisions that are not
+            // visible at either the 840px minimum or the 1440px desktop viewport.
+            foreach(var page in new[]{"welcome","dashboard","projects","preview",
+                "tools","devices","settings","docs","about"})
+                CaptureCompact(page,page+"-medium-1024",1024,740);
+
             // A synthetic row is used ONLY as an offscreen layout assertion:
             // it is never published as a screenshot or product/project data.
             Reflow(900,650);

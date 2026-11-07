@@ -7,7 +7,7 @@
         WindowState="Normal" WindowStyle="None" ResizeMode="CanResizeWithGrip"
         FontFamily="Segoe UI" FontSize="13" Background="{StaticResource BackgroundBrush}"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
-        SizeChanged="Window_SizeChanged">
+        SizeChanged="Window_SizeChanged" StateChanged="Window_StateChanged">
     <Grid x:Name="Root">
         <Grid.RowDefinitions>
             <RowDefinition Height="38"/>
@@ -22,13 +22,13 @@
                 MouseLeftButtonDown="TitleBar_Drag">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="─" ToolTip="Minimiziraj prozor"
+                    <Button Content="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="12" ToolTip="Minimiziraj prozor"
                         Width="43" Height="33" BorderThickness="0" Background="Transparent"
                         Foreground="#CBD4EC" Click="TitleBar_Minimize"/>
-                    <Button Content="□" ToolTip="Povećaj ili vrati prozor"
+                    <Button x:Name="WindowMaximizeButton" Content="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="12" ToolTip="Povećaj prozor"
                         Width="43" Height="33" BorderThickness="0" Background="Transparent"
                         Foreground="#CBD4EC" Click="TitleBar_Maximize"/>
-                    <Button Content="×" ToolTip="Zatvori aplikaciju"
+                    <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="12" ToolTip="Zatvori aplikaciju"
                         Width="43" Height="33" BorderThickness="0" Background="Transparent"
                         Foreground="#E3C3CD" Click="TitleBar_Close"/>
                 </StackPanel>
@@ -60,7 +60,7 @@
                     <StackPanel x:Name="BrandWords" Margin="11,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="Brendigo" FontSize="16" FontWeight="Bold"/>
                         <TextBlock Text="Web2APK" Foreground="#B5A0FF" FontSize="15" FontWeight="Bold" Margin="0,-3,0,0"/>
-                        <TextBlock Text="B u i l d e r" Foreground="#98A8D1" FontSize="9" Margin="0,-3,0,0"/>
+                        <TextBlock Text="BUILDER" FontWeight="SemiBold" Foreground="#98A8D1" FontSize="9" Margin="0,-3,0,0"/>
                     </StackPanel>
                 </StackPanel>
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

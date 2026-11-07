@@ -93,19 +93,19 @@ $studioProject=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.
 $gradleProject=Get-Content 'android/app/build.gradle' -Raw
 $releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
 foreach($project in @($winProject,$studioProject)){
- foreach($marker in @('<Version>0.6.10</Version>','<FileVersion>0.6.10.0</FileVersion>','<AssemblyVersion>0.6.10.0</AssemblyVersion>')){
+ foreach($marker in @('<Version>0.6.11</Version>','<FileVersion>0.6.11.0</FileVersion>','<AssemblyVersion>0.6.11.0</AssemblyVersion>')){
   if(-not $project.Contains($marker)){throw "Release version mismatch: $marker"}
  }
 }
-if(-not $gradleProject.Contains("versionCode 17") -or
-   -not $gradleProject.Contains("versionName '0.6.10'") -or
-   -not $releaseWorkflow.Contains("$('v0.6.10')")){
- throw 'Android metadata and release workflow version must match v0.6.10.'
+if(-not $gradleProject.Contains("versionCode 18") -or
+   -not $gradleProject.Contains("versionName '0.6.11'") -or
+   -not $releaseWorkflow.Contains("$('v0.6.11')")){
+ throw 'Android metadata and release workflow version must match v0.6.11.'
 }
-Write-Host 'Windows and Android release versions verified: 0.6.10 (Android code 17).'
+Write-Host 'Windows and Android release versions verified: 0.6.11 (Android code 18).'
 
 foreach($installer in @('installer/Brendigo-Web2APK.iss','installer/Brendigo-LicenseStudio.iss')) {
- if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.10"')) {
+ if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.11"')) {
    throw "Installer version mismatch: $installer"
  }
 }
@@ -220,3 +220,44 @@ if(-not ($previewUi.Contains('_previewWebToggle=PreviewToggle') -and
   throw 'Preview state, license-free source viewer or atomic ZIP export regression.'
 }
 Write-Host 'Real preview modes and license-free source browser with atomic ZIP verified.'
+
+# Public-facing README must use bundled branding and verified real WPF screenshots.
+$marketing=Get-Content 'README.md' -Raw
+$brandFiles=@('assets/readme-banner.svg','assets/brand-icon.svg','assets/brand-logo.svg')
+foreach($brand in $brandFiles) {
+  if(-not(Test-Path $brand) -or -not($marketing.Contains($brand))) {
+     throw "README original brand resource missing: $brand"
+  }
+}
+$marketingImgs=[regex]::Matches($marketing,'<img[^>]+src="([^\"]+)"')
+if($marketingImgs.Count -lt 18) {throw "Marketing README needs >=18 real/local image elements, found $($marketingImgs.Count)"}
+foreach($image in $marketingImgs) {
+   $src=$image.Groups[1].Value
+   if($src -notmatch '^(assets|docs/screenshots/native)/' -or -not(Test-Path $src)) {
+      throw "Nonlocal or missing README screenshot: $src"
+   }
+}
+$badLabels=@('lorem ipsum','todo:','mock user data','demo nema pristup','plaćeni paketi mogu','developer placeholder','dev only')
+foreach($bad in $badLabels) {
+    if($marketing.Contains($bad)) {throw "Outdated or temporary marketing copy in README: $bad"}
+}
+if(-not($marketing.Contains('Windows Portable i Setup') -and
+    $marketing.Contains('Bez licence') -and
+    $marketing.Contains('docs/screenshots/native/source-viewer.png') -and
+    $marketing.Contains('docs/screenshots/native/splash.png'))) {
+    throw 'README must explain license-free Windows editions and link to real UI screenshots.'
+}
+$uiSource=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml.cs' -Raw
+$uiWelcome=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Welcome.cs' -Raw
+$uiChrome=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml' -Raw
+$screenAudit=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Capture.cs' -Raw
+$uiSettings=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Actions.cs' -Raw
+if(-not($uiChrome.Contains('WindowMaximizeButton') -and
+    $uiChrome.Contains('Segoe MDL2 Assets') -and
+    $uiSource.Contains('Window_StateChanged') -and
+    $uiWelcome.Contains('FontFamily=new FontFamily("Segoe MDL2 Assets")') -and
+    $screenAudit.Contains('page+"-medium-1024"') -and
+    -not($uiSettings.Contains('Oporavak ne vraća niti oslobađa licencna mjesta')))) {
+    throw 'Windows navigation icon, zoom behavior or 1024px UI coverage regression.'
+}
+Write-Host 'Marketing README brand images, native screenshot references and 1024px UI audit verified.'

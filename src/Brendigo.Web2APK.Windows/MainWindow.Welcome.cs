@@ -20,7 +20,7 @@ public partial class MainWindow
         details.Children.Add(new Border {
             Background=BrushOf("#302864"),CornerRadius=new CornerRadius(13),
             HorizontalAlignment=HorizontalAlignment.Left,Padding=new Thickness(11,6,11,6),
-            Child=Txt("✦  WINDOWS STUDIO",11,true,BrushOf("#C6B7FF"))
+            Child=Txt("✦  WINDOWS STUDIO · BEZ LICENCE",11,true,BrushOf("#C6B7FF"))
         });
         details.Children.Add(Txt("Pretvorite web u Android aplikaciju",29,true,White,
             new Thickness(0,19,0,12)));
@@ -48,9 +48,9 @@ public partial class MainWindow
         PageHost.Children.Add(Txt("SVE ŠTO VAM TREBA",11,true,BrushOf("#96A8D4"),
             new Thickness(2,0,0,12)));
         var features=Row();
-        features.Children.Add(WelcomeFeature("🌐","Web i HTML","Pretvorite URL ili lokalni sadržaj u Android projekt."));
-        features.Children.Add(WelcomeFeature("▧","APK i AAB","Izradite instalacijske i distribucijske pakete."));
-        features.Children.Add(WelcomeFeature("◈","Potpisivanje","Koristite vlastiti ili novi lokalni sigurni ključ."));
+        features.Children.Add(WelcomeFeature("\uE774","Web i HTML","Pretvorite URL ili lokalni sadržaj u Android projekt."));
+        features.Children.Add(WelcomeFeature("\uE8B7","APK i AAB","Izradite instalacijske i distribucijske pakete."));
+        features.Children.Add(WelcomeFeature("\uE72E","Potpisivanje","Koristite vlastiti ili novi lokalni sigurni ključ."));
         PageHost.Children.Add(features);
         var go=Row();
         go.Children.Add(Btn("Otvori nadzornu ploču  →",()=>Navigate("dashboard"),true));
@@ -60,7 +60,11 @@ public partial class MainWindow
     private Border WelcomeFeature(string icon,string title,string body)
     {
         var content=Stack();
-        content.Children.Add(Txt(icon,29,true,BrushOf("#AB99FF"),new Thickness(0,0,0,8)));
+        content.Children.Add(new TextBlock {
+            Text=icon,FontFamily=new FontFamily("Segoe MDL2 Assets"),FontSize=27,
+            Foreground=BrushOf("#AB99FF"),Margin=new Thickness(0,0,0,10),
+            Height=34,VerticalAlignment=VerticalAlignment.Center
+        });
         content.Children.Add(Txt(title,15,true,White,new Thickness(0,0,0,7)));
         content.Children.Add(Txt(body,12,false,Muted));
         var feature=Card(content,new Thickness(18));

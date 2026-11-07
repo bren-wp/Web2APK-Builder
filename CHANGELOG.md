@@ -1,5 +1,18 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.11 — novi marketinški README i detaljniji Windows UI audit
+
+- Potpuno redizajniran i lektoriran GitHub README na hrvatskom: brendirani naslov s originalnim Brendigo SVG ikonama, jasna vrijednost proizvoda, izravni linkovi za preuzimanje najnovijeg izdanja i vizualni prikaz glavnih funkcija.
+- README koristi isključivo postojeće stvarne snimke izvršenog Windows WPF sučelja iz repozitorija: početni zaslon, Dashboard, Projects, šest koraka čarobnjaka, stanja Previewa, Source Viewer, License Studio, minimalni prozori i Splash. Nema vanjskih slika ni izmišljenih prikaza.
+- Uklonjeni su zastarjeli opisi plaćenih Windows funkcija i zaključanog splasha. Jasno je opisano da Windows Portable/Setup koristi sve mogućnosti bez licence, dok Android Mobile zasebno podržava BL2.
+- Windows početni ekran koristi dosljedne jednobojne Segoe MDL2 ikonice umjesto miješanih emoji stilova. Oznaka proizvoda i tipografija u izborniku dodatno su usklađene.
+- Naslovna traka koristi Windows sustavne ikone Minimize/Maximize/Restore/Close i pravilno mijenja oznaku za maksimizirano stanje; TextBox polja imaju kontrastni fokus tipkovnice.
+- Iz korisničkih Postavki i dijaloga oporavka projekata uklonjeni su zastarjeli opisi „licencnih mjesta”; About više nema pogrešan rezervni tekst verzije 0.5.0.
+- Stvarne WPF snimke i geometrijski UI testovi prošireni su na svih devet glavnih zaslona pri 1024 × 740 uz postojeće desktop 1440 × 900, kompaktne 900 × 650 i minimalne 840 × 570 prikaze.
+- Windows, License Studio, oba instalera i Android klijent ažurirani su na 0.6.11 (Android versionCode 18); GitHub Release mora sadržavati šest standardnih datoteka.
+- Apsolutno pixel-perfect 1:1 poklapanje s originalnim referencama nije proglašeno bez fizičkih DPI testova i točnog poravnanja dizajnerskih izvornika. Detalji: docs/UI-PIXEL-AUDIT-v0.6.11.md.
+
+
 ## v0.6.10 — stvarni pregled uređaja, izvorni kod i ZIP bez licence
 
 - **Preview zaslon:** kontrola „WebView sadržaj” ne prikazuje aktivno stanje prije učitavanja preglednika; tipka „Pokreni test” uključuje živi pregled, a isključivanje vraća simulirani prikaz i oslobađa WebView. Prelazak na telefon, tablet ili offline poništava stanje aktivnog pregleda.
