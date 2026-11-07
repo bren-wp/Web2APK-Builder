@@ -115,7 +115,7 @@ public partial class MainWindow : Window
         SidebarFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         SidebarBrandArea.Margin = compact ? new Thickness(0,3,0,19) : new Thickness(8,3,0,27);
         SidebarLogoTile.Width = SidebarLogoTile.Height = compact ? 46 : 47;
-        HeaderContent.Margin = new Thickness(compact ? 20 : 32,0);
+        HeaderContent.Margin = new Thickness(compact ? 20 : 32,0,compact ? 20 : 32,0);
         PageHost.Margin = compact ? new Thickness(20,9,20,34) : new Thickness(32,9,32,42);
         SdkStatusBadge.Visibility = logicalWidth < 1060 ? Visibility.Collapsed : Visibility.Visible;
         foreach(var caption in NavigationHost.Children.OfType<TextBlock>())
@@ -131,7 +131,7 @@ public partial class MainWindow : Window
         foreach (var entry in _navButtons)
         {
             entry.Value.Padding = compact ? new Thickness(8,11,7,11) :
-                new Thickness(13,11);
+                new Thickness(13,11,13,11);
             entry.Value.HorizontalContentAlignment = compact ?
                 HorizontalAlignment.Center : HorizontalAlignment.Left;
             var item = entry.Value.Content as StackPanel;
