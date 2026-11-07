@@ -43,6 +43,8 @@ public partial class MainWindow : Window
     private Grid? _previewSurface;
     private string _previewDevice = "phone";
     private bool _previewSplash = true;
+    private bool _previewWebViewEnabled;
+    private CheckBox? _previewWebToggle;
     private FrameworkElement? _heroPhone;
     private ColumnDefinition? _heroVisualColumn;
 
@@ -263,7 +265,8 @@ public partial class MainWindow : Window
             _previewWebViewEnabled = false;
         }
         _page = page;
-        _previewLeftCard = null; _previewCenterCard = null; _previewRightCard = null; _previewSurface = null;
+        _previewLeftCard = null; _previewCenterCard = null; _previewRightCard = null;
+        _previewSurface = null; _previewWebToggle = null;
         _heroPhone = null;
         _heroVisualColumn = null;
         _summaryTitle=null;_summaryPackageText=null;

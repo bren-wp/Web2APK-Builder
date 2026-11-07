@@ -45,13 +45,14 @@ public sealed class SourceViewerWindow : Window
         heading.Children.Add(new TextBlock{
             Text="Izvorni Android projekt",FontSize=25,FontWeight=FontWeights.Bold});
         heading.Children.Add(new TextBlock{
-            Text="Java, Gradle, AndroidManifest i resursi. Pregled i ZIP dostupni su plaćenim paketima.",
+            Text="Java, Gradle, AndroidManifest i resursi. Pregled i ZIP dostupni su bez licence.",
             Foreground=Brush("#A8B9DE"),FontSize=12,Margin=new Thickness(0,5,0,0),
             TextWrapping=TextWrapping.Wrap});
         Grid.SetRow(heading,0);root.Children.Add(heading);
 
         var grid=new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(275)});
+        var sourceListColumn=new ColumnDefinition{Width=new GridLength(275)};
+        grid.ColumnDefinitions.Add(sourceListColumn);
         grid.ColumnDefinitions.Add(new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)});
         _files=new ListBox{Background=Brush("#15213C"),Foreground=Brush("#E5EAFB"),
             BorderBrush=Brush("#3C4C70"),BorderThickness=new Thickness(1),
@@ -74,19 +75,43 @@ public sealed class SourceViewerWindow : Window
         Grid.SetColumn(_source,1);grid.Children.Add(_source);
         Grid.SetRow(grid,1);root.Children.Add(grid);
 
-        var footer=new DockPanel{LastChildFill=false,Margin=new Thickness(0,18,0,0)};
-        var note=new TextBlock{
+        var footer=new Grid {Margin=new Thickness(0,18,0,0)};
+        footer.ColumnDefinitions.Add(new ColumnDefinition {
+            Width=new GridLength(1,GridUnitType.Star) });
+        footer.ColumnDefinitions.Add(new ColumnDefinition {Width=GridLength.Auto});
+        footer.RowDefinitions.Add(new RowDefinition {Height=GridLength.Auto});
+        footer.RowDefinitions.Add(new RowDefinition {Height=GridLength.Auto});
+        var note=new TextBlock {
             Text="Projekt je generiran lokalno · podrška: info@apk.com.hr",
-            Foreground=Brush("#9CADCE"),FontSize=11,VerticalAlignment=VerticalAlignment.Center};
-        DockPanel.SetDock(note,Dock.Left);footer.Children.Add(note);
+            Foreground=Brush("#9CADCE"),FontSize=11,
+            VerticalAlignment=VerticalAlignment.Center,TextWrapping=TextWrapping.Wrap
+        };
+        footer.Children.Add(note);
         var download=MakeButton("Preuzmi izvorni kod (.zip)");
         download.Click+=(_,_)=>SaveZip();
-        DockPanel.SetDock(download,Dock.Right);footer.Children.Add(download);
         var close=MakeButton("Zatvori");
         close.Click+=(_,_)=>Close();
         close.Margin=new Thickness(0,0,12,0);
-        DockPanel.SetDock(close,Dock.Right);footer.Children.Add(close);
-        Grid.SetRow(footer,2);root.Children.Add(footer);
+        var footerActions=new WrapPanel {Orientation=Orientation.Horizontal,
+            HorizontalAlignment=HorizontalAlignment.Right};
+        footerActions.Children.Add(close);
+        footerActions.Children.Add(download);
+        Grid.SetColumn(footerActions,1);
+        footer.Children.Add(footerActions);
+        Grid.SetRow(footer,2);
+        root.Children.Add(footer);
+        SizeChanged+=(_,_)=>{
+            var narrow=ActualWidth<960;
+            sourceListColumn.Width=new GridLength(narrow?210:275);
+            Grid.SetRow(footerActions,narrow?1:0);
+            Grid.SetColumn(footerActions,narrow?0:1);
+            footerActions.HorizontalAlignment=narrow?
+                HorizontalAlignment.Left:HorizontalAlignment.Right;
+            footerActions.Margin=narrow?
+                new Thickness(0,8,0,0):new Thickness(0);
+            footer.ColumnDefinitions[1].Width=narrow?
+                new GridLength(0):GridLength.Auto;
+        };
         Content=root;
         if(_files.Items.Count>0)_files.SelectedIndex=0;
         Closed+=(_,_)=>{
@@ -99,7 +124,9 @@ public sealed class SourceViewerWindow : Window
     private static Brush Brush(string color)=>
         new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
     private static Button MakeButton(string title)=>new(){
-        Content=title,Padding=new Thickness(18,9,18,9),
+        Content=title,
+        Style=(Style)Application.Current.FindResource("StudioButton"),
+        Padding=new Thickness(18,9,18,9),
         Foreground=Brush("#EFF1FF"),Background=Brush("#5141AD"),
         BorderBrush=Brush("#7667CD"),MinHeight=40,Cursor=System.Windows.Input.Cursors.Hand
     };
