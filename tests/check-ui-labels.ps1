@@ -60,7 +60,7 @@ if(-not ($ent.Contains('public const string Agency') -and
 $viewer=Get-Content 'src/Brendigo.Web2APK.Windows/SourceViewerWindow.cs' -Raw
 if(-not ($viewer.Contains('LicenseActivationStore.Require') -and
     $viewer.Contains('ZipFile.CreateFromDirectory'))) {
-    throw 'Paid source-code browser or ZIP export missing.'
+    throw 'Source browser or ZIP export missing.'
 }
 $studio=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/MainWindow.xaml' -Raw
 if(-not ($studio.Contains('AgencyDuration') -and $studio.Contains('AgencyButton'))) {
@@ -93,19 +93,19 @@ $studioProject=Get-Content 'src/Brendigo.Web2APK.LicenseStudio/Brendigo.Web2APK.
 $gradleProject=Get-Content 'android/app/build.gradle' -Raw
 $releaseWorkflow=Get-Content '.github/workflows/windows-release.yml' -Raw
 foreach($project in @($winProject,$studioProject)){
- foreach($marker in @('<Version>0.6.9</Version>','<FileVersion>0.6.9.0</FileVersion>','<AssemblyVersion>0.6.9.0</AssemblyVersion>')){
+ foreach($marker in @('<Version>0.6.10</Version>','<FileVersion>0.6.10.0</FileVersion>','<AssemblyVersion>0.6.10.0</AssemblyVersion>')){
   if(-not $project.Contains($marker)){throw "Release version mismatch: $marker"}
  }
 }
-if(-not $gradleProject.Contains("versionCode 16") -or
-   -not $gradleProject.Contains("versionName '0.6.9'") -or
-   -not $releaseWorkflow.Contains("$('v0.6.9')")){
- throw 'Android metadata and release workflow version must match v0.6.9.'
+if(-not $gradleProject.Contains("versionCode 17") -or
+   -not $gradleProject.Contains("versionName '0.6.10'") -or
+   -not $releaseWorkflow.Contains("$('v0.6.10')")){
+ throw 'Android metadata and release workflow version must match v0.6.10.'
 }
-Write-Host 'Windows and Android release versions verified: 0.6.9 (Android code 16).'
+Write-Host 'Windows and Android release versions verified: 0.6.10 (Android code 17).'
 
 foreach($installer in @('installer/Brendigo-Web2APK.iss','installer/Brendigo-LicenseStudio.iss')) {
- if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.9"')) {
+ if(-not (Get-Content $installer -Raw).Contains('#define MyAppVersion "0.6.10"')) {
    throw "Installer version mismatch: $installer"
  }
 }
@@ -195,3 +195,28 @@ if(-not ($mainTheme.Contains('IsKeyboardFocusWithin') -and
   throw 'Full-pixel WPF, accessible focus or minimum-size screen QA missing.'
 }
 Write-Host 'All-screen compact WPF and pixel-by-pixel regression checks configured.'
+
+# All real preview modes and the source browser must be testable without
+# synthetic artwork, paid activation or launching the user's web URL.
+$previewUi=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Preview.cs' -Raw
+$sourceUi=Get-Content 'src/Brendigo.Web2APK.Windows/SourceViewerWindow.cs' -Raw
+$screenCapture=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.Capture.cs' -Raw
+$windowsState=Get-Content 'src/Brendigo.Web2APK.Windows/MainWindow.xaml.cs' -Raw
+foreach($marker in @('preview-tablet-small-900','preview-offline-small-900',
+   'preview-no-splash-small-900','source-viewer-minimum-760',
+   'ClickPreviewDevice("tablet"','ClickPreviewDevice("offline"')) {
+  if(-not $screenCapture.Contains($marker)){
+     throw "Missing real multi-state WPF screen capture: $marker"
+  }
+}
+if(-not ($previewUi.Contains('_previewWebToggle=PreviewToggle') -and
+         $previewUi.Contains('"Uključi ili isključi živi WebView pregled"') -and
+         $windowsState.Contains('_previewWebViewEnabled = false') -and
+         $sourceUi.Contains('Pregled i ZIP dostupni su bez licence.') -and
+         $sourceUi.Contains('sourceListColumn.Width=new GridLength(narrow?210:275)') -and
+         $sourceUi.Contains('ZipFile.CreateFromDirectory(_root,staging') -and
+         $sourceUi.Contains('File.Move(staging,destination)') -and
+         $sourceUi.Contains('FindResource("StudioButton")'))) {
+  throw 'Preview state, license-free source viewer or atomic ZIP export regression.'
+}
+Write-Host 'Real preview modes and license-free source browser with atomic ZIP verified.'

@@ -1,5 +1,5 @@
 #define MyAppName "Brendigo Web2APK Builder"
-#define MyAppVersion "0.6.9"
+#define MyAppVersion "0.6.10"
 #define MyAppPublisher "Brendigo"
 #define MyAppExeName "Brendigo.Web2APK.exe"
 

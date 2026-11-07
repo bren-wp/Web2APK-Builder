@@ -8,6 +8,14 @@ CI snima stvarne Windows WPF zaslone na 1440 × 900 i dodatno sve glavne stranic
 
 Stvarne snimke i CI testovi ne potvrđuju automatski potpuno podudaranje s izvornim konceptnim referencama, stvarnim povećanjem Windows fonta ili fizičkim DPI postavkama. Windows Portable i Setup i dalje **ne zahtijevaju licencu ni aktivacijski ključ**.
 
+## Preview, Source Viewer i ZIP (v0.6.10)
+
+Na zaslonu Pregled aplikacije možete prebacivati Telefon, Tablet i Pregled izvan mreže. Opcija „WebView sadržaj” pokazuje stvarno stanje žive web-stranice: početno nije uključena. Klikom na „Pokreni test” pokreće se živi prikaz, a isključivanje vraća statički izgled. Prelazak na drugi uređaj zaustavlja prethodni WebView. Offline stanje je namjerna simulacija, ne stvarna offline provjera vanjskog URL-a.
+
+Pregled izvornog koda i ZIP izvoz dostupni su **bez licence** u Windows Portable i Setup izdanjima. Pri manjoj veličini prozora sužava se popis datoteka i gumbi prelaze u zaseban red. Izvoz se prvo sprema u privremeni ZIP i tek nakon završetka premješta u odabrani naziv, da nepotpuna arhiva ne ostane pod konačnim imenom. Program sprečava izvoz u samu mapu izvornog koda.
+
+Stvarne snimke zaslona i CI kontrole opisane su u `docs/UI-PIXEL-AUDIT-v0.6.10.md`. Ova provjera nije potvrda fizičkog DPI skaliranja i podudarnosti sa svim dizajnerskim referencama.
+
 ## 1. Instalacija Windows programa
 Preuzmite `Brendigo-Web2APK-Setup.exe` za instalaciju ili `Brendigo-Web2APK-portable.exe` za pokretanje bez instalacije. Prozor se otvara u standardnoj veličini i može se smanjivati. Datoteke aplikacije i projekata spremaju se lokalno. Windows izvršne datoteke mogu biti nepotpisane; prije pokretanja provjerite izvor izdanja.
 

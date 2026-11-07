@@ -1,5 +1,18 @@
 # Brendigo Web2APK Builder — promjene
 
+## v0.6.10 — stvarni pregled uređaja, izvorni kod i ZIP bez licence
+
+- **Preview zaslon:** kontrola „WebView sadržaj” ne prikazuje aktivno stanje prije učitavanja preglednika; tipka „Pokreni test” uključuje živi pregled, a isključivanje vraća simulirani prikaz i oslobađa WebView. Prelazak na telefon, tablet ili offline poništava stanje aktivnog pregleda.
+- **Više stvarnih WPF stanja:** nove snimke Preview telefona, tableta, offline prikaza i bez Splash ikone na 900/840 px; kontrola stvarnih promjena klikovima gumba za uređaje.
+- **Source Viewer:** ispravljen zastarjeli tekst o plaćenim paketima, jer je Windows Builder od v0.6.8 bez licenci. Izvorni kod i ZIP dostupni su svima, a gumbi sada koriste standardnu WPF Studio tipografiju i vidljivi fokus.
+- **Responzivni Source Viewer:** prilagođava širinu popisa datoteka i prebacuje ZIP/Zatvori gumbe u drugi red pri užem prozoru. CI sada snima stvarni Viewer pri standardnoj i najmanjoj širini 760 px i testira da nijedan gumb ne izlazi iz prozora.
+- **Sigurnost ZIP izvoza:** generiranje ide u privremenu datoteku u odredišnoj mapi i atomarno se premješta nakon uspješnog završetka; odredišta unutar izvorne mape odbijaju se, a privremeni ostatci brišu se pri pogrešci.
+- **Dokumentacija:** uklonjene su zavaravajuće upute da Windows Builder i dalje troši BL2 licencna mjesta; zasebni Android Mobile BL2 model opisan je odvojeno.
+- Windows i License Studio 0.6.10, instaleri 0.6.10 te Android Mobile 0.6.10 (`versionCode 17`); svih šest standardnih release datoteka ostaje obvezno.
+- **Windows Builder Portable i Setup i dalje ne traže licencu, aktivaciju, račun ni plaćanje.**
+- Pixel-diff WPF testa uspoređuje dva stvarna izdanja; apsolutna 1:1 jednakost sa svim izvornim dizajnerskim referencama još nije potvrđena.
+
+
 ## v0.6.9 — responzivni 1:1 rad po zaslonima i puna usporedba piksela
 
 - Ispravljena kompaktna bočna navigacija u Windows Builderu: logotip i ikone imaju prilagođene razmake, tekstualne oznake odjeljaka nestaju samo kada suženi izbornik nema dovoljno prostora, a svaki gumb zadržava vlastiti tooltip.

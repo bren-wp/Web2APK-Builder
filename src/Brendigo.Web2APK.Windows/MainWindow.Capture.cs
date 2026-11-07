@@ -242,6 +242,9 @@ public partial class MainWindow
                     throw new InvalidOperationException("Hidden welcome/dashboard artwork keeps an empty column.");
                 if(page=="preview")
                 {
+                    if(_previewWebToggle is null || _previewWebToggle.IsChecked!=false)
+                        throw new InvalidOperationException(
+                            "Preview must start with WebView preview disabled, not misleadingly checked.");
                     CheckCard(_previewLeftCard,"preview devices at "+width);
                     CheckCard(_previewCenterCard,"preview phone at "+width);
                     CheckCard(_previewRightCard,"preview properties at "+width);
@@ -284,6 +287,76 @@ public partial class MainWindow
                 CaptureCompact("new","wizard-"+(step+1)+"-minimum-840",840,570);
                 CaptureCompact("new","wizard-"+(step+1)+"-compact-1024",1024,740);
             }
+            // Capture actual device-state switches and splash visibility,
+            // not only the default phone composition.
+            _previewDevice="tablet";
+            CaptureCompact("preview","preview-tablet-small-900",900,650);
+            _previewDevice="offline";
+            CaptureCompact("preview","preview-offline-small-900",900,650);
+            _previewDevice="phone";
+            _previewSplash=false;
+            CaptureCompact("preview","preview-no-splash-small-900",900,650);
+            _previewSplash=true;
+            CaptureCompact("preview","preview-phone-minimum-840",840,570);
+
+            // Capture the actual locally generated Android source browser at
+            // desktop and minimum sizes without synthetic product screenshots.
+            var sourceFixture=new Brendigo.Web2APK.Core.ProjectDefinition {
+                Name="Brendigo Source Viewer",
+                PackageName="com.brendigo.sourcepreview",
+                Url="https://example.com",
+                JavaScript=true
+            };
+            var sourceWindow=new SourceViewerWindow(sourceFixture);
+            try
+            {
+                sourceWindow.Show();
+                foreach(var (windowWidth,windowHeight,shotName) in new[]{
+                    (1130,790,"source-viewer"),
+                    (760,520,"source-viewer-minimum-760")
+                })
+                {
+                    sourceWindow.Width=windowWidth;
+                    sourceWindow.Height=windowHeight;
+                    Dispatcher.Invoke(()=>{},DispatcherPriority.Loaded);
+                    sourceWindow.UpdateLayout();
+                    if(sourceWindow.Content is not Grid contentGrid)
+                        throw new InvalidOperationException("Source viewer content is not a Grid.");
+                    var sourceContent=contentGrid.Children.OfType<Grid>().FirstOrDefault();
+                    var footer=contentGrid.Children.OfType<Grid>().LastOrDefault();
+                    if(sourceContent is null || footer is null)
+                        throw new InvalidOperationException("Missing source viewer panels.");
+                    var files=sourceContent.Children.OfType<ListBox>().FirstOrDefault();
+                    var sourceText=sourceContent.Children.OfType<TextBox>().FirstOrDefault();
+                    if(files is null || sourceText is null || files.Items.Count==0)
+                        throw new InvalidOperationException("Source viewer files were not generated.");
+                    if(sourceText.ActualWidth<180 || files.ActualWidth<150)
+                        throw new InvalidOperationException("Source viewer columns clipped: "+shotName);
+                    foreach(var action in footer.Children.OfType<WrapPanel>()
+                        .SelectMany(panel=>panel.Children.OfType<Button>()))
+                    {
+                        var pos=action.TranslatePoint(new Point(0,0),contentGrid);
+                        if(pos.X< -3 || pos.X+action.ActualWidth>contentGrid.ActualWidth+3)
+                            throw new InvalidOperationException(
+                                "Source viewer footer clipped at "+shotName+": "+
+                                action.Content);
+                    }
+                    var shotWidth=(int)Math.Round(contentGrid.ActualWidth);
+                    var shotHeight=(int)Math.Round(contentGrid.ActualHeight);
+                    var img=new RenderTargetBitmap(shotWidth,shotHeight,96,96,
+                        PixelFormats.Pbgra32);
+                    img.Render(contentGrid);
+                    var encoder=new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(img));
+                    using var file=File.Create(Path.Combine(folder,shotName+".png"));
+                    encoder.Save(file);
+                    File.AppendAllText(diagnostics,
+                        "Real source window "+shotName+" "+shotWidth+"x"+shotHeight+
+                        Environment.NewLine);
+                }
+            }
+            finally { sourceWindow.Close(); }
+
             // A synthetic row is used ONLY as an offscreen layout assertion:
             // it is never published as a screenshot or product/project data.
             Reflow(900,650);
@@ -336,6 +409,38 @@ public partial class MainWindow
             ClickAndAssert("welcome","Novi projekt","new");
             ClickAndAssert("dashboard","Moji projekti","projects");
             ClickAndAssert("projects","Novi projekt","new");
+            // Real UI button interactions: switch device preview modes without
+            // launching a networked browser in headless CI.
+            void ClickPreviewDevice(string expected,string name)
+            {
+                Navigate("preview");
+                Reflow(900,650);
+                Button? FindDevice(DependencyObject root)
+                {
+                    if(root is Button b &&
+                       System.Windows.Automation.AutomationProperties.GetName(b)==
+                           "Odaberi prikaz uređaja: "+name)return b;
+                    for(var i=0;i<VisualTreeHelper.GetChildrenCount(root);i++)
+                    {
+                        var found=FindDevice(VisualTreeHelper.GetChild(root,i));
+                        if(found!=null)return found;
+                    }
+                    return null;
+                }
+                var control=FindDevice(PageHost) ??
+                    throw new InvalidOperationException("Preview device button missing: "+name);
+                control.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Reflow(900,650);
+                if(_previewDevice!=expected || _page!="preview" ||
+                    _previewWebToggle?.IsChecked!=false)
+                    throw new InvalidOperationException(
+                        "Preview device selection did not refresh UI: "+name);
+                File.AppendAllText(diagnostics,
+                    "Real preview device switch passed: "+name+Environment.NewLine);
+            }
+            ClickPreviewDevice("tablet","Android tablet");
+            ClickPreviewDevice("offline","Pregled izvan mreže");
+            ClickPreviewDevice("phone","Android telefon");
             // Render high-density raster captures at the same 900x650 logical viewport.
             // This verifies WPF rendering at 125, 150 and 200 percent bitmap density,
             // but is not a substitute for physical per-monitor DPI or font-scale tests.

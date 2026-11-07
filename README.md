@@ -43,6 +43,10 @@ Snimke niže nastaju **automatskim renderiranjem stvarnog nativnog WPF sučelja*
 | **Dozvole i privatnost** | **APK/AAB izrada** |
 | ![Stvarni WPF zaslon dozvola](docs/screenshots/native/wizard-5-permissions.png) | ![Stvarni WPF zaslon za izradu](docs/screenshots/native/wizard-6-build.png) |
 
+**Stvarni pregled izvornog koda:** [standardni prozor](docs/screenshots/native/source-viewer.png) · [minimalna širina 760 px](docs/screenshots/native/source-viewer-minimum-760.png).
+
+**Stvarna stanja pregleda na 900 px:** [Tablet](docs/screenshots/native/preview-tablet-small-900.png) · [Offline](docs/screenshots/native/preview-offline-small-900.png) · [bez Splash ikone](docs/screenshots/native/preview-no-splash-small-900.png) · [Telefon pri 840 px](docs/screenshots/native/preview-phone-minimum-840.png). Snimke nastaju iz stvarnog WPF programa u CI-ju.
+
 **Stvarni Brendigo License Studio:** ![License Studio — stvarni Windows WPF prozor](docs/screenshots/native/license-studio.png)
 
 **Dodatne snimke na malim prozorima:** [Početni zaslon 900 px](docs/screenshots/native/welcome-small-900.png) · [Nadzorna ploča 900 px](docs/screenshots/native/dashboard-small-900.png) · [Moji projekti 900 px](docs/screenshots/native/projects-small-900.png) · [Postavke 900 px](docs/screenshots/native/settings-small-900.png) · [Razvojni alati 900 px](docs/screenshots/native/tools-small-900.png) · [Dokumentacija 900 px](docs/screenshots/native/docs-small-900.png).
@@ -77,19 +81,27 @@ Android WebView koristi širinu zaslona, viewport i sigurne rubove; konačni izg
 
 **Automatski package ID:** novi Windows projekti dobivaju jedinstveni Android `applicationId` iz naziva (uključujući hrvatska slova) i stabilnog internog GUID-a. Nema obveznog ručnog unosa. ID možete urediti prije prve objave; nakon spremanja ime aplikacije može se mijenjati bez promjene ID-ja. Ako promijenite ID već spremljenog projekta, Windows Builder traži izričitu potvrdu jer Google Play to tretira kao drugu aplikaciju, a u Android sustavu aplikacija će imati drugi identitet.
 
-**Automatsko povezivanje licenci:** za nove licence Demo, Osnovno i Profesionalac License Studio više ne traži ručni package ID. Digitalno potpisana BL2 licenca ima automatski opseg `@`; Windows Builder pri prvom izvozu ili izradi bilježi package ID u lokalnoj DPAPI-zaštićenoj evidenciji. Demo i Osnovno dopuštaju jednu aplikaciju, Profesionalac tri. Ponovne izrade istog ID-ja ne troše nova mjesta; brisanje projekta ih ne oslobađa. Stare licence s unaprijed potpisanim package ID-jevima ostaju podržane. Ovo je **lokalno ograničenje**: bez aktivacijskog poslužitelja nije moguće pouzdano spriječiti brisanje evidencije ni uskladiti upotrebu na više računala.
+**Zasebno licenciranje Android Mobile klijenta:** Brendigo License Studio i dalje može generirati BL2 tokene s automatskim opsegom `@`, a mobilni klijent koristi vlastiti lokalni popis aktivacija. Paketi Demo, Osnovno i Profesionalac imaju različita prava i broj aplikacija u **mobilnom BL2 sustavu**, dok **Windows Builder Portable/Setup ne traže licence, ne zauzimaju mjesta i ne ograničavaju nijednu funkciju**. Android BL2 evidencija nije globalno sinkronizirana između uređaja.
 
-**Agencija:** predloženi komercijalni model **39 €/mj. ili 390 €/god.**, sve mogućnosti Developera i pravo izrade te komercijalne isporuke APK/AAB aplikacija klijentima tijekom aktivne pretplate. Licenca ima kriptografski potpisan datum isteka; za produženje se izdaje novi token. Pravo preprodaje aplikacija **nije pravo preprodaje vlasničkog License Studija ili privatnih licencnih ključeva**. Ovo je tehnički predloženi cjenik, ne aktiviran sustav automatske naplate.
+**Mobilni BL2 model — Agencija:** predloženi komercijalni model **39 €/mj. ili 390 €/god.**, sve mogućnosti Developera i pravo izrade te komercijalne isporuke APK/AAB aplikacija klijentima tijekom aktivne pretplate. Licenca ima kriptografski potpisan datum isteka; za produženje se izdaje novi token. Pravo preprodaje aplikacija **nije pravo preprodaje vlasničkog License Studija ili privatnih licencnih ključeva**. Ovo je tehnički predloženi cjenik, ne aktiviran sustav automatske naplate.
 
-**Developer:** neograničena vlasnička doživotna licenca, sve opcije; nije namijenjena prodaji.
+**Mobilni BL2 model — Developer:** neograničena vlasnička doživotna licenca, sve opcije; nije namijenjena prodaji.
 
-Licencama se upravlja kroz **Postavke → Licence**, uz prikaz točno povezanih package ID-jeva, zauzetih i preostalih mjesta automatskih licenci, maskirani prikaz i zamjenu ključa. Bez serverske provjere nije moguće pouzdano spriječiti vraćanje sistemskog sata niti kopiranje offline ključa; za komercijalnu pretplatu preporučena je online revizija u budućoj verziji.
+**Windows Postavke ne sadrže karticu za aktivaciju**: sve mogućnosti Windows Buildera rade bez licence. Za izdavanje i pregled zasebnih BL2 mobilnih licenci koristi se License Studio i Android Mobile klijent. Bez serverske provjere nije moguće centralno ograničiti offline aktivacije između uređaja.
 
 Brendigo License Studio generira potpisane licence s odabranim paketima i razdobljem, bez privatnog ključa u korisničkoj aplikaciji. [Potpune upute za izdavanje licenci](docs/LICENSE-STUDIO-HR.md).
 
 ### Zaštita lokalne baze projekata
 
 Windows Studio pohranjuje projekte u lokalni `projects.json` i na svakom sljedećem spremanju zadržava prethodnu valjanu snimku kao `projects.json.bak`. Paralelna spremanja iz različitih instanci serijalizirana su zajedničkom blokadom, a neispravne, duplicirane i prevelike baze odbijaju se bez automatskog brisanja. Ako je baza oštećena, Studio otvara Postavke umjesto prekidanja pokretanja i omogućuje **Vraćanje projekata iz sigurnosne kopije** uz izričitu potvrdu. Prije oporavka provjerava se valjanost kopije, a zatečeni `projects.json` ostaje spremljen kao `projects.json.recovery-*.json`; obnova ne mijenja odvojene datoteke starog BL2 sustava. Preporučuje se dodatna sigurnosna kopija cijele mape podataka prije oporavka. Pohrana nije zamjena za vanjsku sigurnosnu kopiju diska.
+
+### Izvorni kod i stanja preglednika (v0.6.10)
+
+**Pregled aplikacije:** „WebView sadržaj” počinje isključen, kao što odgovara stvarnom stanju prije pokretanja prikaza. „Pokreni test” ga uključuje; isključivanje vraća simulirani splash i oslobađa WebView. Promjena uređaja (telefon, tablet, offline) ne prenosi pogrešno aktivni prikaz. Sva četiri stanja imaju stvarne CI WPF snimke.
+
+**Pregled izvornog koda:** standardni i minimalni prozor prilagođavaju stupac datoteka i položaj akcijskih gumba. Pregled i ZIP dostupni su bez licence; ZIP se stvara kao privremena datoteka pokraj odredišta te se po završetku atomarno premješta, umjesto da eventualno nedovršena arhiva ostane pod izabranim nazivom.
+
+[Izvještaj o zaslonima i ograničenjima 1:1 provjere v0.6.10](docs/UI-PIXEL-AUDIT-v0.6.10.md).
 
 ### Sigurnost WebViewa i potpisivanja
 

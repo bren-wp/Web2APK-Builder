@@ -15,6 +15,8 @@ public partial class MainWindow
     {
         if (_previewDevice == "offline")
         {
+            _previewWebViewEnabled = false;
+            if (_previewWebToggle != null) _previewWebToggle.IsChecked = false;
             ShowInfo("Izvanmrežni prikaz je simulacija izgleda bez mreže. Za pregled lokalnog HTML-a odaberite Telefon ili Tablet.");
             return;
         }
@@ -22,6 +24,7 @@ public partial class MainWindow
         try
         {
             _draft.Validate();
+            _previewWebViewEnabled=true;
             _previewBrowser?.Dispose();
             var browser = new WebView2 { HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch, DefaultBackgroundColor = System.Drawing.Color.White };
@@ -70,6 +73,9 @@ public partial class MainWindow
         }
         catch (Exception e)
         {
+            _previewWebViewEnabled=false;
+            if(_previewWebToggle != null && _previewWebToggle.IsChecked==true)
+                _previewWebToggle.IsChecked=false;
             _previewBrowser?.Dispose();
             _previewBrowser = null;
             if (_previewSurface != null)
@@ -90,7 +96,11 @@ public partial class MainWindow
             13,false,Muted));
         var buttons=Row();
         buttons.Margin=new Thickness(0,1,0,10);
-        buttons.Children.Add(Btn("▷  Pokreni test", StartLivePreview, true));
+        buttons.Children.Add(Btn("▷  Pokreni test", () => {
+            if(_previewWebToggle?.IsChecked==false)
+                _previewWebToggle.IsChecked=true; // Handles starting the live WebView.
+            else StartLivePreview();
+        }, true));
         buttons.Children.Add(Btn("↗  Otvori u pregledniku",()=>{
             if(_draft.SourceType!="url") { ShowInfo("Lokalni HTML provjerite pomoću gumba Pokreni test.");return; }
             if(!Uri.TryCreate(_draft.Url,UriKind.Absolute,out var uri) ||
@@ -191,11 +201,27 @@ public partial class MainWindow
         area.Children.Add(frame);
 
         properties.Children.Add(Txt("Pregled svojstava",17,true,White,new Thickness(0,0,0,14)));
-        properties.Children.Add(PreviewToggle("WebView sadržaj","Pregled URL-a / lokalnog HTML-a",true,
-            enabled => { if (enabled) StartLivePreview(); else Navigate("preview"); }));
+        _previewWebToggle=PreviewToggle("WebView sadržaj",
+            "Pregled URL-a / lokalnog HTML-a",_previewWebViewEnabled,
+            enabled => {
+                if(enabled) StartLivePreview();
+                else
+                {
+                    _previewWebViewEnabled=false;
+                    Navigate("preview"); // Restore native splash, dispose live browser.
+                }
+            });
+        System.Windows.Automation.AutomationProperties.SetName(_previewWebToggle,
+            "Uključi ili isključi živi WebView pregled");
+        properties.Children.Add(_previewWebToggle);
         properties.Children.Add(Divider());
         properties.Children.Add(PreviewToggle("Splash zaslon","Ikonica i početna boja",_previewSplash&&_draft.Splash,
-            enabled => { _previewSplash=enabled; _draft.Splash=enabled; Navigate("preview"); }));
+            enabled => {
+                _previewWebViewEnabled=false;
+                _previewSplash=enabled;
+                _draft.Splash=enabled;
+                Navigate("preview");
+            }));
         properties.Children.Add(Divider());
         properties.Children.Add(PreviewToggle("Vanjske poveznice","Otvori u pregledniku na Androidu",_draft.OpenExternal,
             enabled => _draft.OpenExternal=enabled));
@@ -241,7 +267,13 @@ public partial class MainWindow
         label.Children.Add(Txt(subtitle,11,false,Muted,new Thickness(0,5,0,0)));
         entry.Children.Add(label);
         var selected=id==_previewDevice;
-        var button=Btn("",()=>{_previewDevice=id;Navigate("preview");});
+        var button=Btn("",()=>{
+            _previewWebViewEnabled=false;
+            _previewDevice=id;
+            Navigate("preview");
+        });
+        System.Windows.Automation.AutomationProperties.SetName(button,
+            "Odaberi prikaz uređaja: "+name);
         button.Content=entry;
         button.HorizontalContentAlignment=HorizontalAlignment.Left;
         button.Padding=new Thickness(9);

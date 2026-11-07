@@ -256,7 +256,12 @@ public partial class MainWindow : Window
 
     private void Navigate(string page)
     {
-        if (_page == "preview") { _previewBrowser?.Dispose(); _previewBrowser = null; }
+        if (_page == "preview")
+        {
+            _previewBrowser?.Dispose();
+            _previewBrowser = null;
+            _previewWebViewEnabled = false;
+        }
         _page = page;
         _previewLeftCard = null; _previewCenterCard = null; _previewRightCard = null; _previewSurface = null;
         _heroPhone = null;

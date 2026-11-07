@@ -145,8 +145,27 @@ public sealed class SourceViewerWindow : Window
                 return;
             }
             LicenseActivationStore.Require("windows",_project,"source");
-            ZipFile.CreateFromDirectory(_root,dialog.FileName,CompressionLevel.Optimal,
-                includeBaseDirectory:false);
+            // Never write an export into the source tree being zipped; staging
+            // beside the destination prevents incomplete user-visible archives.
+            var destination=Path.GetFullPath(dialog.FileName);
+            var sourcePrefix=Path.GetFullPath(_root)
+                .TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
+            if(destination.StartsWith(sourcePrefix,StringComparison.OrdinalIgnoreCase))
+                throw new IOException("ZIP datoteku odaberite izvan mape izvornog koda.");
+            var directory=Path.GetDirectoryName(destination) ??
+                throw new IOException("Neispravna odredišna mapa.");
+            var staging=Path.Combine(directory,"."+Path.GetFileName(destination)+
+                "."+Guid.NewGuid().ToString("N")+".tmp");
+            try
+            {
+                ZipFile.CreateFromDirectory(_root,staging,CompressionLevel.Optimal,
+                    includeBaseDirectory:false);
+                File.Move(staging,destination); // Fails safely if destination appeared.
+            }
+            finally
+            {
+                if(File.Exists(staging))File.Delete(staging);
+            }
             MessageBox.Show(this,"ZIP izvornog koda je spremljen.","Izvoz",
                 MessageBoxButton.OK,MessageBoxImage.Information);
         }

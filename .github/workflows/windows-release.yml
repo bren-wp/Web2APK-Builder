@@ -71,7 +71,7 @@ jobs:
             }
           }
           $screens = @(Get-ChildItem './docs/screenshots/native' -Filter '*.png')
-          if ($screens.Count -lt 60) { throw "Expected at least 60 real UI captures, found $($screens.Count)" }
+          if ($screens.Count -lt 65) { throw "Expected at least 65 real UI captures, found $($screens.Count)" }
           foreach ($capture in @('wizard-compact-1024','preview-compact-1024','wizard-small-900','preview-small-900','welcome-small-900','dashboard-small-900','projects-small-900','settings-small-900','tools-small-900','docs-small-900','devices-small-900','about-small-900',
               'wizard-1-small-900','wizard-2-small-900','wizard-3-small-900',
               'wizard-4-small-900','wizard-5-small-900','wizard-6-small-900',
@@ -81,7 +81,10 @@ jobs:
               'wizard-1-minimum-840','wizard-2-minimum-840','wizard-3-minimum-840',
               'wizard-4-minimum-840','wizard-5-minimum-840','wizard-6-minimum-840',
               'wizard-1-compact-1024','wizard-2-compact-1024','wizard-3-compact-1024',
-              'wizard-4-compact-1024','wizard-5-compact-1024','wizard-6-compact-1024')) {
+              'wizard-4-compact-1024','wizard-5-compact-1024','wizard-6-compact-1024',
+              'preview-tablet-small-900','preview-offline-small-900',
+              'preview-no-splash-small-900','preview-phone-minimum-840',
+              'source-viewer','source-viewer-minimum-760')) {
             if (-not (Test-Path "./docs/screenshots/native/$capture.png")) {
               throw "Missing responsive layout capture: $capture"
             }
@@ -226,11 +229,11 @@ jobs:
             if (-not (Test-Path $item)) { throw "Android package is missing: $item" }
             if ((Get-Item $item).Length -lt 30000) { throw "Android package is too small: $item" }
           }
-      - name: Publish native v0.6.9
+      - name: Publish native v0.6.10
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = 'v0.6.9'
+          $tag = 'v0.6.10'
           gh release view $tag --repo "$env:GITHUB_REPOSITORY" 2>$null | Out-Null
           if ($LASTEXITCODE -eq 0) { throw 'Increment version for each new release.' }
-          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.6.9" --notes-file CHANGELOG.md
+          gh release create $tag "release/Brendigo-Web2APK-portable.exe" "release/Brendigo-Web2APK-Setup.exe" "release/Brendigo-LicenseStudio-portable.exe" "release/Brendigo-LicenseStudio-Setup.exe" "release/Brendigo-Web2APK-Android-test.apk" "release/Brendigo-Web2APK-Android-unsigned.aab" --repo "$env:GITHUB_REPOSITORY" --target (git rev-parse HEAD) --title "Brendigo Web2APK Builder + License Studio v0.6.10" --notes-file CHANGELOG.md
